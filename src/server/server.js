@@ -15,6 +15,12 @@ import { getCacheEngine } from './common/helpers/session-cache/cache-engine.js'
 import { secureContext } from '@defra/hapi-secure-context'
 import { contentSecurityPolicy } from './plugins/content-security-policy.js'
 import { metrics } from '@defra/cdp-metrics'
+import { federatedOidc } from './plugins/federated-oidc.js'
+import { cognitoFederatedCredentials } from './plugins/cognito.js'
+import { sessionCookie } from './common/helpers/auth/session-cookie.js'
+import { getUserSession } from './common/helpers/auth/get-user-session.js'
+import { dropUserSession } from './common/helpers/auth/drop-user-session.js'
+import { audit } from '@defra/cdp-auditing'
 
 export async function createServer() {
   setupProxy()
@@ -22,6 +28,11 @@ export async function createServer() {
     host: config.get('host'),
     port: config.get('port'),
     routes: {
+      // TODO - enable this when entra ID auth set up
+      // auth: {
+      //   mode: 'try'
+      // },
+      auth: false,
       validate: {
         options: {
           abortEarly: false
@@ -54,6 +65,13 @@ export async function createServer() {
       strictHeader: false
     }
   })
+  server.decorate('request', 'getUserSession', getUserSession)
+  server.decorate('request', 'dropUserSession', dropUserSession)
+  server.decorate('request', 'audit', {
+    sendMessage: (...args) => audit(...args)
+  })
+
+  const credentialProvider = cognitoFederatedCredentials
   await server.register([
     requestLogger,
     requestTracing,
@@ -61,6 +79,9 @@ export async function createServer() {
     secureContext,
     pulse,
     sessionCache,
+    credentialProvider,
+    federatedOidc,
+    sessionCookie,
     nunjucksConfig,
     Scooter,
     contentSecurityPolicy,

@@ -72,6 +72,15 @@ export const config = convict({
     format: Boolean,
     default: isTest
   },
+  backend: {
+    apiUrl: {
+      doc: 'Host for the nrf-backend API service',
+      format: String,
+      nullable: true,
+      default: 'http://localhost:3001',
+      env: 'NRF_BACKEND_API_URL'
+    }
+  },
   log: {
     enabled: {
       doc: 'Is logging enabled',
@@ -214,6 +223,46 @@ export const config = convict({
       default: 'x-cdp-request-id',
       env: 'TRACING_HEADER'
     }
+  },
+  azureFederatedCredentials: {
+    identityPoolId: {
+      doc: 'Azure Federated Credential Pool ID',
+      format: String,
+      env: 'AZURE_IDENTITY_POOL_ID',
+      nullable: true,
+      default: null
+    }
+  },
+  azureTenantId: {
+    doc: 'Azure Active Directory Tenant ID',
+    format: String,
+    env: 'AZURE_TENANT_ID',
+    default: '6f504113-6b64-43f2-ade9-242e05780007'
+  },
+  azureClientId: {
+    doc: 'Azure App Client ID',
+    format: String,
+    env: 'AZURE_CLIENT_ID',
+    default: '26372ac9-d8f0-4da9-a17e-938eb3161d8e'
+  },
+  azureClientSecret: {
+    doc: 'Azure App Client Secret. Defaults to stub secret',
+    format: String,
+    sensitive: true,
+    env: 'AZURE_CLIENT_SECRET',
+    default: 'test_value'
+  },
+  appBaseUrl: {
+    doc: 'Application base URL used for OIDC redirect URIs and logout redirects',
+    format: String,
+    env: 'APP_BASE_URL',
+    default: 'http://localhost:3000'
+  },
+  oidcWellKnownConfigurationUrl: {
+    doc: 'Azure AD OIDC well-known configuration endpoint',
+    format: String,
+    env: 'OIDC_WELL_KNOWN_CONFIGURATION_URL',
+    default: `https://login.microsoftonline.com/6f504113-6b64-43f2-ade9-242e05780007/v2.0/.well-known/openid-configuration`
   }
 })
 
