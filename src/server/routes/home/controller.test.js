@@ -3,7 +3,10 @@ import { http, HttpResponse } from 'msw'
 import { setupTestServer } from '#/test-utils/setup-test-server.js'
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
 import { loadPage } from '#/test-utils/load-page.js'
-import { singleQuoteFixture, multipleQuotesFixture } from '#/test-utils/fixtures/quotes.js'
+import {
+  singleQuoteFixture,
+  multipleQuotesFixture
+} from '#/test-utils/fixtures/quotes.js'
 import { config } from '#/config/config.js'
 
 const backendUrl = config.get('backend.apiUrl')
@@ -22,7 +25,9 @@ describe('Home page', () => {
     const document = await loadHomePage()
 
     expect(document.title).toContain('Home')
-    expect(getByRole(document, 'heading', { level: 1 })).toHaveTextContent('Home')
+    expect(getByRole(document, 'heading', { level: 1 })).toHaveTextContent(
+      'Home'
+    )
   })
 
   it('renders empty state message when no quotes', async () => {
@@ -35,7 +40,9 @@ describe('Home page', () => {
   })
 
   it('renders a table row for each quote', async () => {
-    mswServer.use(http.get(quotesEndpoint, () => HttpResponse.json(multipleQuotesFixture)))
+    mswServer.use(
+      http.get(quotesEndpoint, () => HttpResponse.json(multipleQuotesFixture))
+    )
 
     const document = await loadHomePage()
 
@@ -46,7 +53,9 @@ describe('Home page', () => {
   })
 
   it('renders key quote fields in each row', async () => {
-    mswServer.use(http.get(quotesEndpoint, () => HttpResponse.json(singleQuoteFixture)))
+    mswServer.use(
+      http.get(quotesEndpoint, () => HttpResponse.json(singleQuoteFixture))
+    )
 
     const document = await loadHomePage()
 
@@ -58,7 +67,9 @@ describe('Home page', () => {
   })
 
   it('formats dates in GOV.UK format', async () => {
-    mswServer.use(http.get(quotesEndpoint, () => HttpResponse.json(singleQuoteFixture)))
+    mswServer.use(
+      http.get(quotesEndpoint, () => HttpResponse.json(singleQuoteFixture))
+    )
 
     const document = await loadHomePage()
 
@@ -67,7 +78,9 @@ describe('Home page', () => {
   })
 
   it('renders error message when backend call fails', async () => {
-    mswServer.use(http.get(quotesEndpoint, () => new HttpResponse(null, { status: 500 })))
+    mswServer.use(
+      http.get(quotesEndpoint, () => new HttpResponse(null, { status: 500 }))
+    )
 
     const document = await loadHomePage()
 
