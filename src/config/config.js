@@ -44,7 +44,7 @@ export const config = convict({
   serviceName: {
     doc: 'Applications Service Name',
     format: String,
-    default: 'nrf-admin-frontend'
+    default: 'Nature Restoration Fund'
   },
   root: {
     doc: 'Project root',

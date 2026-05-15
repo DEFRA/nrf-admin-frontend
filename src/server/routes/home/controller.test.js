@@ -24,9 +24,9 @@ describe('Home page', () => {
 
     const document = await loadHomePage()
 
-    expect(document.title).toContain('Home')
+    expect(document.title).toContain('Quotes')
     expect(getByRole(document, 'heading', { level: 1 })).toHaveTextContent(
-      'Home'
+      'Quotes'
     )
   })
 
