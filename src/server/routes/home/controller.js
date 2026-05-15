@@ -1,12 +1,12 @@
-/**
- * A GDS styled example home page controller.
- * Provided as an example, remove or modify as required.
- */
+import { getQuotes } from './get-quotes.js'
+
 export const homeController = {
-  handler(_request, h) {
+  async handler(_request, h) {
+    const result = await getQuotes()
     return h.view('home/index', {
       pageTitle: 'Home',
-      heading: 'Home'
+      heading: 'Home',
+      ...result
     })
   }
 }

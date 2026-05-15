@@ -214,6 +214,14 @@ export const config = convict({
       default: 'x-cdp-request-id',
       env: 'TRACING_HEADER'
     }
+  },
+  backend: {
+    apiUrl: {
+      doc: 'Endpoint for the NRF backend API service',
+      format: String,
+      default: 'http://localhost:4001',
+      env: 'NRF_BACKEND_API_URL'
+    }
   }
 })
 
