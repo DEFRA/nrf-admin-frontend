@@ -1,17 +1,79 @@
 {% extends 'layouts/page.njk' %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
 
 {% block content %}
   {{ appHeading({
-    text: heading,
-    caption: "nrf-admin-frontend"
+    text: heading
   }) }}
 
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
-      <div class="govuk-body" data-testid="app-page-body">
-        <p></p>
-      </div>
-    </div>
-  </div>
+  {% if errorMessage %}
+    {{ govukErrorSummary({
+      titleText: "There is a problem",
+      errorList: [{ text: errorMessage }]
+    }) }}
+  {% elif quotes and quotes.length %}
+    {% set tableRows = [] %}
+    {% for quote in quotes %}
+      {% set edpHtml %}
+        {% if quote.edps.length %}
+          {% for edp in quote.edps %}
+            {% set edpDetailsHtml %}
+              <ul class="govuk-list govuk-list--bullet">
+                <li>Type: {{ edp.edpType }}</li>
+                <li>Levy: {{ edp.levyGbp.min | formatCurrency }}–{{ edp.levyGbp.max | formatCurrency }}</li>
+                {% if edp.impact.nitrogenTotal %}
+                  <li>Nitrogen: {{ edp.impact.nitrogenTotal.band.min }}–{{ edp.impact.nitrogenTotal.band.max }} / {{ edp.impact.nitrogenTotal.amount }} {{ edp.impact.nitrogenTotal.unit }}</li>
+                {% endif %}
+                {% if edp.impact.phosphorusTotal %}
+                  <li>Phosphorus: {{ edp.impact.phosphorusTotal.band.min }}–{{ edp.impact.phosphorusTotal.band.max }} / {{ edp.impact.phosphorusTotal.amount }} {{ edp.impact.phosphorusTotal.unit }}</li>
+                {% endif %}
+              </ul>
+            {% endset %}
+            {{ govukDetails({
+              summaryText: edp.edpName,
+              html: edpDetailsHtml
+            }) }}
+          {% endfor %}
+        {% else %}
+          None
+        {% endif %}
+      {% endset %}
+      {% set tableRows = (tableRows.push([
+        { text: quote.reference },
+        { text: quote.email.address },
+        { text: quote.boundary.userInputType },
+        { text: quote.development.types | join(', ') },
+        { text: quote.development.residentialBuildingCount },
+        { text: quote.development.peopleCount },
+        { text: quote.createdAt | govukDate },
+        { text: quote.email.sendRequestAt | govukDate },
+        { text: quote.wasteWaterTreatmentWorksName or 'Unknown' },
+        { html: edpHtml }
+      ]), tableRows) %}
+    {% endfor %}
+
+    {{ govukTable({
+      caption: quotes.length + " quotes",
+      captionClasses: "govuk-table__caption--s",
+      classes: "govuk-table--small-text-until-tablet",
+      head: [
+        { text: "Reference" },
+        { text: "Email" },
+        { text: "Boundary entry type" },
+        { text: "Development types" },
+        { text: "Residential building count" },
+        { text: "Max people count" },
+        { text: "Date submitted" },
+        { text: "Email send request date" },
+        { text: "Waste water treatment works" },
+        { text: "EDP results" }
+      ],
+      rows: tableRows
+    }) }}
+  {% else %}
+    <p class="govuk-body">No quotes have been added yet</p>
+  {% endif %}
 
 {% endblock %}

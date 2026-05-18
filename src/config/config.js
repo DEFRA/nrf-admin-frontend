@@ -44,7 +44,7 @@ export const config = convict({
   serviceName: {
     doc: 'Applications Service Name',
     format: String,
-    default: 'nrf-admin-frontend'
+    default: 'Nature Restoration Fund'
   },
   root: {
     doc: 'Project root',
@@ -213,6 +213,14 @@ export const config = convict({
       format: String,
       default: 'x-cdp-request-id',
       env: 'TRACING_HEADER'
+    }
+  },
+  backend: {
+    apiUrl: {
+      doc: 'Endpoint for the NRF backend API service',
+      format: String,
+      default: 'http://localhost:4001',
+      env: 'NRF_BACKEND_API_URL'
     }
   }
 })

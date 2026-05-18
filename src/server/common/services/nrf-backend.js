@@ -1,0 +1,20 @@
+import Wreck from '@hapi/wreck'
+import { config } from '../../../config/config.js'
+import { createLogger } from '../helpers/logging/logger.js'
+import { withTraceId } from '@defra/hapi-tracing'
+
+const logger = createLogger()
+
+export const getRequestFromBackend = async ({ endpointPath }) => {
+  try {
+    const url = `${config.get('backend.apiUrl')}${endpointPath}`
+    const response = await Wreck.get(url, {
+      json: true,
+      headers: withTraceId(config.get('tracing.header'))
+    })
+    return response
+  } catch (error) {
+    logger.error(error, 'Backend request failed')
+    throw error
+  }
+}
