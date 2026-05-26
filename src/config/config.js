@@ -221,6 +221,13 @@ export const config = convict({
       format: String,
       default: 'http://localhost:4001',
       env: 'NRF_BACKEND_API_URL'
+    },
+    apiKey: {
+      doc: 'Service-to-service x-api-key value sent on outbound calls to the backend',
+      format: String,
+      default: '',
+      sensitive: true,
+      env: 'BACKEND_API_KEY'
     }
   }
 })
