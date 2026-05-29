@@ -228,7 +228,7 @@ export const config = convict({
       doc: 'Bearer token required to call /api/uploads/* endpoints (temporary auth scheme)',
       format: String,
       default: '',
-      env: 'API_BEARER_TOKEN',
+      env: 'UPLOAD_API_BEARER_TOKEN',
       sensitive: true
     }
   },
@@ -264,7 +264,7 @@ config.validate({ allowed: 'strict' })
 
 if (config.get('isProduction')) {
   if (!config.get('api.bearerToken')) {
-    throw new Error('API_BEARER_TOKEN must be set in production')
+    throw new Error('UPLOAD_API_BEARER_TOKEN must be set in production')
   }
   if (!config.get('cdpUploader.s3Bucket')) {
     throw new Error('CDP_UPLOADER_S3_BUCKET must be set in production')
