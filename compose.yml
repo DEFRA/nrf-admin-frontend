@@ -115,6 +115,13 @@ services:
       SQS_ENDPOINT: http://floci:4566
       S3_ENDPOINT: http://floci:4566
       CONSUMER_BUCKETS: ${CDP_UPLOADER_BUCKET:-data_backups}
+      # cdp-uploader defaults these to bare queue names, which the AWS SDK
+      # cannot resolve against floci. Point them at full floci queue URLs
+      # (account 000000000000 is the LocalStack default).
+      SQS_SCAN_RESULTS: http://floci:4566/000000000000/cdp-clamav-results
+      SQS_SCAN_RESULTS_CALLBACK: http://floci:4566/000000000000/cdp-uploader-scan-results-callback.fifo
+      SQS_DOWNLOAD_REQUESTS: http://floci:4566/000000000000/cdp-uploader-download-requests
+      SQS_MOCK_CLAMAV: http://floci:4566/000000000000/mock-clamav
     networks:
       - cdp-tenant
 
