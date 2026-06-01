@@ -46,7 +46,10 @@ describe('cdp-uploader service', () => {
         metadata: { a: 1 },
         maxFileSize: 10
       })
-      expect(result).toEqual({ uploadId: 'u1', uploadUrl: '/upload-and-scan/u1' })
+      expect(result).toEqual({
+        uploadId: 'u1',
+        uploadUrl: '/upload-and-scan/u1'
+      })
       const [, opts] = Wreck.post.mock.calls[0]
       expect(JSON.parse(opts.payload)).toMatchObject({
         redirect: 'https://r',

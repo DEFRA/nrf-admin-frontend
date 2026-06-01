@@ -60,7 +60,10 @@ describe('POST /api/uploads/initiate', () => {
       payload: { redirect: 'https://x', s3SubPath: 'quotes' }
     })
     expect(res.statusCode).toBe(200)
-    expect(JSON.parse(res.payload)).toEqual({ uploadId: 'u1', uploadUrl: '/u/1' })
+    expect(JSON.parse(res.payload)).toEqual({
+      uploadId: 'u1',
+      uploadUrl: '/u/1'
+    })
     expect(initiateUpload).toHaveBeenCalledWith({
       redirect: 'https://x',
       s3Bucket: 'my-bucket',

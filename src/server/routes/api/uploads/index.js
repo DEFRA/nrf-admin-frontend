@@ -1,12 +1,5 @@
-import {
-  initiateBodySchema,
-  uploadIdParamSchema
-} from './schemas.js'
-import {
-  initiateHandler,
-  statusHandler,
-  detailsHandler
-} from './controller.js'
+import { initiateBodySchema, uploadIdParamSchema } from './schemas.js'
+import { initiateHandler, statusHandler, detailsHandler } from './controller.js'
 
 export const apiUploads = {
   plugin: {
