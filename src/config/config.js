@@ -222,7 +222,54 @@ export const config = convict({
       default: 'http://localhost:4001',
       env: 'NRF_BACKEND_API_URL'
     }
+  },
+  api: {
+    bearerToken: {
+      doc: 'Bearer token required to call /api/uploads/* endpoints (temporary auth scheme)',
+      format: String,
+      default: '',
+      env: 'UPLOAD_API_BEARER_TOKEN',
+      sensitive: true
+    }
+  },
+  cdpUploader: {
+    url: {
+      doc: 'Explicit CDP Uploader base URL (overrides environment-derived URL)',
+      format: String,
+      default: '',
+      env: 'CDP_UPLOADER_URL'
+    },
+    s3Bucket: {
+      doc: 'Destination S3 bucket for uploads (server-enforced)',
+      format: String,
+      default: '',
+      env: 'CDP_UPLOADER_S3_BUCKET'
+    },
+    s3PathPrefix: {
+      doc: 'Path prefix inside the bucket (prepended to any client-supplied subpath)',
+      format: String,
+      default: '',
+      env: 'CDP_UPLOADER_S3_PATH_PREFIX'
+    },
+    maxFileSize: {
+      doc: 'Maximum allowed upload size in bytes',
+      format: Number,
+      default: 104857600,
+      env: 'CDP_UPLOADER_MAX_FILE_SIZE'
+    }
   }
 })
 
 config.validate({ allowed: 'strict' })
+
+if (config.get('isProduction')) {
+  if (!config.get('api.bearerToken')) {
+    throw new Error('UPLOAD_API_BEARER_TOKEN must be set in production')
+  }
+  if (!config.get('cdpUploader.url')) {
+    throw new Error('CDP_UPLOADER_URL must be set in production')
+  }
+  if (!config.get('cdpUploader.s3Bucket')) {
+    throw new Error('CDP_UPLOADER_S3_BUCKET must be set in production')
+  }
+}

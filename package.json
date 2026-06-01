@@ -27,6 +27,7 @@
     "server:debug": "nodemon --inspect-brk=0.0.0.0 --ext js,json --legacy-watch --watch ./src/server --watch ./src/config --env-file-if-exists=.env ./src",
     "prestart": "npm run build:frontend",
     "start": "NODE_ENV=production node .",
+    "prepare": "npm run setup:husky",
     "setup:husky": "node -e \"try { (await import('husky')).default() } catch (e) { if (e.code !== 'ERR_MODULE_NOT_FOUND') throw e }\" --input-type module"
   },
   "imports": {
@@ -57,6 +58,7 @@
     "date-fns": "4.1.0",
     "global-agent": "3.0.0",
     "govuk-frontend": "5.13.0",
+    "hapi-auth-bearer-token": "8.0.0",
     "hapi-pino": "13.0.0",
     "hapi-pulse": "3.0.1",
     "ioredis": "5.8.2",
