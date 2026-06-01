@@ -266,6 +266,9 @@ if (config.get('isProduction')) {
   if (!config.get('api.bearerToken')) {
     throw new Error('UPLOAD_API_BEARER_TOKEN must be set in production')
   }
+  if (!config.get('cdpUploader.url')) {
+    throw new Error('CDP_UPLOADER_URL must be set in production')
+  }
   if (!config.get('cdpUploader.s3Bucket')) {
     throw new Error('CDP_UPLOADER_S3_BUCKET must be set in production')
   }

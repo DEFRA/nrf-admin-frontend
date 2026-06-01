@@ -6,6 +6,16 @@ vi.mock('@hapi/wreck', () => ({
 vi.mock('@defra/hapi-tracing', () => ({
   withTraceId: (_h, headers = {}) => headers
 }))
+vi.mock('#/config/config.js', async (importOriginal) => {
+  const actual = await importOriginal()
+  const realGet = actual.config.get.bind(actual.config)
+  return {
+    config: {
+      get: (key) =>
+        key === 'cdpUploader.url' ? 'http://localhost:7337' : realGet(key)
+    }
+  }
+})
 
 import Wreck from '@hapi/wreck'
 import {
@@ -18,19 +28,11 @@ import {
 describe('cdp-uploader service', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    delete process.env.ENVIRONMENT
   })
 
   describe('getCdpUploaderUrl', () => {
-    it('returns localhost when no env or config override', () => {
+    it('returns the configured cdpUploader.url', () => {
       expect(getCdpUploaderUrl()).toBe('http://localhost:7337')
-    })
-
-    it('uses ENVIRONMENT-derived URL when set', () => {
-      process.env.ENVIRONMENT = 'dev'
-      expect(getCdpUploaderUrl()).toBe(
-        'https://cdp-uploader.dev.cdp-int.defra.cloud'
-      )
     })
   })
 

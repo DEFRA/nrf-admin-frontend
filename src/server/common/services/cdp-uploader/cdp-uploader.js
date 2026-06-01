@@ -8,17 +8,7 @@ const logger = createLogger()
 const traceHeaderName = config.get('tracing.header')
 
 export function getCdpUploaderUrl() {
-  const explicitUrl = config.get('cdpUploader.url')
-  if (explicitUrl) {
-    return explicitUrl
-  }
-
-  const environment = process.env.ENVIRONMENT
-  if (environment) {
-    return `https://cdp-uploader.${environment}.cdp-int.defra.cloud`
-  }
-
-  return 'http://localhost:7337'
+  return config.get('cdpUploader.url')
 }
 
 export async function initiateUpload({
