@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import Wreck from '@hapi/wreck'
 import { withTraceId } from '@defra/hapi-tracing'
 
@@ -5,6 +6,7 @@ import { config } from '../../../config/config.js'
 import { getRequestFromBackend } from './nrf-backend.js'
 
 const backendUrl = config.get('backend.apiUrl')
+const API_KEY_CONFIG = 'backend.apiKey'
 
 vi.mock('@hapi/wreck')
 
@@ -54,12 +56,12 @@ describe('getRequestFromBackend', () => {
     vi.mocked(Wreck.get).mockResolvedValue({ payload: [] })
     vi.mocked(withTraceId).mockReturnValue({})
 
-    const original = config.get('backend.apiKey')
-    config.set('backend.apiKey', 'secret-key')
+    const original = config.get(API_KEY_CONFIG)
+    config.set(API_KEY_CONFIG, 'secret-key')
     try {
       await getRequestFromBackend({ endpointPath: '/quotes' })
     } finally {
-      config.set('backend.apiKey', original)
+      config.set(API_KEY_CONFIG, original)
     }
 
     expect(Wreck.get).toHaveBeenCalledWith(`${backendUrl}/quotes`, {
