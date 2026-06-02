@@ -15,6 +15,7 @@ import { getCacheEngine } from './common/helpers/session-cache/cache-engine.js'
 import { secureContext } from '@defra/hapi-secure-context'
 import { contentSecurityPolicy } from './plugins/content-security-policy.js'
 import { metrics } from '@defra/cdp-metrics'
+import { bearerAuth } from './common/helpers/auth/bearer-auth.js'
 
 export async function createServer() {
   setupProxy()
@@ -64,6 +65,7 @@ export async function createServer() {
     nunjucksConfig,
     Scooter,
     contentSecurityPolicy,
+    bearerAuth,
     router // Register all the controllers/routes defined in src/server/router.js
   ])
 
