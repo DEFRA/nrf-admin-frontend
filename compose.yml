@@ -63,6 +63,8 @@ services:
       SESSION_COOKIE_SECURE: false
       USE_SINGLE_INSTANCE_CACHE: true
       REDIS_TLS: false
+      # Service-to-service API key for outbound backend calls (local dev only; real values come from CDP secrets)
+      BACKEND_API_KEY: local-dev-backend-key
       UPLOAD_API_BEARER_TOKEN: ${UPLOAD_API_BEARER_TOKEN:-local-dev-token}
       CDP_UPLOADER_URL: http://cdp-uploader:7337
       CDP_UPLOADER_S3_BUCKET: ${CDP_UPLOADER_BUCKET:-data_backups}

@@ -15,6 +15,17 @@ const isDevelopment = process.env.NODE_ENV === 'development'
 
 convict.addFormats(convictFormatWithValidator)
 
+/**
+ * Convict `format` validator that fails closed at startup when a secret
+ * is unset in production. Allows empty values in dev/test so local stacks
+ * without auth wired still boot.
+ */
+const requireInProduction = (envName) => (val) => {
+  if (isProduction && !val) {
+    throw new Error(`${envName} is required in production`)
+  }
+}
+
 export const config = convict({
   serviceVersion: {
     doc: 'The service version, this variable is injected into your docker container in CDP environments',
@@ -221,6 +232,13 @@ export const config = convict({
       format: String,
       default: 'http://localhost:4001',
       env: 'NRF_BACKEND_API_URL'
+    },
+    apiKey: {
+      doc: 'Service-to-service x-api-key value sent on outbound calls to the backend',
+      format: requireInProduction('BACKEND_API_KEY'),
+      default: '',
+      sensitive: true,
+      env: 'BACKEND_API_KEY'
     }
   },
   api: {
