@@ -66,8 +66,7 @@ describe('s3 service - listFiles', () => {
     const result = await listFiles({ prefix: 'admin' })
     expect(result).toEqual({
       files: [],
-      isTruncated: false,
-      nextToken: undefined
+      isTruncated: false
     })
   })
 

@@ -81,9 +81,7 @@ describe('POST /api/uploads/initiate', () => {
     expect(initiateUpload).toHaveBeenCalledWith({
       redirect: '/done',
       s3Bucket: 'my-bucket',
-      s3Path: 'admin/quotes',
-      metadata: undefined,
-      maxFileSize: undefined
+      s3Path: 'admin/quotes'
     })
   })
 })
@@ -267,9 +265,7 @@ describe('GET /api/uploads/files', () => {
     })
     expect(res.statusCode).toBe(StatusCodes.OK)
     expect(listFiles).toHaveBeenCalledWith({
-      prefix: 'admin',
-      maxKeys: undefined,
-      token: undefined
+      prefix: 'admin'
     })
   })
 
