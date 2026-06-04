@@ -55,6 +55,40 @@ export async function initiateUpload({
   }
 }
 
+// Headers forwarded verbatim from the client's upload request to CDP Uploader.
+const proxyHeaderNames = ['content-type', 'content-length', 'x-filename']
+
+export async function proxyUpload({ uploadId, stream, headers = {} }) {
+  const baseUrl = getCdpUploaderUrl()
+  const url = `${baseUrl}/upload-and-scan/${uploadId}`
+
+  logger.info(`Proxying upload - url: ${url}, uploadId: ${uploadId}`)
+
+  const forwarded = {}
+  for (const name of proxyHeaderNames) {
+    if (headers[name] != null) {
+      forwarded[name] = headers[name]
+    }
+  }
+
+  try {
+    // Wreck.request streams the body and, with no `redirects` option, does not
+    // follow CDP Uploader's 302 - we relay it to the client unchanged.
+    const res = await Wreck.request('POST', url, {
+      payload: stream,
+      headers: withTraceId(traceHeaderName, forwarded)
+    })
+    return { statusCode: res.statusCode, headers: res.headers, stream: res }
+  } catch (error) {
+    const statusCode = error?.output?.statusCode
+    logger.error(
+      error,
+      `Error proxying upload - url: ${url}, baseUrl: ${baseUrl}, uploadId: ${uploadId}, statusCode: ${statusCode}`
+    )
+    return { error: 'Unable to proxy upload' }
+  }
+}
+
 export async function getUploadStatus(uploadId) {
   const baseUrl = getCdpUploaderUrl()
   const url = `${baseUrl}/status/${uploadId}`

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('@hapi/wreck', () => ({
-  default: { post: vi.fn(), get: vi.fn() }
+  default: { post: vi.fn(), get: vi.fn(), request: vi.fn() }
 }))
 vi.mock('@defra/hapi-tracing', () => ({
   withTraceId: (_h, headers = {}) => headers
@@ -20,6 +20,7 @@ vi.mock('#/config/config.js', async (importOriginal) => {
 import Wreck from '@hapi/wreck'
 import {
   initiateUpload,
+  proxyUpload,
   getUploadStatus,
   getUploadDetails,
   getCdpUploaderUrl
@@ -65,6 +66,55 @@ describe('cdp-uploader service', () => {
       Wreck.post.mockRejectedValue(new Error('boom'))
       const result = await initiateUpload({ redirect: 'r', s3Bucket: 'b' })
       expect(result).toEqual({ error: 'Unable to initiate upload' })
+    })
+  })
+
+  describe('proxyUpload', () => {
+    it('streams the body and relays the upstream response', async () => {
+      const upstream = {
+        statusCode: 302,
+        headers: { location: '/upload-received/u1' }
+      }
+      Wreck.request.mockResolvedValue(upstream)
+      const stream = { fake: 'stream' }
+
+      const result = await proxyUpload({
+        uploadId: 'u1',
+        stream,
+        headers: {
+          'content-type': 'multipart/form-data; boundary=x',
+          'content-length': '123',
+          'x-filename': 'map.geojson',
+          authorization: 'Bearer secret'
+        }
+      })
+
+      expect(result).toEqual({
+        statusCode: 302,
+        headers: { location: '/upload-received/u1' },
+        stream: upstream
+      })
+
+      const [method, url, opts] = Wreck.request.mock.calls[0]
+      expect(method).toBe('POST')
+      expect(url).toBe('http://localhost:7337/upload-and-scan/u1')
+      expect(opts.payload).toBe(stream)
+      // Only the allow-listed headers are forwarded (no Authorization).
+      expect(opts.headers).toEqual({
+        'content-type': 'multipart/form-data; boundary=x',
+        'content-length': '123',
+        'x-filename': 'map.geojson'
+      })
+    })
+
+    it('returns an error object on Wreck failure', async () => {
+      Wreck.request.mockRejectedValue(new Error('boom'))
+      const result = await proxyUpload({
+        uploadId: 'u1',
+        stream: {},
+        headers: {}
+      })
+      expect(result).toEqual({ error: 'Unable to proxy upload' })
     })
   })
 

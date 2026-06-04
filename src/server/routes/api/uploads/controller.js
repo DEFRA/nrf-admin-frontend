@@ -1,6 +1,7 @@
 import { config } from '#/config/config.js'
 import {
   initiateUpload,
+  proxyUpload,
   getUploadStatus,
   getUploadDetails
 } from '../../../common/services/cdp-uploader/cdp-uploader.js'
@@ -31,6 +32,42 @@ export const initiateHandler = async (request, h) => {
       .code(502)
   }
   return h.response(result).code(200)
+}
+
+export const uploadHandler = async (request, h) => {
+  const { uploadId } = request.params
+
+  // request.payload is the raw request stream (payload parsing is disabled on
+  // this route) so the multipart body is forwarded to CDP Uploader untouched.
+  const result = await proxyUpload({
+    uploadId,
+    stream: request.payload,
+    headers: request.headers
+  })
+
+  if (result.error) {
+    return h
+      .response({ error: 'Upstream upload service unavailable' })
+      .code(502)
+  }
+
+  // CDP Uploader answers a successful upload with a 302 redirect meant for a
+  // browser. This is an API-only service, so collapse that into a JSON 200 and
+  // point the caller at the status endpoint to poll for the scan outcome.
+  if (result.statusCode < 400) {
+    result.stream?.resume?.() // drain the unused upstream body
+    return h
+      .response({ uploadId, statusUrl: `/api/uploads/${uploadId}` })
+      .code(200)
+  }
+
+  // Relay genuine upstream client errors (e.g. 400/413) so the caller sees them.
+  const response = h.response(result.stream).code(result.statusCode)
+  const contentType = result.headers?.['content-type']
+  if (contentType) {
+    response.type(contentType)
+  }
+  return response
 }
 
 export const statusHandler = async (request, h) => {
