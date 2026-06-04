@@ -241,6 +241,21 @@ export const config = convict({
       env: 'BACKEND_API_KEY'
     }
   },
+  impactAssessor: {
+    apiUrl: {
+      doc: 'Base URL for the NRF impact-assessor service',
+      format: String,
+      default: 'http://localhost:8085',
+      env: 'NRF_IMPACT_ASSESSOR_API_URL'
+    },
+    dataSyncToken: {
+      doc: 'x-data-sync-token sent to the impact-assessor /admin/data-sync endpoints',
+      format: requireInProduction('DATA_SYNC_TOKEN'),
+      default: '',
+      sensitive: true,
+      env: 'DATA_SYNC_TOKEN'
+    }
+  },
   api: {
     bearerToken: {
       doc: 'Bearer token required to call /api/uploads/* endpoints (temporary auth scheme)',
@@ -274,6 +289,20 @@ export const config = convict({
       format: Number,
       default: 104857600,
       env: 'CDP_UPLOADER_MAX_FILE_SIZE'
+    }
+  },
+  aws: {
+    region: {
+      doc: 'AWS region for S3 access',
+      format: String,
+      default: 'eu-west-2',
+      env: 'AWS_REGION'
+    },
+    s3Endpoint: {
+      doc: 'Custom S3 endpoint for local emulators such as floci or localstack (port 4566); empty uses real AWS',
+      format: String,
+      default: '',
+      env: 'AWS_S3_ENDPOINT'
     }
   }
 })

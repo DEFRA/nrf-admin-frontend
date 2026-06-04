@@ -6,9 +6,9 @@ const uploadIdPattern = /^[A-Za-z0-9_-]{8,128}$/
 const subPathPattern = /^[A-Za-z0-9/_-]{1,200}$/
 
 export const initiateBodySchema = Joi.object({
-  redirect: Joi.string()
-    .uri({ scheme: ['http', 'https'] })
-    .required(),
+  // CDP Uploader redirects the browser here after upload; it is a path on this
+  // service's own origin, so only relative URIs are accepted (e.g. /done).
+  redirect: Joi.string().uri({ relativeOnly: true }).required(),
   metadata: Joi.object()
     .pattern(
       Joi.string(),
@@ -25,4 +25,10 @@ export const initiateBodySchema = Joi.object({
 
 export const uploadIdParamSchema = Joi.object({
   uploadId: Joi.string().pattern(uploadIdPattern).required()
+})
+
+export const listFilesQuerySchema = Joi.object({
+  prefix: Joi.string().pattern(subPathPattern).optional(),
+  maxKeys: Joi.number().integer().min(1).max(1000).optional(),
+  token: Joi.string().max(4096).optional()
 })
