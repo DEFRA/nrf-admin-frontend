@@ -241,6 +241,21 @@ export const config = convict({
       env: 'BACKEND_API_KEY'
     }
   },
+  impactAssessor: {
+    apiUrl: {
+      doc: 'Base URL for the NRF impact-assessor service',
+      format: String,
+      default: 'http://localhost:8085',
+      env: 'NRF_IMPACT_ASSESSOR_API_URL'
+    },
+    dataSyncToken: {
+      doc: 'x-data-sync-token sent to the impact-assessor /admin/data-sync endpoints',
+      format: requireInProduction('DATA_SYNC_TOKEN'),
+      default: '',
+      sensitive: true,
+      env: 'DATA_SYNC_TOKEN'
+    }
+  },
   api: {
     bearerToken: {
       doc: 'Bearer token required to call /api/uploads/* endpoints (temporary auth scheme)',
