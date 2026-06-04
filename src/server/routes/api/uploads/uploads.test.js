@@ -22,12 +22,17 @@ vi.mock('../../../common/services/cdp-uploader/cdp-uploader.js', () => ({
   getUploadDetails: vi.fn()
 }))
 
+vi.mock('../../../common/services/s3/s3.js', () => ({
+  listFiles: vi.fn()
+}))
+
 import {
   initiateUpload,
   proxyUpload,
   getUploadStatus,
   getUploadDetails
 } from '../../../common/services/cdp-uploader/cdp-uploader.js'
+import { listFiles } from '../../../common/services/s3/s3.js'
 import { bearerAuth } from '../../../common/helpers/auth/bearer-auth.js'
 import { apiUploads } from './index.js'
 
@@ -197,6 +202,83 @@ describe('POST /upload-and-scan/{uploadId}', () => {
       url: '/upload-and-scan/abc12345',
       headers: auth,
       payload: 'file-bytes'
+    })
+    expect(res.statusCode).toBe(502)
+  })
+})
+
+describe('GET /api/uploads/files', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('returns 401 without auth', async () => {
+    const server = await buildServer()
+    const res = await server.inject({
+      method: 'GET',
+      url: '/api/uploads/files'
+    })
+    expect(res.statusCode).toBe(401)
+    expect(listFiles).not.toHaveBeenCalled()
+  })
+
+  it('lists under the configured prefix and passes pagination through', async () => {
+    listFiles.mockResolvedValue({
+      files: [{ key: 'admin/test/a/b', size: 10, lastModified: '2026-01-02' }],
+      isTruncated: true,
+      nextToken: 'next-tok'
+    })
+    const server = await buildServer()
+    const res = await server.inject({
+      method: 'GET',
+      url: '/api/uploads/files?prefix=test&maxKeys=50&token=t0',
+      headers: auth
+    })
+    expect(res.statusCode).toBe(200)
+    expect(JSON.parse(res.payload)).toMatchObject({
+      files: [{ key: 'admin/test/a/b' }],
+      isTruncated: true,
+      nextToken: 'next-tok'
+    })
+    // s3PathPrefix 'admin' + client 'test' -> 'admin/test'
+    expect(listFiles).toHaveBeenCalledWith({
+      prefix: 'admin/test',
+      maxKeys: 50,
+      token: 't0'
+    })
+  })
+
+  it('defaults to the bare configured prefix when none supplied', async () => {
+    listFiles.mockResolvedValue({ files: [], isTruncated: false })
+    const server = await buildServer()
+    const res = await server.inject({
+      method: 'GET',
+      url: '/api/uploads/files',
+      headers: auth
+    })
+    expect(res.statusCode).toBe(200)
+    expect(listFiles).toHaveBeenCalledWith({
+      prefix: 'admin',
+      maxKeys: undefined,
+      token: undefined
+    })
+  })
+
+  it('rejects maxKeys over 1000', async () => {
+    const server = await buildServer()
+    const res = await server.inject({
+      method: 'GET',
+      url: '/api/uploads/files?maxKeys=5000',
+      headers: auth
+    })
+    expect(res.statusCode).toBe(400)
+  })
+
+  it('returns 502 when the service fails', async () => {
+    listFiles.mockResolvedValue({ error: 'Unable to list files' })
+    const server = await buildServer()
+    const res = await server.inject({
+      method: 'GET',
+      url: '/api/uploads/files',
+      headers: auth
     })
     expect(res.statusCode).toBe(502)
   })

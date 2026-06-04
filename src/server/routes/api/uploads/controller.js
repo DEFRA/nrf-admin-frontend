@@ -5,6 +5,7 @@ import {
   getUploadStatus,
   getUploadDetails
 } from '../../../common/services/cdp-uploader/cdp-uploader.js'
+import { listFiles } from '../../../common/services/s3/s3.js'
 
 function buildS3Path(subPath) {
   const prefix = config.get('cdpUploader.s3PathPrefix') || ''
@@ -68,6 +69,23 @@ export const uploadHandler = async (request, h) => {
     response.type(contentType)
   }
   return response
+}
+
+export const filesHandler = async (request, h) => {
+  const { prefix, maxKeys, token } = request.query
+
+  // Scope the listing under the server-configured path prefix; any client-supplied
+  // prefix narrows to a subpath within it (same rule as upload destinations).
+  const result = await listFiles({
+    prefix: buildS3Path(prefix),
+    maxKeys,
+    token
+  })
+
+  if (result.error) {
+    return h.response({ error: 'Unable to list files' }).code(502)
+  }
+  return h.response(result).code(200)
 }
 
 export const statusHandler = async (request, h) => {

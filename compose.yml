@@ -69,6 +69,9 @@ services:
       CDP_UPLOADER_URL: http://cdp-uploader:7337
       CDP_UPLOADER_S3_BUCKET: ${CDP_UPLOADER_BUCKET:-data_backups}
       CDP_UPLOADER_S3_PATH_PREFIX: admin
+      # Reach floci's S3 API over the compose network (overrides aws.env's
+      # localhost endpoint, which would resolve to this container).
+      AWS_S3_ENDPOINT: http://floci:4566
     networks:
       - cdp-tenant
 

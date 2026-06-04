@@ -275,6 +275,20 @@ export const config = convict({
       default: 104857600,
       env: 'CDP_UPLOADER_MAX_FILE_SIZE'
     }
+  },
+  aws: {
+    region: {
+      doc: 'AWS region for S3 access',
+      format: String,
+      default: 'eu-west-2',
+      env: 'AWS_REGION'
+    },
+    s3Endpoint: {
+      doc: 'Custom S3 endpoint for local emulators (e.g. http://floci:4566); empty uses real AWS',
+      format: String,
+      default: '',
+      env: 'AWS_S3_ENDPOINT'
+    }
   }
 })
 

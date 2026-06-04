@@ -1,9 +1,14 @@
 import { config } from '#/config/config.js'
 
-import { initiateBodySchema, uploadIdParamSchema } from './schemas.js'
+import {
+  initiateBodySchema,
+  uploadIdParamSchema,
+  listFilesQuerySchema
+} from './schemas.js'
 import {
   initiateHandler,
   uploadHandler,
+  filesHandler,
   statusHandler,
   detailsHandler
 } from './controller.js'
@@ -37,6 +42,16 @@ export const apiUploads = {
             }
           },
           handler: uploadHandler
+        },
+        {
+          // Literal path: hapi matches this ahead of /api/uploads/{uploadId}.
+          method: 'GET',
+          path: '/api/uploads/files',
+          options: {
+            auth: 'api-bearer',
+            validate: { query: listFilesQuerySchema }
+          },
+          handler: filesHandler
         },
         {
           method: 'GET',

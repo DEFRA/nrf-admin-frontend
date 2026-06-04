@@ -26,3 +26,9 @@ export const initiateBodySchema = Joi.object({
 export const uploadIdParamSchema = Joi.object({
   uploadId: Joi.string().pattern(uploadIdPattern).required()
 })
+
+export const listFilesQuerySchema = Joi.object({
+  prefix: Joi.string().pattern(subPathPattern).optional(),
+  maxKeys: Joi.number().integer().min(1).max(1000).optional(),
+  token: Joi.string().max(4096).optional()
+})
