@@ -10,7 +10,7 @@ vi.mock('../../../config/config.js', async (importOriginal) => {
   const actual = await importOriginal()
   const realGet = actual.config.get.bind(actual.config)
   const overrides = {
-    'impactAssessor.apiUrl': 'http://impact:8085',
+    'impactAssessor.apiUrl': 'http://localhost:8085',
     'impactAssessor.dataSyncToken': 'sync-token'
   }
   return {
@@ -34,7 +34,7 @@ describe('impact-assessor service', () => {
 
       expect(result).toEqual({ runId: 'r1', status: 'running' })
       const [url, opts] = Wreck.post.mock.calls[0]
-      expect(url).toBe('http://impact:8085/admin/data-sync?force=true')
+      expect(url).toBe('http://localhost:8085/admin/data-sync?force=true')
       expect(opts.headers['x-data-sync-token']).toBe('sync-token')
     })
 
@@ -44,7 +44,7 @@ describe('impact-assessor service', () => {
       })
       await triggerDataSync()
       expect(Wreck.post.mock.calls[0][0]).toBe(
-        'http://impact:8085/admin/data-sync?force=false'
+        'http://localhost:8085/admin/data-sync?force=false'
       )
     })
 

@@ -3,10 +3,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const { send } = vi.hoisted(() => ({ send: vi.fn() }))
 
 vi.mock('@aws-sdk/client-s3', () => ({
-  S3Client: vi.fn(function S3Client() {
+  S3Client: vi.fn(function MockS3Client() {
     this.send = send
   }),
-  ListObjectsV2Command: vi.fn(function ListObjectsV2Command(input) {
+  ListObjectsV2Command: vi.fn(function MockListObjectsV2Command(input) {
     this.input = input
   })
 }))

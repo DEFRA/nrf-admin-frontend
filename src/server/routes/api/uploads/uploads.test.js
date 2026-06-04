@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import Hapi from '@hapi/hapi'
+import { StatusCodes } from 'http-status-codes'
 
 vi.mock('#/config/config.js', () => ({
   config: {
@@ -37,6 +38,12 @@ import { bearerAuth } from '../../../common/helpers/auth/bearer-auth.js'
 import { apiUploads } from './index.js'
 
 const auth = { authorization: 'Bearer secret-token' }
+const NO_AUTH_TITLE = 'returns 401 without auth'
+const INITIATE_URL = '/api/uploads/initiate'
+const FILES_URL = '/api/uploads/files'
+const UPLOAD_SCAN_URL = '/upload-and-scan/abc12345'
+const UPLOAD_DETAILS_URL = '/api/uploads/abc12345'
+const FILE_PAYLOAD = 'file-bytes'
 
 async function buildServer() {
   const server = Hapi.server()
@@ -47,14 +54,14 @@ async function buildServer() {
 describe('POST /api/uploads/initiate', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('returns 401 without auth', async () => {
+  it(NO_AUTH_TITLE, async () => {
     const server = await buildServer()
     const res = await server.inject({
       method: 'POST',
-      url: '/api/uploads/initiate',
+      url: INITIATE_URL,
       payload: { redirect: '/done' }
     })
-    expect(res.statusCode).toBe(401)
+    expect(res.statusCode).toBe(StatusCodes.UNAUTHORIZED)
   })
 
   it('returns 200 and injects server-side bucket/path', async () => {
@@ -62,11 +69,11 @@ describe('POST /api/uploads/initiate', () => {
     const server = await buildServer()
     const res = await server.inject({
       method: 'POST',
-      url: '/api/uploads/initiate',
+      url: INITIATE_URL,
       headers: auth,
       payload: { redirect: '/done', s3SubPath: 'quotes' }
     })
-    expect(res.statusCode).toBe(200)
+    expect(res.statusCode).toBe(StatusCodes.OK)
     expect(JSON.parse(res.payload)).toEqual({
       uploadId: 'u1',
       uploadUrl: '/u/1'
@@ -79,39 +86,43 @@ describe('POST /api/uploads/initiate', () => {
       maxFileSize: undefined
     })
   })
+})
+
+describe('POST /api/uploads/initiate - validation', () => {
+  beforeEach(() => vi.clearAllMocks())
 
   it('ignores client-supplied s3Bucket', async () => {
     initiateUpload.mockResolvedValue({ uploadId: 'u1', uploadUrl: '/u/1' })
     const server = await buildServer()
     const res = await server.inject({
       method: 'POST',
-      url: '/api/uploads/initiate',
+      url: INITIATE_URL,
       headers: auth,
       payload: { redirect: '/done', s3Bucket: 'evil-bucket' }
     })
-    expect(res.statusCode).toBe(400)
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
   })
 
   it('rejects maxFileSize over configured ceiling', async () => {
     const server = await buildServer()
     const res = await server.inject({
       method: 'POST',
-      url: '/api/uploads/initiate',
+      url: INITIATE_URL,
       headers: auth,
       payload: { redirect: '/done', maxFileSize: 9999999999 }
     })
-    expect(res.statusCode).toBe(400)
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
   })
 
   it('rejects an absolute redirect URL', async () => {
     const server = await buildServer()
     const res = await server.inject({
       method: 'POST',
-      url: '/api/uploads/initiate',
+      url: INITIATE_URL,
       headers: auth,
       payload: { redirect: 'https://evil.example/done' }
     })
-    expect(res.statusCode).toBe(400)
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
     expect(initiateUpload).not.toHaveBeenCalled()
   })
 
@@ -120,46 +131,46 @@ describe('POST /api/uploads/initiate', () => {
     const server = await buildServer()
     const res = await server.inject({
       method: 'POST',
-      url: '/api/uploads/initiate',
+      url: INITIATE_URL,
       headers: auth,
       payload: { redirect: '/done' }
     })
-    expect(res.statusCode).toBe(502)
+    expect(res.statusCode).toBe(StatusCodes.BAD_GATEWAY)
   })
 })
 
 describe('POST /upload-and-scan/{uploadId}', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('returns 401 without auth', async () => {
+  it(NO_AUTH_TITLE, async () => {
     const server = await buildServer()
     const res = await server.inject({
       method: 'POST',
-      url: '/upload-and-scan/abc12345',
-      payload: 'file-bytes'
+      url: UPLOAD_SCAN_URL,
+      payload: FILE_PAYLOAD
     })
-    expect(res.statusCode).toBe(401)
+    expect(res.statusCode).toBe(StatusCodes.UNAUTHORIZED)
     expect(proxyUpload).not.toHaveBeenCalled()
   })
 
   it('converts the upstream 302 into a JSON 200 with statusUrl', async () => {
     proxyUpload.mockResolvedValue({
-      statusCode: 302,
+      statusCode: StatusCodes.MOVED_TEMPORARILY,
       headers: { location: '/upload-received/abc12345' },
       stream: ''
     })
     const server = await buildServer()
     const res = await server.inject({
       method: 'POST',
-      url: '/upload-and-scan/abc12345',
+      url: UPLOAD_SCAN_URL,
       headers: { ...auth, 'content-type': 'application/octet-stream' },
-      payload: 'file-bytes'
+      payload: FILE_PAYLOAD
     })
-    expect(res.statusCode).toBe(200)
+    expect(res.statusCode).toBe(StatusCodes.OK)
     expect(res.headers.location).toBeUndefined()
     expect(JSON.parse(res.payload)).toEqual({
       uploadId: 'abc12345',
-      statusUrl: '/api/uploads/abc12345'
+      statusUrl: UPLOAD_DETAILS_URL
     })
     expect(proxyUpload).toHaveBeenCalledWith(
       expect.objectContaining({ uploadId: 'abc12345' })
@@ -168,18 +179,18 @@ describe('POST /upload-and-scan/{uploadId}', () => {
 
   it('relays a genuine upstream client error', async () => {
     proxyUpload.mockResolvedValue({
-      statusCode: 413,
+      statusCode: StatusCodes.REQUEST_TOO_LONG,
       headers: { 'content-type': 'application/json' },
       stream: JSON.stringify({ message: 'File too large' })
     })
     const server = await buildServer()
     const res = await server.inject({
       method: 'POST',
-      url: '/upload-and-scan/abc12345',
+      url: UPLOAD_SCAN_URL,
       headers: auth,
-      payload: 'file-bytes'
+      payload: FILE_PAYLOAD
     })
-    expect(res.statusCode).toBe(413)
+    expect(res.statusCode).toBe(StatusCodes.REQUEST_TOO_LONG)
     expect(JSON.parse(res.payload)).toEqual({ message: 'File too large' })
   })
 
@@ -189,9 +200,9 @@ describe('POST /upload-and-scan/{uploadId}', () => {
       method: 'POST',
       url: '/upload-and-scan/short',
       headers: auth,
-      payload: 'file-bytes'
+      payload: FILE_PAYLOAD
     })
-    expect(res.statusCode).toBe(400)
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
   })
 
   it('returns 502 when the proxy fails', async () => {
@@ -199,24 +210,24 @@ describe('POST /upload-and-scan/{uploadId}', () => {
     const server = await buildServer()
     const res = await server.inject({
       method: 'POST',
-      url: '/upload-and-scan/abc12345',
+      url: UPLOAD_SCAN_URL,
       headers: auth,
-      payload: 'file-bytes'
+      payload: FILE_PAYLOAD
     })
-    expect(res.statusCode).toBe(502)
+    expect(res.statusCode).toBe(StatusCodes.BAD_GATEWAY)
   })
 })
 
 describe('GET /api/uploads/files', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('returns 401 without auth', async () => {
+  it(NO_AUTH_TITLE, async () => {
     const server = await buildServer()
     const res = await server.inject({
       method: 'GET',
-      url: '/api/uploads/files'
+      url: FILES_URL
     })
-    expect(res.statusCode).toBe(401)
+    expect(res.statusCode).toBe(StatusCodes.UNAUTHORIZED)
     expect(listFiles).not.toHaveBeenCalled()
   })
 
@@ -232,7 +243,7 @@ describe('GET /api/uploads/files', () => {
       url: '/api/uploads/files?prefix=test&maxKeys=50&token=t0',
       headers: auth
     })
-    expect(res.statusCode).toBe(200)
+    expect(res.statusCode).toBe(StatusCodes.OK)
     expect(JSON.parse(res.payload)).toMatchObject({
       files: [{ key: 'admin/test/a/b' }],
       isTruncated: true,
@@ -251,10 +262,10 @@ describe('GET /api/uploads/files', () => {
     const server = await buildServer()
     const res = await server.inject({
       method: 'GET',
-      url: '/api/uploads/files',
+      url: FILES_URL,
       headers: auth
     })
-    expect(res.statusCode).toBe(200)
+    expect(res.statusCode).toBe(StatusCodes.OK)
     expect(listFiles).toHaveBeenCalledWith({
       prefix: 'admin',
       maxKeys: undefined,
@@ -269,7 +280,7 @@ describe('GET /api/uploads/files', () => {
       url: '/api/uploads/files?maxKeys=5000',
       headers: auth
     })
-    expect(res.statusCode).toBe(400)
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
   })
 
   it('returns 502 when the service fails', async () => {
@@ -277,10 +288,10 @@ describe('GET /api/uploads/files', () => {
     const server = await buildServer()
     const res = await server.inject({
       method: 'GET',
-      url: '/api/uploads/files',
+      url: FILES_URL,
       headers: auth
     })
-    expect(res.statusCode).toBe(502)
+    expect(res.statusCode).toBe(StatusCodes.BAD_GATEWAY)
   })
 })
 
@@ -295,7 +306,7 @@ describe('GET /api/uploads/{uploadId}/status', () => {
       url: '/api/uploads/abc12345/status',
       headers: auth
     })
-    expect(res.statusCode).toBe(200)
+    expect(res.statusCode).toBe(StatusCodes.OK)
     expect(JSON.parse(res.payload)).toEqual({ uploadStatus: 'ready' })
   })
 
@@ -306,7 +317,7 @@ describe('GET /api/uploads/{uploadId}/status', () => {
       url: '/api/uploads/short/status',
       headers: auth
     })
-    expect(res.statusCode).toBe(400)
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
   })
 })
 
@@ -321,10 +332,10 @@ describe('GET /api/uploads/{uploadId}', () => {
     const server = await buildServer()
     const res = await server.inject({
       method: 'GET',
-      url: '/api/uploads/abc12345',
+      url: UPLOAD_DETAILS_URL,
       headers: auth
     })
-    expect(res.statusCode).toBe(200)
+    expect(res.statusCode).toBe(StatusCodes.OK)
     expect(JSON.parse(res.payload)).toMatchObject({ uploadStatus: 'ready' })
   })
 
@@ -332,14 +343,14 @@ describe('GET /api/uploads/{uploadId}', () => {
     getUploadDetails.mockResolvedValue({
       uploadStatus: 'error',
       error: 'Unable to fetch upload details',
-      statusCode: 404
+      statusCode: StatusCodes.NOT_FOUND
     })
     const server = await buildServer()
     const res = await server.inject({
       method: 'GET',
-      url: '/api/uploads/abc12345',
+      url: UPLOAD_DETAILS_URL,
       headers: auth
     })
-    expect(res.statusCode).toBe(404)
+    expect(res.statusCode).toBe(StatusCodes.NOT_FOUND)
   })
 })

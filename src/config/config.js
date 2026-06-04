@@ -299,7 +299,7 @@ export const config = convict({
       env: 'AWS_REGION'
     },
     s3Endpoint: {
-      doc: 'Custom S3 endpoint for local emulators (e.g. http://floci:4566); empty uses real AWS',
+      doc: 'Custom S3 endpoint for local emulators such as floci or localstack (port 4566); empty uses real AWS',
       format: String,
       default: '',
       env: 'AWS_S3_ENDPOINT'

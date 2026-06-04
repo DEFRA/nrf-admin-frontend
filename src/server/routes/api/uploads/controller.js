@@ -1,3 +1,5 @@
+import { StatusCodes } from 'http-status-codes'
+
 import { config } from '#/config/config.js'
 import {
   initiateUpload,
@@ -30,9 +32,9 @@ export const initiateHandler = async (request, h) => {
   if (result.error) {
     return h
       .response({ error: 'Upstream upload service unavailable' })
-      .code(502)
+      .code(StatusCodes.BAD_GATEWAY)
   }
-  return h.response(result).code(200)
+  return h.response(result).code(StatusCodes.OK)
 }
 
 export const uploadHandler = async (request, h) => {
@@ -49,17 +51,17 @@ export const uploadHandler = async (request, h) => {
   if (result.error) {
     return h
       .response({ error: 'Upstream upload service unavailable' })
-      .code(502)
+      .code(StatusCodes.BAD_GATEWAY)
   }
 
   // CDP Uploader answers a successful upload with a 302 redirect meant for a
   // browser. This is an API-only service, so collapse that into a JSON 200 and
   // point the caller at the status endpoint to poll for the scan outcome.
-  if (result.statusCode < 400) {
+  if (result.statusCode < StatusCodes.BAD_REQUEST) {
     result.stream?.resume?.() // drain the unused upstream body
     return h
       .response({ uploadId, statusUrl: `/api/uploads/${uploadId}` })
-      .code(200)
+      .code(StatusCodes.OK)
   }
 
   // Relay genuine upstream client errors (e.g. 400/413) so the caller sees them.
@@ -83,9 +85,11 @@ export const filesHandler = async (request, h) => {
   })
 
   if (result.error) {
-    return h.response({ error: 'Unable to list files' }).code(502)
+    return h
+      .response({ error: 'Unable to list files' })
+      .code(StatusCodes.BAD_GATEWAY)
   }
-  return h.response(result).code(200)
+  return h.response(result).code(StatusCodes.OK)
 }
 
 export const statusHandler = async (request, h) => {
@@ -94,21 +98,23 @@ export const statusHandler = async (request, h) => {
   if (result.error) {
     return h
       .response({ error: 'Upstream upload service unavailable' })
-      .code(502)
+      .code(StatusCodes.BAD_GATEWAY)
   }
-  return h.response(result).code(200)
+  return h.response(result).code(StatusCodes.OK)
 }
 
 export const detailsHandler = async (request, h) => {
   const { uploadId } = request.params
   const result = await getUploadDetails(uploadId)
   if (result.error) {
-    if (result.statusCode === 404) {
-      return h.response({ error: 'Upload not found' }).code(404)
+    if (result.statusCode === StatusCodes.NOT_FOUND) {
+      return h
+        .response({ error: 'Upload not found' })
+        .code(StatusCodes.NOT_FOUND)
     }
     return h
       .response({ error: 'Upstream upload service unavailable' })
-      .code(502)
+      .code(StatusCodes.BAD_GATEWAY)
   }
-  return h.response(result).code(200)
+  return h.response(result).code(StatusCodes.OK)
 }

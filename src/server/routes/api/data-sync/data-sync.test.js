@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import Hapi from '@hapi/hapi'
+import { StatusCodes } from 'http-status-codes'
 
 vi.mock('#/config/config.js', () => ({
   config: {
@@ -21,6 +22,7 @@ import { apiDataSync } from './index.js'
 
 const auth = { authorization: 'Bearer secret-token' }
 const RUN_ID = '11111111-2222-4333-8444-555555555555'
+const DATA_SYNC_URL = '/api/data-sync'
 
 async function buildServer() {
   const server = Hapi.server()
@@ -33,8 +35,8 @@ describe('POST /api/data-sync', () => {
 
   it('returns 401 without auth', async () => {
     const server = await buildServer()
-    const res = await server.inject({ method: 'POST', url: '/api/data-sync' })
-    expect(res.statusCode).toBe(401)
+    const res = await server.inject({ method: 'POST', url: DATA_SYNC_URL })
+    expect(res.statusCode).toBe(StatusCodes.UNAUTHORIZED)
     expect(triggerDataSync).not.toHaveBeenCalled()
   })
 
@@ -43,10 +45,10 @@ describe('POST /api/data-sync', () => {
     const server = await buildServer()
     const res = await server.inject({
       method: 'POST',
-      url: '/api/data-sync?force=true',
+      url: `${DATA_SYNC_URL}?force=true`,
       headers: auth
     })
-    expect(res.statusCode).toBe(202)
+    expect(res.statusCode).toBe(StatusCodes.ACCEPTED)
     expect(JSON.parse(res.payload)).toEqual({ runId: 'r1', status: 'running' })
     expect(triggerDataSync).toHaveBeenCalledWith({ force: true })
   })
@@ -56,7 +58,7 @@ describe('POST /api/data-sync', () => {
     const server = await buildServer()
     await server.inject({
       method: 'POST',
-      url: '/api/data-sync',
+      url: DATA_SYNC_URL,
       headers: auth
     })
     expect(triggerDataSync).toHaveBeenCalledWith({ force: false })
@@ -65,29 +67,29 @@ describe('POST /api/data-sync', () => {
   it('maps upstream 409 to 409', async () => {
     triggerDataSync.mockResolvedValue({
       error: 'Unable to trigger data sync',
-      statusCode: 409
+      statusCode: StatusCodes.CONFLICT
     })
     const server = await buildServer()
     const res = await server.inject({
       method: 'POST',
-      url: '/api/data-sync',
+      url: DATA_SYNC_URL,
       headers: auth
     })
-    expect(res.statusCode).toBe(409)
+    expect(res.statusCode).toBe(StatusCodes.CONFLICT)
   })
 
   it('returns 502 on other upstream failures', async () => {
     triggerDataSync.mockResolvedValue({
       error: 'Unable to trigger data sync',
-      statusCode: 500
+      statusCode: StatusCodes.INTERNAL_SERVER_ERROR
     })
     const server = await buildServer()
     const res = await server.inject({
       method: 'POST',
-      url: '/api/data-sync',
+      url: DATA_SYNC_URL,
       headers: auth
     })
-    expect(res.statusCode).toBe(502)
+    expect(res.statusCode).toBe(StatusCodes.BAD_GATEWAY)
   })
 })
 
@@ -102,7 +104,7 @@ describe('GET /api/data-sync/{runId}', () => {
       url: `/api/data-sync/${RUN_ID}`,
       headers: auth
     })
-    expect(res.statusCode).toBe(200)
+    expect(res.statusCode).toBe(StatusCodes.OK)
     expect(JSON.parse(res.payload)).toMatchObject({ status: 'complete' })
   })
 
@@ -113,13 +115,13 @@ describe('GET /api/data-sync/{runId}', () => {
       url: '/api/data-sync/not-a-uuid',
       headers: auth
     })
-    expect(res.statusCode).toBe(400)
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
   })
 
   it('maps upstream 404 to 404', async () => {
     getDataSyncStatus.mockResolvedValue({
       error: 'Unable to fetch data sync status',
-      statusCode: 404
+      statusCode: StatusCodes.NOT_FOUND
     })
     const server = await buildServer()
     const res = await server.inject({
@@ -127,6 +129,6 @@ describe('GET /api/data-sync/{runId}', () => {
       url: `/api/data-sync/${RUN_ID}`,
       headers: auth
     })
-    expect(res.statusCode).toBe(404)
+    expect(res.statusCode).toBe(StatusCodes.NOT_FOUND)
   })
 })
