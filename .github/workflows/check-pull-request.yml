@@ -24,11 +24,9 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
-      - name: Security audit
-        run: npm run security-audit
-
       - run: |
-          npm ci
+          npm ci --ignore-scripts
+          npm run security-audit
           npm run build:frontend
           npm run format:check
           npm run lint
