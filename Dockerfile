@@ -14,7 +14,8 @@ ENV PORT=${PORT}
 EXPOSE ${PORT} ${PORT_DEBUG}
 
 COPY --chown=node:node --chmod=755 package*.json ./
-RUN npm install
+RUN npm install --ignore-scripts
+RUN npm run security-audit
 COPY --chown=node:node --chmod=755 . .
 RUN npm run build:frontend
 
@@ -42,7 +43,7 @@ COPY --from=production_build /home/node/package*.json ./
 COPY --from=production_build /home/node/src ./src/
 COPY --from=production_build /home/node/.public/ ./.public/
 
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 
 ARG PORT
 ENV PORT=${PORT}
