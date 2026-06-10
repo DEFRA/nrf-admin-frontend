@@ -25,17 +25,23 @@ describe('impact-assessor service', () => {
   beforeEach(() => vi.clearAllMocks())
 
   describe('triggerDataSync', () => {
-    it('posts with the token header and maps the response', async () => {
+    it('posts the manifest body with the token header and maps the response', async () => {
       Wreck.post.mockResolvedValue({
         payload: { run_id: 'r1', status: 'running' }
       })
+      const manifest = {
+        data_version: '20260605_120000',
+        tables: { edp_boundary_layer: '20260521/abc/def' }
+      }
 
-      const result = await triggerDataSync({ force: true })
+      const result = await triggerDataSync({ force: true, manifest })
 
       expect(result).toEqual({ runId: 'r1', status: 'running' })
       const [url, opts] = Wreck.post.mock.calls[0]
       expect(url).toBe('http://localhost:8085/admin/data-sync?force=true')
       expect(opts.headers['x-data-sync-token']).toBe('sync-token')
+      expect(opts.headers['Content-Type']).toBe('application/json')
+      expect(JSON.parse(opts.payload)).toEqual(manifest)
     })
 
     it('defaults force to false', async () => {

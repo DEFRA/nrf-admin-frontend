@@ -7,8 +7,9 @@ import {
 
 export const triggerHandler = async (request, h) => {
   const { force } = request.query
+  const manifest = request.payload
 
-  const result = await triggerDataSync({ force })
+  const result = await triggerDataSync({ force, manifest })
 
   if (result.error) {
     if (result.statusCode === StatusCodes.CONFLICT) {

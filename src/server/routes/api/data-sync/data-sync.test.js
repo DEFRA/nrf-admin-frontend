@@ -23,6 +23,10 @@ import { apiDataSync } from './index.js'
 const auth = { authorization: 'Bearer secret-token' }
 const RUN_ID = '11111111-2222-4333-8444-555555555555'
 const DATA_SYNC_URL = '/api/data-sync'
+const MANIFEST = {
+  data_version: '20260605_120000',
+  tables: { edp_boundary_layer: '20260521/abc/def' }
+}
 
 async function buildServer() {
   const server = Hapi.server()
@@ -40,17 +44,21 @@ describe('POST /api/data-sync', () => {
     expect(triggerDataSync).not.toHaveBeenCalled()
   })
 
-  it('returns 202 with runId and passes force through', async () => {
+  it('returns 202 with runId and passes force and manifest through', async () => {
     triggerDataSync.mockResolvedValue({ runId: 'r1', status: 'running' })
     const server = await buildServer()
     const res = await server.inject({
       method: 'POST',
       url: `${DATA_SYNC_URL}?force=true`,
-      headers: auth
+      headers: auth,
+      payload: MANIFEST
     })
     expect(res.statusCode).toBe(StatusCodes.ACCEPTED)
     expect(JSON.parse(res.payload)).toEqual({ runId: 'r1', status: 'running' })
-    expect(triggerDataSync).toHaveBeenCalledWith({ force: true })
+    expect(triggerDataSync).toHaveBeenCalledWith({
+      force: true,
+      manifest: MANIFEST
+    })
   })
 
   it('defaults force to false when omitted', async () => {
@@ -59,9 +67,36 @@ describe('POST /api/data-sync', () => {
     await server.inject({
       method: 'POST',
       url: DATA_SYNC_URL,
+      headers: auth,
+      payload: MANIFEST
+    })
+    expect(triggerDataSync).toHaveBeenCalledWith({
+      force: false,
+      manifest: MANIFEST
+    })
+  })
+
+  it('rejects a missing body', async () => {
+    const server = await buildServer()
+    const res = await server.inject({
+      method: 'POST',
+      url: DATA_SYNC_URL,
       headers: auth
     })
-    expect(triggerDataSync).toHaveBeenCalledWith({ force: false })
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
+    expect(triggerDataSync).not.toHaveBeenCalled()
+  })
+
+  it('rejects an empty tables map', async () => {
+    const server = await buildServer()
+    const res = await server.inject({
+      method: 'POST',
+      url: DATA_SYNC_URL,
+      headers: auth,
+      payload: { data_version: 'v1', tables: {} }
+    })
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
+    expect(triggerDataSync).not.toHaveBeenCalled()
   })
 
   it('maps upstream 409 to 409', async () => {
@@ -73,7 +108,8 @@ describe('POST /api/data-sync', () => {
     const res = await server.inject({
       method: 'POST',
       url: DATA_SYNC_URL,
-      headers: auth
+      headers: auth,
+      payload: MANIFEST
     })
     expect(res.statusCode).toBe(StatusCodes.CONFLICT)
   })
@@ -87,7 +123,8 @@ describe('POST /api/data-sync', () => {
     const res = await server.inject({
       method: 'POST',
       url: DATA_SYNC_URL,
-      headers: auth
+      headers: auth,
+      payload: MANIFEST
     })
     expect(res.statusCode).toBe(StatusCodes.BAD_GATEWAY)
   })
