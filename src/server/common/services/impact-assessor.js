@@ -61,6 +61,8 @@ export async function getDataSyncStatus(runId) {
       error,
       `Error fetching data sync status - url: ${url}, runId: ${runId}, statusCode: ${statusCode}`
     )
-    return { error: 'Unable to fetch data sync status', statusCode }
+    // A failed run's payload legitimately carries an `error` field, so signal
+    // transport/upstream failures under a distinct key.
+    return { serviceError: 'Unable to fetch data sync status', statusCode }
   }
 }

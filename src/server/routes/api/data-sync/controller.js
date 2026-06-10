@@ -33,7 +33,7 @@ export const statusHandler = async (request, h) => {
 
   const result = await getDataSyncStatus(runId)
 
-  if (result.error) {
+  if (result.serviceError) {
     if (result.statusCode === StatusCodes.NOT_FOUND) {
       return h
         .response({ error: 'Data sync run not found' })

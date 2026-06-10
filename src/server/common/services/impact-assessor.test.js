@@ -78,13 +78,13 @@ describe('impact-assessor service', () => {
       })
     })
 
-    it('returns error shape with statusCode on failure', async () => {
+    it('returns serviceError shape with statusCode on failure', async () => {
       const err = Object.assign(new Error('nope'), {
         output: { statusCode: 404 }
       })
       Wreck.get.mockRejectedValue(err)
       expect(await getDataSyncStatus('r1')).toEqual({
-        error: 'Unable to fetch data sync status',
+        serviceError: 'Unable to fetch data sync status',
         statusCode: 404
       })
     })

@@ -155,9 +155,28 @@ describe('GET /api/data-sync/{runId}', () => {
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
   })
 
+  it('relays a failed run payload with its error field as 200', async () => {
+    getDataSyncStatus.mockResolvedValue({
+      run_id: RUN_ID,
+      status: 'failed',
+      error: 'reference data dump not found'
+    })
+    const server = await buildServer()
+    const res = await server.inject({
+      method: 'GET',
+      url: `/api/data-sync/${RUN_ID}`,
+      headers: auth
+    })
+    expect(res.statusCode).toBe(StatusCodes.OK)
+    expect(JSON.parse(res.payload)).toMatchObject({
+      status: 'failed',
+      error: 'reference data dump not found'
+    })
+  })
+
   it('maps upstream 404 to 404', async () => {
     getDataSyncStatus.mockResolvedValue({
-      error: 'Unable to fetch data sync status',
+      serviceError: 'Unable to fetch data sync status',
       statusCode: StatusCodes.NOT_FOUND
     })
     const server = await buildServer()
