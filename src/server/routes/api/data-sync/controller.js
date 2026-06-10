@@ -7,8 +7,9 @@ import {
 
 export const triggerHandler = async (request, h) => {
   const { force } = request.query
+  const manifest = request.payload
 
-  const result = await triggerDataSync({ force })
+  const result = await triggerDataSync({ force, manifest })
 
   if (result.error) {
     if (result.statusCode === StatusCodes.CONFLICT) {
@@ -32,7 +33,7 @@ export const statusHandler = async (request, h) => {
 
   const result = await getDataSyncStatus(runId)
 
-  if (result.error) {
+  if (result.serviceError) {
     if (result.statusCode === StatusCodes.NOT_FOUND) {
       return h
         .response({ error: 'Data sync run not found' })

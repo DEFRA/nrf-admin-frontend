@@ -15,16 +15,22 @@ const dataSyncHeaders = () => {
   return headers
 }
 
-export async function triggerDataSync({ force = false } = {}) {
+export async function triggerDataSync({ force = false, manifest } = {}) {
   const baseUrl = config.get('impactAssessor.apiUrl')
   const url = `${baseUrl}/admin/data-sync?force=${force ? 'true' : 'false'}`
 
-  logger.info(`Triggering data sync - url: ${url}, force: ${force}`)
+  logger.info(
+    `Triggering data sync - url: ${url}, force: ${force}, dataVersion: ${manifest?.data_version}`
+  )
 
   try {
     const { payload } = await Wreck.post(url, {
+      payload: JSON.stringify(manifest),
       json: true,
-      headers: dataSyncHeaders()
+      headers: {
+        ...dataSyncHeaders(),
+        'Content-Type': 'application/json'
+      }
     })
     return { runId: payload.run_id, status: payload.status }
   } catch (error) {
@@ -55,6 +61,8 @@ export async function getDataSyncStatus(runId) {
       error,
       `Error fetching data sync status - url: ${url}, runId: ${runId}, statusCode: ${statusCode}`
     )
-    return { error: 'Unable to fetch data sync status', statusCode }
+    // A failed run's payload legitimately carries an `error` field, so signal
+    // transport/upstream failures under a distinct key.
+    return { serviceError: 'Unable to fetch data sync status', statusCode }
   }
 }

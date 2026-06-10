@@ -1,4 +1,8 @@
-import { triggerQuerySchema, runIdParamSchema } from './schemas.js'
+import {
+  triggerQuerySchema,
+  triggerBodySchema,
+  runIdParamSchema
+} from './schemas.js'
 import { triggerHandler, statusHandler } from './controller.js'
 
 export const apiDataSync = {
@@ -11,7 +15,7 @@ export const apiDataSync = {
           path: '/api/data-sync',
           options: {
             auth: 'api-bearer',
-            validate: { query: triggerQuerySchema }
+            validate: { query: triggerQuerySchema, payload: triggerBodySchema }
           },
           handler: triggerHandler
         },
