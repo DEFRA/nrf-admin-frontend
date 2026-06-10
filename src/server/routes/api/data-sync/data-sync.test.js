@@ -34,25 +34,27 @@ async function buildServer() {
   return server
 }
 
+async function postDataSync({
+  url = DATA_SYNC_URL,
+  headers = auth,
+  payload = MANIFEST
+} = {}) {
+  const server = await buildServer()
+  return server.inject({ method: 'POST', url, headers, payload })
+}
+
 describe('POST /api/data-sync', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('returns 401 without auth', async () => {
-    const server = await buildServer()
-    const res = await server.inject({ method: 'POST', url: DATA_SYNC_URL })
+    const res = await postDataSync({ headers: {} })
     expect(res.statusCode).toBe(StatusCodes.UNAUTHORIZED)
     expect(triggerDataSync).not.toHaveBeenCalled()
   })
 
   it('returns 202 with runId and passes force and manifest through', async () => {
     triggerDataSync.mockResolvedValue({ runId: 'r1', status: 'running' })
-    const server = await buildServer()
-    const res = await server.inject({
-      method: 'POST',
-      url: `${DATA_SYNC_URL}?force=true`,
-      headers: auth,
-      payload: MANIFEST
-    })
+    const res = await postDataSync({ url: `${DATA_SYNC_URL}?force=true` })
     expect(res.statusCode).toBe(StatusCodes.ACCEPTED)
     expect(JSON.parse(res.payload)).toEqual({ runId: 'r1', status: 'running' })
     expect(triggerDataSync).toHaveBeenCalledWith({
@@ -63,36 +65,25 @@ describe('POST /api/data-sync', () => {
 
   it('defaults force to false when omitted', async () => {
     triggerDataSync.mockResolvedValue({ runId: 'r1', status: 'running' })
-    const server = await buildServer()
-    await server.inject({
-      method: 'POST',
-      url: DATA_SYNC_URL,
-      headers: auth,
-      payload: MANIFEST
-    })
+    await postDataSync()
     expect(triggerDataSync).toHaveBeenCalledWith({
       force: false,
       manifest: MANIFEST
     })
   })
+})
+
+describe('POST /api/data-sync - validation and upstream errors', () => {
+  beforeEach(() => vi.clearAllMocks())
 
   it('rejects a missing body', async () => {
-    const server = await buildServer()
-    const res = await server.inject({
-      method: 'POST',
-      url: DATA_SYNC_URL,
-      headers: auth
-    })
+    const res = await postDataSync({ payload: null })
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
     expect(triggerDataSync).not.toHaveBeenCalled()
   })
 
   it('rejects an empty tables map', async () => {
-    const server = await buildServer()
-    const res = await server.inject({
-      method: 'POST',
-      url: DATA_SYNC_URL,
-      headers: auth,
+    const res = await postDataSync({
       payload: { data_version: 'v1', tables: {} }
     })
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
@@ -104,13 +95,7 @@ describe('POST /api/data-sync', () => {
       error: 'Unable to trigger data sync',
       statusCode: StatusCodes.CONFLICT
     })
-    const server = await buildServer()
-    const res = await server.inject({
-      method: 'POST',
-      url: DATA_SYNC_URL,
-      headers: auth,
-      payload: MANIFEST
-    })
+    const res = await postDataSync()
     expect(res.statusCode).toBe(StatusCodes.CONFLICT)
   })
 
@@ -119,13 +104,7 @@ describe('POST /api/data-sync', () => {
       error: 'Unable to trigger data sync',
       statusCode: StatusCodes.INTERNAL_SERVER_ERROR
     })
-    const server = await buildServer()
-    const res = await server.inject({
-      method: 'POST',
-      url: DATA_SYNC_URL,
-      headers: auth,
-      payload: MANIFEST
-    })
+    const res = await postDataSync()
     expect(res.statusCode).toBe(StatusCodes.BAD_GATEWAY)
   })
 })
