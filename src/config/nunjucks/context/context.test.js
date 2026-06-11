@@ -71,7 +71,7 @@ describe('context and cache', () => {
               href: '/about'
             }
           ],
-          serviceName: 'nrf-admin-frontend',
+          serviceName: 'Nature Restoration Fund',
           serviceUrl: '/'
         })
       })
@@ -160,7 +160,7 @@ describe('context and cache', () => {
               href: '/about'
             }
           ],
-          serviceName: 'nrf-admin-frontend',
+          serviceName: 'Nature Restoration Fund',
           serviceUrl: '/'
         })
       })

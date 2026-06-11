@@ -15,6 +15,7 @@ import { getCacheEngine } from './common/helpers/session-cache/cache-engine.js'
 import { secureContext } from '@defra/hapi-secure-context'
 import { contentSecurityPolicy } from './plugins/content-security-policy.js'
 import { metrics } from '@defra/cdp-metrics'
+import { bearerAuth } from './common/helpers/auth/bearer-auth.js'
 import { federatedOidc } from './plugins/federated-oidc.js'
 import { cognitoFederatedCredentials } from './plugins/cognito.js'
 import { sessionCookie } from './common/helpers/auth/session-cookie.js'
@@ -85,6 +86,7 @@ export async function createServer() {
     nunjucksConfig,
     Scooter,
     contentSecurityPolicy,
+    bearerAuth,
     router // Register all the controllers/routes defined in src/server/router.js
   ])
 

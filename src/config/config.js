@@ -15,6 +15,17 @@ const isDevelopment = process.env.NODE_ENV === 'development'
 
 convict.addFormats(convictFormatWithValidator)
 
+/**
+ * Convict `format` validator that fails closed at startup when a secret
+ * is unset in production. Allows empty values in dev/test so local stacks
+ * without auth wired still boot.
+ */
+const requireInProduction = (envName) => (val) => {
+  if (isProduction && !val) {
+    throw new Error(`${envName} is required in production`)
+  }
+}
+
 export const config = convict({
   serviceVersion: {
     doc: 'The service version, this variable is injected into your docker container in CDP environments',
@@ -44,7 +55,7 @@ export const config = convict({
   serviceName: {
     doc: 'Applications Service Name',
     format: String,
-    default: 'nrf-admin-frontend'
+    default: 'Nature Restoration Fund'
   },
   root: {
     doc: 'Project root',
@@ -71,15 +82,6 @@ export const config = convict({
     doc: 'If this application running in the test environment',
     format: Boolean,
     default: isTest
-  },
-  backend: {
-    apiUrl: {
-      doc: 'Host for the nrf-backend API service',
-      format: String,
-      nullable: true,
-      default: 'http://localhost:3001',
-      env: 'NRF_BACKEND_API_URL'
-    }
   },
   log: {
     enabled: {
@@ -224,6 +226,86 @@ export const config = convict({
       env: 'TRACING_HEADER'
     }
   },
+  backend: {
+    apiUrl: {
+      doc: 'Endpoint for the NRF backend API service',
+      format: String,
+      default: 'http://localhost:4001',
+      env: 'NRF_BACKEND_API_URL'
+    },
+    apiKey: {
+      doc: 'Service-to-service x-api-key value sent on outbound calls to the backend',
+      format: requireInProduction('BACKEND_API_KEY'),
+      default: '',
+      sensitive: true,
+      env: 'BACKEND_API_KEY'
+    }
+  },
+  impactAssessor: {
+    apiUrl: {
+      doc: 'Base URL for the NRF impact-assessor service',
+      format: String,
+      default: 'http://localhost:8085',
+      env: 'NRF_IMPACT_ASSESSOR_API_URL'
+    },
+    dataSyncToken: {
+      doc: 'x-data-sync-token sent to the impact-assessor /admin/data-sync endpoints',
+      format: requireInProduction('DATA_SYNC_TOKEN'),
+      default: '',
+      sensitive: true,
+      env: 'DATA_SYNC_TOKEN'
+    }
+  },
+  api: {
+    bearerToken: {
+      doc: 'Bearer token required to call /api/uploads/* endpoints (temporary auth scheme)',
+      format: String,
+      default: '',
+      env: 'UPLOAD_API_BEARER_TOKEN',
+      sensitive: true
+    }
+  },
+  cdpUploader: {
+    url: {
+      doc: 'Explicit CDP Uploader base URL (overrides environment-derived URL)',
+      format: String,
+      default: '',
+      env: 'CDP_UPLOADER_URL'
+    },
+    s3Bucket: {
+      doc: 'Destination S3 bucket for uploads (server-enforced)',
+      format: String,
+      default: '',
+      env: 'CDP_UPLOADER_S3_BUCKET'
+    },
+    s3PathPrefix: {
+      doc: 'Path prefix inside the bucket (prepended to any client-supplied subpath)',
+      format: String,
+      default: '',
+      env: 'CDP_UPLOADER_S3_PATH_PREFIX'
+    },
+    maxFileSize: {
+      doc: 'Maximum allowed upload size in bytes',
+      format: Number,
+      default: 104857600,
+      env: 'CDP_UPLOADER_MAX_FILE_SIZE'
+    }
+  },
+  aws: {
+    region: {
+      doc: 'AWS region for S3 access',
+      format: String,
+      default: 'eu-west-2',
+      env: 'AWS_REGION'
+    },
+    s3Endpoint: {
+      doc: 'Custom S3 endpoint for local emulators such as floci or localstack (port 4566); empty uses real AWS',
+      format: String,
+      default: '',
+      env: 'AWS_S3_ENDPOINT'
+    }
+  },
+
   azureFederatedCredentials: {
     identityPoolId: {
       doc: 'Azure Federated Credential Pool ID',
@@ -267,3 +349,15 @@ export const config = convict({
 })
 
 config.validate({ allowed: 'strict' })
+
+if (config.get('isProduction')) {
+  if (!config.get('api.bearerToken')) {
+    throw new Error('UPLOAD_API_BEARER_TOKEN must be set in production')
+  }
+  if (!config.get('cdpUploader.url')) {
+    throw new Error('CDP_UPLOADER_URL must be set in production')
+  }
+  if (!config.get('cdpUploader.s3Bucket')) {
+    throw new Error('CDP_UPLOADER_S3_BUCKET must be set in production')
+  }
+}

@@ -7,3 +7,13 @@
   padding-top: govuk-spacing(4);
   padding-bottom: govuk-spacing(3);
 }
+
+.govuk-table__caption {
+  margin-bottom: govuk-spacing(3);
+}
+
+.govuk-width-container {
+  max-width: none;
+  margin-left: govuk-spacing(6);
+  margin-right: govuk-spacing(6);
+}
