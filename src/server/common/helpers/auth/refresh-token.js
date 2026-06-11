@@ -16,31 +16,30 @@ export async function refreshTokenIfExpired(
   request,
   userSession
 ) {
-  if (!userSession?.expiresAt) {
-    return undefined
-  }
-
   const tokenHasExpired =
     Boolean(userSession?.expiresAt) && isPast(parseISO(userSession?.expiresAt))
 
-  if (tokenHasExpired) {
-    request.logger.info(
-      `Token for user ${userSession?.displayName} has expired, attempting to refresh`
-    )
+  if (!tokenHasExpired) {
+    return undefined
+  }
 
-    try {
-      const refreshTokenResponse = await refreshToken(userSession?.refreshToken)
-      return await refreshUserSession(request, refreshTokenResponse)
-    } catch (error) {
-      request.logger.debug(
-        error,
-        `Token refresh for ${userSession?.displayName} failed`
-      )
-      removeAuthenticatedUser(request)
-      request.yar.flash(
-        sessionNames.globalValidationFailures,
-        'Your login expired'
-      )
-    }
+  request.logger.info(
+    `Token for user ${userSession?.displayName} has expired, attempting to refresh`
+  )
+
+  try {
+    const refreshTokenResponse = await refreshToken(userSession?.refreshToken)
+    return await refreshUserSession(request, refreshTokenResponse)
+  } catch (error) {
+    request.logger.debug(
+      error,
+      `Token refresh for ${userSession?.displayName} failed`
+    )
+    removeAuthenticatedUser(request)
+    request.yar.flash(
+      sessionNames.globalValidationFailures,
+      'Your login expired'
+    )
+    return undefined
   }
 }
