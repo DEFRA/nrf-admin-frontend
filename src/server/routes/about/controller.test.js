@@ -1,6 +1,6 @@
-import { createServer } from '#src/server/server.js'
-import { statusCodes } from '#src/server/common/constants/status-codes.js'
-import { authenticatedSession } from '#src/test-utils/authenticated-session.js'
+import { createServer } from '#/server/server.js'
+import { statusCodes } from '#/server/common/constants/status-codes.js'
+import { authenticatedSession } from '#/test-utils/authenticated-session.js'
 
 describe('#aboutController', () => {
   let server

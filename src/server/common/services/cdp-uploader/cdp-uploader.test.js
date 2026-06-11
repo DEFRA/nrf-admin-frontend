@@ -7,7 +7,7 @@ vi.mock('@hapi/wreck', () => ({
 vi.mock('@defra/hapi-tracing', () => ({
   withTraceId: (_h, headers = {}) => headers
 }))
-vi.mock('#src/config/config.js', async (importOriginal) => {
+vi.mock('#/config/config.js', async (importOriginal) => {
   const actual = await importOriginal()
   const realGet = actual.config.get.bind(actual.config)
   return {

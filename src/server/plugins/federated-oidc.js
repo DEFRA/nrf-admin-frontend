@@ -7,7 +7,7 @@ import { createLogger } from '../common/helpers/logging/logger.js'
 import { sessionNames } from '../common/constants/session-names.js'
 import { asExternalUrl } from '../common/helpers/url/url-helpers.js'
 import { refreshTokenIfExpired } from '../common/helpers/auth/refresh-token.js'
-import { config } from '#src/config/config.js'
+import { config } from '#/config/config.js'
 
 const logger = createLogger()
 const callbackPath = '/auth/callback'

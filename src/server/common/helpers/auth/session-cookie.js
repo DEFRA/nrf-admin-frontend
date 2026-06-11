@@ -1,5 +1,5 @@
 import authCookie from '@hapi/cookie'
-import { config } from '#src/config/config.js'
+import { config } from '#/config/config.js'
 
 const sessionCookieConfig = config.get('session.cookie')
 

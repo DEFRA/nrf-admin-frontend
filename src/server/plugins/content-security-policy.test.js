@@ -1,4 +1,4 @@
-import { createServer } from '#src/server/server.js'
+import { createServer } from '#/server/server.js'
 
 describe('#contentSecurityPolicy', () => {
   let server

@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 
-import { createLogger } from '#src/server/common/helpers/logging/logger.js'
+import { createLogger } from '#/server/common/helpers/logging/logger.js'
 
 const logger = createLogger()
 

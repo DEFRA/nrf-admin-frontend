@@ -6,7 +6,7 @@ import { apiUploads } from '../routes/api/uploads/index.js'
 import { apiDataSync } from '../routes/api/data-sync/index.js'
 import { health } from '../routes/health/index.js'
 import { serveStaticFiles } from './serve-static-files.js'
-import { config } from '#src/config/config.js'
+import { config } from '#/config/config.js'
 
 import { auth } from '../auth/index.js'
 import { login } from '../login/routes.js'

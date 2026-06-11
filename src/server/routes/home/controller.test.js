@@ -1,14 +1,14 @@
 import { getByRole, queryByRole } from '@testing-library/dom'
 import { http, HttpResponse } from 'msw'
-import { setupTestServer } from '#src/test-utils/setup-test-server.js'
-import { setupMswServer } from '#src/test-utils/setup-msw-server.js'
-import { loadPage } from '#src/test-utils/load-page.js'
+import { setupTestServer } from '#/test-utils/setup-test-server.js'
+import { setupMswServer } from '#/test-utils/setup-msw-server.js'
+import { loadPage } from '#/test-utils/load-page.js'
 import {
   singleQuoteFixture,
   multipleQuotesFixture
-} from '#src/test-utils/fixtures/quotes.js'
-import { config } from '#src/config/config.js'
-import { authenticatedSession } from '#src/test-utils/authenticated-session.js'
+} from '#/test-utils/fixtures/quotes.js'
+import { config } from '#/config/config.js'
+import { authenticatedSession } from '#/test-utils/authenticated-session.js'
 
 const backendUrl = config.get('backend.apiUrl')
 const quotesEndpoint = `${backendUrl}/quotes`

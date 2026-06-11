@@ -3,8 +3,8 @@ import {
   CognitoIdentityClient,
   GetOpenIdTokenForDeveloperIdentityCommand
 } from '@aws-sdk/client-cognito-identity'
-import { config } from '#src/config/config.js'
-import { createLogger } from '#src/server/common/helpers/logging/logger.js'
+import { config } from '#/config/config.js'
+import { createLogger } from '#/server/common/helpers/logging/logger.js'
 import { NodeHttpHandler } from '@smithy/node-http-handler'
 import https from 'node:https'
 import http from 'node:http'

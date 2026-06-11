@@ -1,5 +1,5 @@
-import { getRequestFromBackend } from '#src/server/common/services/nrf-backend.js'
-import { createLogger } from '#src/server/common/helpers/logging/logger.js'
+import { getRequestFromBackend } from '#/server/common/services/nrf-backend.js'
+import { createLogger } from '#/server/common/helpers/logging/logger.js'
 
 const logger = createLogger()
 
