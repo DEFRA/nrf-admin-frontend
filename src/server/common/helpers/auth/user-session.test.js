@@ -1,3 +1,12 @@
+import {
+  describe,
+  test,
+  expect,
+  vi,
+  beforeAll,
+  afterAll,
+  beforeEach
+} from 'vitest'
 import jwt from '@hapi/jwt'
 
 import {
@@ -8,126 +17,127 @@ import {
 
 vi.mock('@hapi/jwt')
 
-describe('#userSession', () => {
-  beforeAll(() => {
-    vi.useFakeTimers({ advanceTimers: true })
-    vi.setSystemTime(new Date('2025-02-28'))
-  })
+const USER_EMAIL = 'user@example.com'
+const SESSION_ID = 'session-id'
 
-  afterAll(() => {
-    vi.useRealTimers()
-  })
+beforeAll(() => {
+  vi.useFakeTimers({ advanceTimers: true })
+  vi.setSystemTime(new Date('2025-02-28'))
+})
 
-  describe('#createUserSession', () => {
-    const request = {
-      auth: {
-        credentials: {
-          expiresIn: 3600,
-          claims: {
-            oid: 'user-id',
-            name: 'User Name',
-            email: 'user@example.com',
-            login_hint: 'user@example.com'
-          },
-          token: 'access-token',
-          refreshToken: 'refresh-token'
+afterAll(() => {
+  vi.useRealTimers()
+})
+
+describe('#createUserSession', () => {
+  const request = {
+    auth: {
+      credentials: {
+        expiresIn: 3600,
+        claims: {
+          oid: 'user-id',
+          name: 'User Name',
+          email: USER_EMAIL,
+          login_hint: USER_EMAIL
         },
-        isAuthenticated: true
-      },
-      server: {
-        session: {
-          set: vi.fn()
-        }
-      }
-    }
-    const sessionId = 'session-id'
-
-    test('Should create a user session with correct details', async () => {
-      await createUserSession(request, sessionId)
-
-      expect(request.server.session.set).toHaveBeenCalledWith(sessionId, {
-        id: 'user-id',
-        email: 'user@example.com',
-        displayName: 'User Name',
-        loginHint: 'user@example.com',
-        isAuthenticated: true,
         token: 'access-token',
-        refreshToken: 'refresh-token',
-        expiresIn: 3600000,
-        expiresAt: expect.any(String)
-      })
-    })
-  })
-
-  describe('#refreshUserSession', () => {
-    const request = {
-      logger: {
-        debug: vi.fn(),
-        info: vi.fn()
+        refreshToken: 'refresh-token'
       },
-      state: { userSessionCookie: { sessionId: 'session-id' } },
-      server: { session: { set: vi.fn() } },
-      getUserSession: vi.fn()
+      isAuthenticated: true
+    },
+    server: {
+      session: {
+        set: vi.fn()
+      }
     }
-    const refreshTokenResponse = {
-      access_token: 'new-access-token',
-      expires_in: 3600,
-      refresh_token: 'new-refresh-token'
-    }
+  }
+  const sessionId = SESSION_ID
 
-    beforeEach(async () => {
-      jwt.token.decode.mockReturnValue({
-        decoded: {
-          payload: {
-            oid: 'user-id',
-            preferred_username: 'user@example.com',
-            name: 'User Name',
-            login_hint: 'user@example.com'
-          }
-        }
-      })
+  test('Should create a user session with correct details', async () => {
+    await createUserSession(request, sessionId)
 
-      await refreshUserSession(request, refreshTokenResponse)
-    })
-
-    test('Should refresh the user session with new token and expiry details', () => {
-      expect(request.server.session.set).toHaveBeenCalledWith('session-id', {
-        id: 'user-id',
-        email: 'user@example.com',
-        displayName: 'User Name',
-        loginHint: 'user@example.com',
-        isAuthenticated: true,
-        token: 'new-access-token',
-        refreshToken: 'new-refresh-token',
-        expiresIn: 3600000,
-        expiresAt: expect.any(String)
-      })
-    })
-
-    test('Should log the user session refresh', () => {
-      expect(request.logger.info).toHaveBeenCalledWith(
-        'User session refreshed, UserId: user-id, displayName: User Name'
-      )
+    expect(request.server.session.set).toHaveBeenCalledWith(sessionId, {
+      id: 'user-id',
+      email: USER_EMAIL,
+      displayName: 'User Name',
+      loginHint: USER_EMAIL,
+      isAuthenticated: true,
+      token: 'access-token',
+      refreshToken: 'refresh-token',
+      expiresIn: 3600000,
+      expiresAt: expect.any(String)
     })
   })
+})
 
-  describe('#removeAuthenticatedUser', () => {
-    test('Should remove the authenticated user from the portal', () => {
-      const request = {
-        dropUserSession: vi.fn(),
-        sessionCookie: {
-          clear: vi.fn(),
-          h: {
-            response: vi.fn().mockReturnThis(),
-            unstate: vi.fn().mockReturnThis()
-          }
+describe('#refreshUserSession', () => {
+  const request = {
+    logger: {
+      debug: vi.fn(),
+      info: vi.fn()
+    },
+    state: { userSessionCookie: { sessionId: SESSION_ID } },
+    server: { session: { set: vi.fn() } },
+    getUserSession: vi.fn()
+  }
+  const refreshTokenResponse = {
+    access_token: 'new-access-token',
+    expires_in: 3600,
+    refresh_token: 'new-refresh-token'
+  }
+
+  beforeEach(async () => {
+    jwt.token.decode.mockReturnValue({
+      decoded: {
+        payload: {
+          oid: 'user-id',
+          preferred_username: USER_EMAIL,
+          name: 'User Name',
+          login_hint: USER_EMAIL
         }
       }
-
-      removeAuthenticatedUser(request)
-
-      expect(request.dropUserSession).toHaveBeenCalled()
-      expect(request.sessionCookie.clear).toHaveBeenCalled()
     })
+
+    await refreshUserSession(request, refreshTokenResponse)
+  })
+
+  test('Should refresh the user session with new token and expiry details', () => {
+    expect(request.server.session.set).toHaveBeenCalledWith(SESSION_ID, {
+      id: 'user-id',
+      email: USER_EMAIL,
+      displayName: 'User Name',
+      loginHint: USER_EMAIL,
+      isAuthenticated: true,
+      token: 'new-access-token',
+      refreshToken: 'new-refresh-token',
+      expiresIn: 3600000,
+      expiresAt: expect.any(String)
+    })
+  })
+
+  test('Should log the user session refresh', () => {
+    expect(request.logger.info).toHaveBeenCalledWith(
+      'User session refreshed, UserId: user-id, displayName: User Name'
+    )
+  })
+})
+
+describe('#removeAuthenticatedUser', () => {
+  test('Should remove the authenticated user from the portal', () => {
+    const request = {
+      dropUserSession: vi.fn(),
+      sessionCookie: {
+        clear: vi.fn(),
+        h: {
+          response: vi.fn().mockReturnThis(),
+          unstate: vi.fn().mockReturnThis()
+        }
+      }
+    }
+
+    removeAuthenticatedUser(request)
+
+    expect(request.dropUserSession).toHaveBeenCalled()
+    expect(request.sessionCookie.clear).toHaveBeenCalled()
   })
 })

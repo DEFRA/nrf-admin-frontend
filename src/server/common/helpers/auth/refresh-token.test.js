@@ -1,3 +1,5 @@
+import { describe, it, expect, vi } from 'vitest'
+
 import { refreshTokenIfExpired } from './refresh-token.js'
 import pino from 'pino'
 import { add, sub } from 'date-fns'

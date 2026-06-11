@@ -33,8 +33,8 @@ export const federatedOidc = {
     server.auth.scheme('federated-oidc', scheme)
     server.auth.strategy('azure-oidc', 'federated-oidc', options)
 
-    server.decorate('request', 'refreshToken', async function (userSession) {
-      return await refreshTokenIfExpired(
+    server.decorate('request', 'refreshToken', function (userSession) {
+      return refreshTokenIfExpired(
         (token) => refreshToken(options, token),
         this,
         userSession
@@ -55,7 +55,7 @@ function scheme(_server, options) {
         discoveryUrl,
         validatedOptions.clientId,
         {},
-        ClientFederatedCredential(federatedToken),
+        clientFederatedCredential(federatedToken),
         options.execute ? { execute: options.execute } : {}
       )
 
@@ -178,7 +178,7 @@ export async function refreshToken(options, jwtRefreshToken) {
     discoveryUrl,
     options.clientId,
     {},
-    ClientFederatedCredential(federatedToken),
+    clientFederatedCredential(federatedToken),
     options.execute ? { execute: options.execute } : {}
   )
 
@@ -204,9 +204,8 @@ const optionsSchema = Joi.object({
  * the `client_secret` field.
  * @param {string} assertion
  * @returns ClientAuth
- * @class ClientFederatedCredential
  */
-function ClientFederatedCredential(assertion) {
+function clientFederatedCredential(assertion) {
   return (_as, client, body) => {
     body.set('client_id', client.client_id)
     body.set(

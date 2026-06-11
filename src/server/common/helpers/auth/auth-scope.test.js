@@ -1,36 +1,41 @@
+import { describe, test, expect } from 'vitest'
+
 import { authScope } from './auth-scope.js'
+
+const SCOPE = '+mockScope'
+const TEAM_PATH = '/admin/teams/{teamId}'
 
 describe('#authScope', () => {
   test('Should add scope to route as expected', () => {
-    const authScopeMethod = authScope(['+mockScope'])
+    const authScopeMethod = authScope([SCOPE])
 
     expect(
       authScopeMethod({
         method: 'GET',
-        path: '/admin/teams/{teamId}'
+        path: TEAM_PATH
       })
     ).toEqual({
       method: 'GET',
       options: {
         auth: {
           access: {
-            scope: ['+mockScope']
+            scope: [SCOPE]
           },
           mode: 'required'
         }
       },
-      path: '/admin/teams/{teamId}'
+      path: TEAM_PATH
     })
   })
 
   describe('When route has existing options', () => {
     test('Should add scope to route as expected', () => {
-      const authScopeMethod = authScope(['+mockScope'])
+      const authScopeMethod = authScope([SCOPE])
 
       expect(
         authScopeMethod({
           method: 'POST',
-          path: '/admin/teams/{teamId}',
+          path: TEAM_PATH,
           options: {
             pre: []
           }
@@ -40,13 +45,13 @@ describe('#authScope', () => {
         options: {
           auth: {
             access: {
-              scope: ['+mockScope']
+              scope: [SCOPE]
             },
             mode: 'required'
           },
           pre: []
         },
-        path: '/admin/teams/{teamId}'
+        path: TEAM_PATH
       })
     })
   })

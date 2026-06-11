@@ -19,7 +19,7 @@
 async function getUserSession(
   sessionId = this.state?.userSessionCookie?.sessionId
 ) {
-  return sessionId ? await this.server.session.get(sessionId) : null
+  return sessionId ? this.server.session.get(sessionId) : null
 }
 
 export { getUserSession }

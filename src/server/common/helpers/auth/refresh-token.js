@@ -17,7 +17,7 @@ export async function refreshTokenIfExpired(
   userSession
 ) {
   if (!userSession?.expiresAt) {
-    return
+    return undefined
   }
 
   const tokenHasExpired =

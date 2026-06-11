@@ -2,7 +2,7 @@ const loginController = {
   options: {
     auth: 'azure-oidc'
   },
-  handler: (request, h) => h.redirect('/')
+  handler: (_request, h) => h.redirect('/')
 }
 
 export { loginController }

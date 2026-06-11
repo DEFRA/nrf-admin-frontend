@@ -12,12 +12,13 @@ import http from 'node:http'
 const logger = createLogger()
 
 export class CognitoFederatedCredentialProvider {
+  token = null
+  logins = {
+    'nrf-admin-frontend-aad-access': 'nrf-admin-frontend'
+  }
+
   constructor(poolId) {
-    this.token = null
     this.poolId = poolId
-    this.logins = {
-      'nrf-admin-frontend-aad-access': 'nrf-admin-frontend'
-    }
     this.client = new CognitoIdentityClient({
       requestHandler: new NodeHttpHandler({
         httpsAgent: https.globalAgent,

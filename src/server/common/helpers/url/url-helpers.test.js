@@ -1,3 +1,5 @@
+import { describe, test, expect, vi } from 'vitest'
+
 import { asExternalUrl, redirectWithRefresh } from './url-helpers.js'
 
 describe('asExternalUrl', () => {
