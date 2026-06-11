@@ -1,5 +1,5 @@
 import authCookie from '@hapi/cookie'
-import { config } from '#/config/config.js'
+import { config } from '#src/config/config.js'
 
 const sessionCookieConfig = config.get('session.cookie')
 
@@ -18,6 +18,7 @@ const sessionCookie = {
           ttl: sessionCookieConfig.ttl,
           clearInvalid: true
         },
+        redirectTo: '/login',
         keepAlive: true,
         requestDecoratorName: 'sessionCookie',
         validate: async (request, session) => {
@@ -35,7 +36,7 @@ const sessionCookie = {
               isValid: true,
               credentials: {
                 ...userSession,
-                scope:  []
+                scope: []
               }
             }
           } else {

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import Hapi from '@hapi/hapi'
 import { StatusCodes } from 'http-status-codes'
 
-vi.mock('#/config/config.js', () => ({
+vi.mock('#src/config/config.js', () => ({
   config: {
     get: (k) => {
       const map = {

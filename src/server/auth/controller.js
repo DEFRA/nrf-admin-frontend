@@ -33,7 +33,7 @@ const authCallbackController = {
       })
     }
 
-    let redirect = yar.flash(sessionNames.referrer)?.at(0) ?? '/'
+    const redirect = yar.flash(sessionNames.referrer)?.at(0) ?? '/'
 
     logger.info(`Login complete, redirecting user to ${redirect}`)
     return redirectWithRefresh(h, redirect)

@@ -10,7 +10,7 @@ vi.mock('@aws-sdk/client-s3', () => ({
     this.input = input
   })
 }))
-vi.mock('#/config/config.js', async (importOriginal) => {
+vi.mock('#src/config/config.js', async (importOriginal) => {
   const actual = await importOriginal()
   const realGet = actual.config.get.bind(actual.config)
   return {

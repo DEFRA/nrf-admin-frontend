@@ -7,7 +7,7 @@ import { createLogger } from '../common/helpers/logging/logger.js'
 import { sessionNames } from '../common/constants/session-names.js'
 import { asExternalUrl } from '../common/helpers/url/url-helpers.js'
 import { refreshTokenIfExpired } from '../common/helpers/auth/refresh-token.js'
-import { config } from '#/config/config.js';
+import { config } from '#src/config/config.js'
 
 const logger = createLogger()
 const callbackPath = '/auth/callback'
@@ -16,6 +16,7 @@ export const federatedOidc = {
   name: 'federatedOidc',
   dependencies: ['federated-credentials'],
   register: function (server) {
+    const useMocks = config.get('azureFederatedCredentials.enableMocking')
     // noinspection JSDeprecatedSymbols
     const options = {
       discoveryUri: config.get('oidcWellKnownConfigurationUrl'),
@@ -23,7 +24,10 @@ export const federatedOidc = {
       clientId: config.get('azureClientId'),
       scope: `api://${config.get('azureClientId')}/cdp.user openid profile email offline_access user.read`,
       tokenProvider: () => server.federatedCredentials.getToken(),
-      useMocks: false,
+      useMocks,
+      // Disable the HTTPS requirements when connecting to the mock.
+      // OpenId flags this as deprecated purely to warn that it's not for prod use.
+      ...(useMocks ? { execute: [openid.allowInsecureRequests] } : {})
     }
 
     server.auth.scheme('federated-oidc', scheme)

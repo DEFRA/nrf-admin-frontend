@@ -1,7 +1,7 @@
 import Wreck from '@hapi/wreck'
 import { withTraceId } from '@defra/hapi-tracing'
 
-import { config } from '#/config/config.js'
+import { config } from '#src/config/config.js'
 import { createLogger } from '../../helpers/logging/logger.js'
 
 const logger = createLogger()

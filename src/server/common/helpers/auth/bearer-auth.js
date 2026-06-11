@@ -2,7 +2,7 @@ import { Buffer } from 'node:buffer'
 import { timingSafeEqual } from 'node:crypto'
 import authBearer from 'hapi-auth-bearer-token'
 
-import { config } from '#/config/config.js'
+import { config } from '#src/config/config.js'
 
 function safeEqual(a, b) {
   const ab = Buffer.from(String(a))

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest'
 import Hapi from '@hapi/hapi'
 
-vi.mock('#/config/config.js', () => ({
+vi.mock('#src/config/config.js', () => ({
   config: {
     get: (k) => (k === 'api.bearerToken' ? 'secret-token' : undefined)
   }

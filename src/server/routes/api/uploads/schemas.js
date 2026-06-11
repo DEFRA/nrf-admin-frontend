@@ -1,6 +1,6 @@
 import Joi from 'joi'
 
-import { config } from '#/config/config.js'
+import { config } from '#src/config/config.js'
 
 const uploadIdPattern = /^[A-Za-z0-9_-]{8,128}$/
 const subPathPattern = /^[A-Za-z0-9/_-]{1,200}$/

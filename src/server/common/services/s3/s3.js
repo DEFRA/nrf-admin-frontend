@@ -1,6 +1,6 @@
 import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3'
 
-import { config } from '#/config/config.js'
+import { config } from '#src/config/config.js'
 import { createLogger } from '../../helpers/logging/logger.js'
 
 const logger = createLogger()

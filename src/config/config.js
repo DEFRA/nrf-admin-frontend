@@ -143,6 +143,12 @@ export const config = convict({
         format: Number,
         default: fourHoursMs,
         env: 'SESSION_CACHE_TTL'
+      },
+      segment: {
+        doc: 'Isolate cached items within the cache partition',
+        format: String,
+        default: 'session',
+        env: 'SERVER_CACHE_SEGMENT'
       }
     },
     cookie: {
@@ -307,12 +313,18 @@ export const config = convict({
   },
 
   azureFederatedCredentials: {
+    enableMocking: {
+      doc: 'Use a mock OIDC provider and mock Cognito token instead of real Azure AD/Cognito. Defaults on outside production for local dev.',
+      format: Boolean,
+      default: !isProduction,
+      env: 'AZURE_CREDENTIALS_ENABLE_MOCKING'
+    },
     identityPoolId: {
       doc: 'Azure Federated Credential Pool ID',
       format: String,
       env: 'AZURE_IDENTITY_POOL_ID',
       nullable: true,
-      default: null
+      default: 'eu-west-2:eb0a6f51-03e6-47ef-a45f-2294268f8cce'
     }
   },
   azureTenantId: {
@@ -326,13 +338,6 @@ export const config = convict({
     format: String,
     env: 'AZURE_CLIENT_ID',
     default: '26372ac9-d8f0-4da9-a17e-938eb3161d8e'
-  },
-  azureClientSecret: {
-    doc: 'Azure App Client Secret. Defaults to stub secret',
-    format: String,
-    sensitive: true,
-    env: 'AZURE_CLIENT_SECRET',
-    default: 'test_value'
   },
   appBaseUrl: {
     doc: 'Application base URL used for OIDC redirect URIs and logout redirects',
@@ -359,5 +364,11 @@ if (config.get('isProduction')) {
   }
   if (!config.get('cdpUploader.s3Bucket')) {
     throw new Error('CDP_UPLOADER_S3_BUCKET must be set in production')
+  }
+  // appBaseUrl builds the OIDC redirect URI; the localhost default silently breaks login.
+  if (config.get('appBaseUrl').includes('localhost')) {
+    throw new Error(
+      'APP_BASE_URL must be set to the public service URL in production'
+    )
   }
 }

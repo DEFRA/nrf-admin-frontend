@@ -1,7 +1,5 @@
 import jwt from '@hapi/jwt'
 
-import { authedFetchJson } from '../fetch/authed-fetch-json.js'
-import { scopesFixture } from '../../../../__fixtures__/scopes.js'
 import {
   createUserSession,
   refreshUserSession,
@@ -9,7 +7,6 @@ import {
 } from './user-session.js'
 
 vi.mock('@hapi/jwt')
-vi.mock('../fetch/authed-fetch-json.js')
 
 describe('#userSession', () => {
   beforeAll(() => {
@@ -46,8 +43,6 @@ describe('#userSession', () => {
     const sessionId = 'session-id'
 
     test('Should create a user session with correct details', async () => {
-      authedFetchJson.mockResolvedValue({ payload: scopesFixture })
-
       await createUserSession(request, sessionId)
 
       expect(request.server.session.set).toHaveBeenCalledWith(sessionId, {
@@ -91,8 +86,6 @@ describe('#userSession', () => {
           }
         }
       })
-
-      authedFetchJson.mockResolvedValue({ payload: scopesFixture })
 
       await refreshUserSession(request, refreshTokenResponse)
     })

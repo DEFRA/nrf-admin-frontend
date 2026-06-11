@@ -1,4 +1,4 @@
-import { createServer } from '#/server/server.js'
+import { createServer } from '#src/server/server.js'
 
 export const setupTestServer = () => {
   let server

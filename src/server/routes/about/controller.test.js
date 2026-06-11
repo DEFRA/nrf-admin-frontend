@@ -1,5 +1,6 @@
-import { createServer } from '#/server/server.js'
-import { statusCodes } from '#/server/common/constants/status-codes.js'
+import { createServer } from '#src/server/server.js'
+import { statusCodes } from '#src/server/common/constants/status-codes.js'
+import { authenticatedSession } from '#src/test-utils/authenticated-session.js'
 
 describe('#aboutController', () => {
   let server
@@ -16,7 +17,8 @@ describe('#aboutController', () => {
   test('Should provide expected response', async () => {
     const { result, statusCode } = await server.inject({
       method: 'GET',
-      url: '/about'
+      url: '/about',
+      auth: authenticatedSession
     })
 
     expect(result).toEqual(expect.stringContaining('About |'))

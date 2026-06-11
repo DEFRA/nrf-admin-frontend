@@ -3,8 +3,8 @@ import {
   CognitoIdentityClient,
   GetOpenIdTokenForDeveloperIdentityCommand
 } from '@aws-sdk/client-cognito-identity'
-import { config } from '#/config/config.js'
-import { createLogger } from '#/server/common/helpers/logging/logger.js'
+import { config } from '#src/config/config.js'
+import { createLogger } from '#src/server/common/helpers/logging/logger.js'
 import { NodeHttpHandler } from '@smithy/node-http-handler'
 import https from 'node:https'
 import http from 'node:http'
@@ -16,7 +16,7 @@ export class CognitoFederatedCredentialProvider {
     this.token = null
     this.poolId = poolId
     this.logins = {
-      'cdp-portal-frontend-aad-access': 'cdp-portal-frontend'
+      'nrf-admin-frontend-aad-access': 'nrf-admin-frontend'
     }
     this.client = new CognitoIdentityClient({
       requestHandler: new NodeHttpHandler({
