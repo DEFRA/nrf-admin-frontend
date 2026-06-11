@@ -80,6 +80,7 @@
     "@vitest/coverage-v8": "4.1.8",
     "cheerio": "1.2.0",
     "eslint": "9.39.4",
+    "eslint-plugin-no-secrets": "2.3.3",
     "husky": "9.1.7",
     "jsdom": "29.1.1",
     "msw": "2.14.6",
