@@ -6,6 +6,7 @@ import { config } from '#/config/config.js'
 const logConfig = config.get('log')
 const serviceName = config.get('serviceName')
 const serviceVersion = config.get('serviceVersion')
+const tracingHeader = config.get('tracing.header')
 
 const formatters = {
   ecs: {
@@ -34,5 +35,15 @@ export const loggerOptions = {
       mixinValues.trace = { id: traceId }
     }
     return mixinValues
+  },
+  getChildBindings(request) {
+    const traceId = request.headers?.[tracingHeader]
+
+    return {
+      url: {
+        path: request.url.pathname
+      },
+      ...(traceId ? { trace: { id: traceId } } : {})
+    }
   }
 }
