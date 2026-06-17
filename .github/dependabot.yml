@@ -11,20 +11,19 @@ updates:
       build:
         patterns:
           - '@babel/*'
-          - 'autoprefixer'
-          - 'babel-plugin-module-resolver'
-          - 'babel-loader'
-          - 'babel-plugin-transform-import-meta'
-          - 'tsx'
-          - 'webpack'
+          - 'cssnano'
+          - 'cssnano-*'
           - 'webpack-*'
-          - 'terser-webpack-plugin'
+          - 'sass-*'
+          - 'postcss-*'
 
       lint:
         patterns:
           - 'prettier'
           - 'stylelint'
           - 'stylelint-*'
+          - 'neostandard'
+          - 'eslint'
 
       logging:
         patterns:
@@ -32,22 +31,44 @@ updates:
           - '*-pino-format'
           - 'pino'
           - 'pino-*'
+          - '@elastic/ecs-pino-format'
 
       tools:
         patterns:
           - 'husky'
-          - 'vitest'
-          - 'vitest-*'
           - 'nodemon'
           - 'npm-run-all'
-          - 'lodash'
-          - 'source-map-loader'
-          - 'sass-*'
-          - 'postcss-*'
+          - 'semver'
 
-      types:
+      testing:
         patterns:
-          - '@types/*'
+          - 'vitest'
+          - 'vitest-*'
+          - '@vitest/*'
+          - '@testing-library/*'
+          - 'cheerio'
+          - 'jsdom'
+
+      hapi:
+        patterns:
+          - '@hapi/*'
+          - 'hapi-*'
+          - '@defra/hapi-*'
+
+      config:
+        patterns:
+          - 'convict'
+          - 'convict-format-with-validator'
+
+      code:
+        patterns:
+          - 'lodash'
+          - 'blankie'
+          - 'date-fns'
+          - 'ioredis'
+          - 'node-fetch'
+          - 'nunjucks'
+          - 'undici'
 
     ignore:
       - dependency-name: 'eslint-*'
