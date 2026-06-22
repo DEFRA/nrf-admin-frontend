@@ -18,6 +18,10 @@ describe('#buildNavigation', () => {
         current: false,
         text: 'About',
         href: '/about'
+      },
+      {
+        href: '/sign-in',
+        text: 'Sign in'
       }
     ])
   })
@@ -33,6 +37,33 @@ describe('#buildNavigation', () => {
         current: false,
         text: 'About',
         href: '/about'
+      },
+      {
+        href: '/sign-in',
+        text: 'Sign in'
+      }
+    ])
+  })
+
+  test('Should show sign-out when authenticated', () => {
+    expect(
+      buildNavigation(
+        mockRequest({ path: '/', auth: { isAuthenticated: true } })
+      )
+    ).toEqual([
+      {
+        current: true,
+        text: 'Home',
+        href: '/'
+      },
+      {
+        current: false,
+        text: 'About',
+        href: '/about'
+      },
+      {
+        href: '/sign-out',
+        text: 'Sign out'
       }
     ])
   })

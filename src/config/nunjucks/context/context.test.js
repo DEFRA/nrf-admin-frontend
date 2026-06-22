@@ -69,6 +69,10 @@ describe('context and cache', () => {
               current: false,
               text: 'About',
               href: '/about'
+            },
+            {
+              href: '/sign-in',
+              text: 'Sign in'
             }
           ],
           serviceName: 'Nature Restoration Fund',
@@ -158,6 +162,10 @@ describe('context and cache', () => {
               current: false,
               text: 'About',
               href: '/about'
+            },
+            {
+              href: '/sign-in',
+              text: 'Sign in'
             }
           ],
           serviceName: 'Nature Restoration Fund',
