@@ -13,8 +13,6 @@ export const singleQuoteFixture = [
       userInputType: 'draw',
       filename: null
     },
-    wasteWaterTreatmentWorksId: '101',
-    wasteWaterTreatmentWorksName: 'Great Billing WRC',
     email: {
       address: 'developer@housebuilder.com',
       sendRequestAt: null
@@ -60,8 +58,6 @@ export const multipleQuotesFixture = [
       userInputType: 'upload',
       filename: 'boundary.shp'
     },
-    wasteWaterTreatmentWorksId: null,
-    wasteWaterTreatmentWorksName: null,
     email: {
       address: 'another@developer.com',
       sendRequestAt: '2026-04-01T10:05:00.000Z'
