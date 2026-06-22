@@ -5,6 +5,7 @@ import { about } from '../routes/about/index.js'
 import { apiUploads } from '../routes/api/uploads/index.js'
 import { apiDataSync } from '../routes/api/data-sync/index.js'
 import { health } from '../routes/health/index.js'
+import { auth } from '../routes/auth/index.js'
 import { serveStaticFiles } from './serve-static-files.js'
 import { config } from '#/config/config.js'
 
@@ -18,7 +19,7 @@ export const router = {
       await server.register([health])
 
       // Application specific routes, add your own routes here
-      await server.register([home, about, apiUploads, apiDataSync])
+      await server.register([home, about, apiUploads, apiDataSync, auth])
 
       // Static assets
       if (!config.get('isProduction') && !config.get('isTest')) {
