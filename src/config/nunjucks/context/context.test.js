@@ -34,7 +34,7 @@ describe('context and cache', () => {
   })
 
   describe('#context', () => {
-    const mockRequest = { path: '/' }
+    const mockRequest = { path: '/', auth: { isAuthenticated: true } }
 
     describe('When Vite manifest file read succeeds', () => {
       let contextImport
@@ -61,18 +61,8 @@ describe('context and cache', () => {
           getAssetPath: expect.any(Function),
           navigation: [
             {
-              current: true,
-              text: 'Home',
-              href: '/'
-            },
-            {
-              current: false,
-              text: 'About',
-              href: '/about'
-            },
-            {
-              href: '/sign-in',
-              text: 'Sign in'
+              href: '/sign-out',
+              text: 'Sign out'
             }
           ],
           serviceName: 'Nature Restoration Fund',
@@ -119,7 +109,7 @@ describe('context and cache', () => {
   })
 
   describe('#context cache', () => {
-    const mockRequest = { path: '/' }
+    const mockRequest = { path: '/', auth: { isAuthenticated: true } }
     let contextResult
 
     describe('Vite manifest file cache', () => {
@@ -154,18 +144,8 @@ describe('context and cache', () => {
           getAssetPath: expect.any(Function),
           navigation: [
             {
-              current: true,
-              text: 'Home',
-              href: '/'
-            },
-            {
-              current: false,
-              text: 'About',
-              href: '/about'
-            },
-            {
-              href: '/sign-in',
-              text: 'Sign in'
+              href: '/sign-out',
+              text: 'Sign out'
             }
           ],
           serviceName: 'Nature Restoration Fund',
