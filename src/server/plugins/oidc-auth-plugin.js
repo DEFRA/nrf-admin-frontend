@@ -8,7 +8,7 @@ import {
 const { oidc, cookieOptions, federatedCredentials } = config.get('auth')
 
 const scope = [
-  `api://${oidc.clientId}/cdp.user`,
+  `api://${oidc.clientId}/default`,
   'openid',
   'profile',
   'email',
