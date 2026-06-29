@@ -23,10 +23,9 @@ const cognitoProvider = federatedCredentials.enableMocking
       logins: { 'cdp-portal-frontend-aad-access': 'cdp-portal-frontend' }
     })
 
-// The provider swallows the underlying AWS error and logs it with the pino
-// args reversed, so the real cause never reaches the logs. Wrap getCredentials
-// to surface the actual error (correct pino order: error first, message second)
-// and to fail loudly instead of silently returning a null assertion.
+// The provider logs AWS failures but still returns a null token on error,
+// which would send an empty client assertion to Entra and fail the token
+// exchange with an opaque 401. Wrap getCredentials to fail loudly instead.
 const authProvider = {
   type: cognitoProvider.type,
   getCredentials: async (logger) => {
