@@ -18,7 +18,7 @@ export const sessionCookie = {
           ttl: sessionCookieConfig.ttl,
           clearInvalid: true
         },
-        redirectTo: '/auth/sign-in',
+        redirectTo: '/sign-in',
         appendNext: true,
         keepAlive: true,
         requestDecoratorName: 'sessionCookie',
