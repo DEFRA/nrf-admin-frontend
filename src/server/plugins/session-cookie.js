@@ -18,6 +18,8 @@ export const sessionCookie = {
           ttl: sessionCookieConfig.ttl,
           clearInvalid: true
         },
+        redirectTo: '/auth/sign-in',
+        appendNext: true,
         keepAlive: true,
         requestDecoratorName: 'sessionCookie',
         validate: async (request, session) => {
@@ -69,7 +71,7 @@ export const sessionCookie = {
 
       server.auth.default({
         strategy: 'session',
-        mode: 'optional'
+        mode: 'required'
       })
     }
   }
