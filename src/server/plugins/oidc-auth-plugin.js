@@ -20,7 +20,7 @@ const cognitoProvider = federatedCredentials.enableMocking
   ? new MockProvider({})
   : new CognitoTokenProvider({
       poolId: federatedCredentials.identityPoolId,
-      logins: { 'cdp-portal-frontend-aad-access': 'cdp-portal-frontend' }
+      logins: { 'nrf-admin-frontend-aad-access': 'nrf-admin-frontend' }
     })
 
 // The provider logs AWS failures but still returns a null token on error,
