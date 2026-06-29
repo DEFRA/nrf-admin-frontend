@@ -31,6 +31,13 @@ export const authOidcPlugin = {
       scope,
       authProvider
     },
-    cookieOptions
+    // Entra returns to /auth/callback via a cross-site form_post, so the state
+    // cookie holding the PKCE verifier must be SameSite=None; Secure or the
+    // browser withholds it on the POST and the callback fails with 401.
+    cookieOptions: {
+      ...cookieOptions,
+      isSameSite: 'None',
+      isSecure: true
+    }
   }
 }
