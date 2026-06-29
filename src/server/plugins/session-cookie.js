@@ -58,9 +58,7 @@ export const sessionCookie = {
             request.yar.flash('globalValidationFailures', 'Your login expired')
           }
 
-          const userSession = !refreshedSession
-            ? currentUserSession
-            : refreshedSession
+          const userSession = refreshedSession || currentUserSession
 
           return {
             isValid: true,
