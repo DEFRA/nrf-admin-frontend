@@ -16,10 +16,10 @@ export const authCallbackController = {
     }
 
     request.logger.info(
-      `Auth callback ID token claims: ${JSON.stringify(credentials.claims)}`
+      `Auth callback ID token claims: ${JSON.stringify(redactPii(credentials.claims))}`
     )
     request.logger.info(
-      `Auth callback access token payload: ${JSON.stringify(decodeJwtPayload(credentials.accessToken))}`
+      `Auth callback access token payload: ${JSON.stringify(redactPii(decodeJwtPayload(credentials.accessToken)))}`
     )
 
     const { sessionCookie, yar, logger } = request
@@ -50,4 +50,29 @@ function decodeJwtPayload(jwt) {
     return null
   }
   return JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'))
+}
+
+const piiClaims = [
+  'name',
+  'given_name',
+  'family_name',
+  'email',
+  'preferred_username',
+  'upn',
+  'unique_name',
+  'ipaddr',
+  'login_hint'
+]
+
+function redactPii(claims) {
+  if (!claims) {
+    return claims
+  }
+  const result = { ...claims }
+  for (const claim of piiClaims) {
+    if (claim in result) {
+      result[claim] = '[redacted]'
+    }
+  }
+  return result
 }
