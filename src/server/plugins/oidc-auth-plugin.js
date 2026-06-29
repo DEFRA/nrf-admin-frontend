@@ -16,12 +16,31 @@ const scope = [
   'user.read'
 ].join(' ')
 
-const authProvider = federatedCredentials.enableMocking
+const cognitoProvider = federatedCredentials.enableMocking
   ? new MockProvider({})
   : new CognitoTokenProvider({
       poolId: federatedCredentials.identityPoolId,
       logins: { 'cdp-portal-frontend-aad-access': 'cdp-portal-frontend' }
     })
+
+// The provider swallows the underlying AWS error and logs it with the pino
+// args reversed, so the real cause never reaches the logs. Wrap getCredentials
+// to surface the actual error (correct pino order: error first, message second)
+// and to fail loudly instead of silently returning a null assertion.
+const authProvider = {
+  type: cognitoProvider.type,
+  getCredentials: async (logger) => {
+    const token = await cognitoProvider.getCredentials(logger)
+    if (!token) {
+      const error = new Error(
+        'Federated credential provider returned no token; client assertion would be empty'
+      )
+      logger?.error?.(error, '[oidc] failed to obtain federated credential')
+      throw error
+    }
+    return token
+  }
+}
 
 export const authOidcPlugin = {
   plugin: hapiAuthOidcPlugin,

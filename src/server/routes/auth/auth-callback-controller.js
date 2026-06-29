@@ -7,6 +7,9 @@ import { saveUserSession } from '#/server/common/helpers/save-user-session.js'
 export const authCallbackController = {
   handler: async (request, h) => {
     const credentials = await request.callback(h)
+    request.logger.info(
+      `Auth callback received credentials: ${Boolean(credentials)}`
+    )
 
     if (!credentials) {
       throw Boom.unauthorized()
