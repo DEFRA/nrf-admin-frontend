@@ -15,6 +15,13 @@ export const authCallbackController = {
       throw Boom.unauthorized()
     }
 
+    request.logger.info(
+      `Auth callback ID token claims: ${JSON.stringify(credentials.claims)}`
+    )
+    request.logger.info(
+      `Auth callback access token payload: ${JSON.stringify(decodeJwtPayload(credentials.accessToken))}`
+    )
+
     const { sessionCookie, yar, logger } = request
 
     const sessionId = randomUUID()
@@ -35,4 +42,12 @@ export const authCallbackController = {
       )
       .takeover()
   }
+}
+
+function decodeJwtPayload(jwt) {
+  const payload = jwt?.split('.')[1]
+  if (!payload) {
+    return null
+  }
+  return JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'))
 }
