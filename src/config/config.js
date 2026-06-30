@@ -143,6 +143,12 @@ export const config = convict({
         format: Number,
         default: fourHoursMs,
         env: 'SESSION_CACHE_TTL'
+      },
+      segment: {
+        doc: 'Isolate cached items within the cache partition',
+        format: String,
+        default: 'session',
+        env: 'SERVER_CACHE_SEGMENT'
       }
     },
     cookie: {
@@ -303,6 +309,82 @@ export const config = convict({
       format: String,
       default: '',
       env: 'AWS_S3_ENDPOINT'
+    }
+  },
+
+  auth: {
+    federatedCredentials: {
+      identityPoolId: {
+        doc: 'Azure Federated Credential Pool ID',
+        format: requireInProduction('AZURE_IDENTITY_POOL_ID'),
+        env: 'AZURE_IDENTITY_POOL_ID',
+        default: ''
+      },
+      enableMocking: {
+        doc: 'Turns on OIDC mock support',
+        format: Boolean,
+        default: !isProduction,
+        env: 'AZURE_CREDENTIALS_ENABLE_MOCKING'
+      }
+    },
+    oidc: {
+      clientId: {
+        doc: 'OIDC client ID',
+        format: String,
+        env: 'AZURE_CLIENT_ID',
+        default: '26372ac9-d8f0-4da9-a17e-938eb3161d8e'
+      },
+      discoveryUri: {
+        doc: 'URL for OIDC discovery document. Defaults to the stub',
+        format: String,
+        env: 'OIDC_WELL_KNOWN_CONFIGURATION_URL',
+        default: `http://cdp.127.0.0.1.sslip.io:3939/6f504113-6b64-43f2-ade9-242e05780007/v2.0/.well-known/openid-configuration`
+      },
+      useHttp: {
+        doc: 'Boolean flag to allow insecure HTTP requests for discovery',
+        format: Boolean,
+        env: 'OIDC_ALLOW_INSECURE_HTTP',
+        default: !isProduction
+      },
+      loginCallbackUri: {
+        doc: 'Redirect URI after OIDC login',
+        format: String,
+        env: 'OIDC_LOGIN_CALLBACK_URI',
+        default: '/auth/callback'
+      },
+      externalBaseUrl: {
+        doc: 'Base URL used to construct absolute callback URLs',
+        format: String,
+        env: 'APP_BASE_URL',
+        default: 'http://localhost:3002'
+      },
+      responseMode: {
+        doc: 'OIDC response mode controlling how the auth response is returned to the redirect URI',
+        format: ['query', 'form_post', 'fragment'],
+        env: 'OIDC_RESPONSE_MODE',
+        default: isProduction ? 'form_post' : 'query'
+      }
+    },
+    cookieOptions: {
+      password: {
+        doc: 'oidc cookie password',
+        format: '*',
+        default: 'beepBoopBeepDevelopmentOnlyBeepBoop',
+        sensitive: true,
+        env: 'SESSION_COOKIE_PASSWORD'
+      },
+      isSecure: {
+        doc: 'Session cookie isSecure flag',
+        format: Boolean,
+        default: isProduction,
+        env: 'OIDC_COOKIE_IS_SECURE'
+      },
+      isSameSite: {
+        doc: 'oidc cookie sameSite',
+        format: ['Strict', 'Lax', 'None'],
+        default: isProduction ? 'None' : 'Lax',
+        env: 'OIDC_SAME_SITE'
+      }
     }
   }
 })

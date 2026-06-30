@@ -17,6 +17,9 @@ import { contentSecurityPolicy } from './plugins/content-security-policy.js'
 import { applySecurityHeaders } from './plugins/security-headers.js'
 import { metrics } from '@defra/cdp-metrics'
 import { bearerAuth } from './common/helpers/auth/bearer-auth.js'
+import { authOidcPlugin } from './plugins/oidc-auth-plugin.js'
+import { sessionCookie } from './plugins/session-cookie.js'
+import { registerCachePlugin } from './plugins/register-cache.js'
 
 export async function createServer() {
   setupProxy()
@@ -65,6 +68,9 @@ export async function createServer() {
     sessionCache,
     nunjucksConfig,
     Scooter,
+    sessionCookie,
+    { plugin: registerCachePlugin, options: config.get('session.cache') },
+    authOidcPlugin,
     contentSecurityPolicy,
     bearerAuth,
     router // Register all the controllers/routes defined in src/server/router.js

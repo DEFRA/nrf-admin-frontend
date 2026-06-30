@@ -2,7 +2,7 @@ import { getByRole, queryByRole } from '@testing-library/dom'
 import { http, HttpResponse } from 'msw'
 import { setupTestServer } from '#/test-utils/setup-test-server.js'
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
-import { loadPage } from '#/test-utils/load-page.js'
+import { loadPage, authenticatedRequest } from '#/test-utils/load-page.js'
 import {
   singleQuoteFixture,
   multipleQuotesFixture
@@ -17,7 +17,12 @@ const mswServer = setupMswServer()
 describe('Home page', () => {
   const getServer = setupTestServer()
 
-  const loadHomePage = () => loadPage({ requestUrl: '/', server: getServer() })
+  const loadHomePage = () =>
+    loadPage({
+      requestUrl: '/',
+      server: getServer(),
+      auth: authenticatedRequest
+    })
 
   it('renders the page title and heading', async () => {
     mswServer.use(http.get(quotesEndpoint, () => HttpResponse.json([])))

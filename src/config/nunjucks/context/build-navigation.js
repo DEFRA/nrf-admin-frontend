@@ -1,14 +1,13 @@
 export function buildNavigation(request) {
-  return [
-    {
-      text: 'Home',
-      href: '/',
-      current: request?.path === '/'
-    },
-    {
-      text: 'About',
-      href: '/about',
-      current: request?.path === '/about'
-    }
-  ]
+  const isAuthenticated = request.auth?.isAuthenticated
+
+  if (isAuthenticated) {
+    return [
+      {
+        text: 'Sign out',
+        href: '/sign-out'
+      }
+    ]
+  }
+  return []
 }

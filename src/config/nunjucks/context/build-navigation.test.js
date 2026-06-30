@@ -8,31 +8,18 @@ describe('#buildNavigation', () => {
   test('Should provide expected navigation details', () => {
     expect(
       buildNavigation(mockRequest({ path: '/non-existent-path' }))
-    ).toEqual([
-      {
-        current: false,
-        text: 'Home',
-        href: '/'
-      },
-      {
-        current: false,
-        text: 'About',
-        href: '/about'
-      }
-    ])
+    ).toEqual([])
   })
 
-  test('Should provide expected highlighted navigation details', () => {
-    expect(buildNavigation(mockRequest({ path: '/' }))).toEqual([
+  test('Should show sign-out when authenticated', () => {
+    expect(
+      buildNavigation(
+        mockRequest({ path: '/', auth: { isAuthenticated: true } })
+      )
+    ).toEqual([
       {
-        current: true,
-        text: 'Home',
-        href: '/'
-      },
-      {
-        current: false,
-        text: 'About',
-        href: '/about'
+        href: '/sign-out',
+        text: 'Sign out'
       }
     ])
   })
