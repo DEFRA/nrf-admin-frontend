@@ -60,7 +60,7 @@
     "cssnano": "7.1.9",
     "cssnano-preset-default": "7.0.17",
     "date-fns": "4.4.0",
-    "global-agent": "3.0.0",
+    "global-agent": "4.1.3",
     "govuk-frontend": "5.14.0",
     "hapi-auth-bearer-token": "8.0.0",
     "hapi-pino": "13.0.0",
