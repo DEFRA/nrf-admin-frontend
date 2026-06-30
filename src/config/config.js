@@ -343,7 +343,7 @@ export const config = convict({
       useHttp: {
         doc: 'Boolean flag to allow insecure HTTP requests for discovery',
         format: Boolean,
-        env: 'AZURE_CREDENTIALS_ENABLE_MOCKING',
+        env: 'OIDC_ALLOW_INSECURE_HTTP',
         default: !isProduction
       },
       loginCallbackUri: {
