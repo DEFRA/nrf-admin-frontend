@@ -316,10 +316,9 @@ export const config = convict({
     federatedCredentials: {
       identityPoolId: {
         doc: 'Azure Federated Credential Pool ID',
-        format: String,
+        format: requireInProduction('AZURE_IDENTITY_POOL_ID'),
         env: 'AZURE_IDENTITY_POOL_ID',
-        nullable: true,
-        default: null
+        default: ''
       },
       enableMocking: {
         doc: 'Turns on OIDC mock support',
