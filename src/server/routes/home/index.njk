@@ -11,9 +11,10 @@
   }) }}
 
   {% if notification == 'tile-cache-cleared' %}
+    {% set tileCount = clearedCount | int %}
     {{ govukNotificationBanner({
       type: 'success',
-      html: '<p class="govuk-body">Map tile cache cleared successfully. ' + clearedCount + ' tile' + (clearedCount | int != 1 and 's' or '') + ' removed.</p>'
+      text: 'Map tile cache cleared successfully. ' + tileCount + ' tile' + ('s' if tileCount != 1 else '') + ' removed.'
     }) }}
   {% elif notification == 'tile-cache-error' %}
     {{ govukNotificationBanner({
