@@ -9,6 +9,8 @@ if (disableAuth && config.get('isProduction')) {
   throw new Error('DISABLE_AUTH must not be set in production')
 }
 
+const oneDayMs = 24 * 60 * 60 * 1000
+
 const bypassSession = {
   id: 'local-dev',
   displayName: 'Local Dev User',
@@ -17,8 +19,8 @@ const bypassSession = {
   isAuthenticated: true,
   accessToken: 'local-dev-token',
   refreshToken: 'local-dev-refresh',
-  expiresIn: 86400000,
-  expiresAt: new Date(Date.now() + 86400000).toISOString()
+  expiresIn: oneDayMs,
+  expiresAt: new Date(Date.now() + oneDayMs).toISOString()
 }
 
 export const sessionCookie = {
