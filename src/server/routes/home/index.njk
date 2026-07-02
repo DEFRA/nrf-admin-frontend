@@ -2,11 +2,33 @@
 {% from "govuk/components/table/macro.njk" import govukTable %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 
 {% block content %}
   {{ appHeading({
     text: heading
   }) }}
+
+  {% if notification == 'tile-cache-cleared' %}
+    {% set tileCount = clearedCount | int %}
+    {{ govukNotificationBanner({
+      type: 'success',
+      text: 'Map tile cache cleared successfully. ' + tileCount + ' tile' + ('s' if tileCount != 1 else '') + ' removed.'
+    }) }}
+  {% elif notification == 'tile-cache-error' %}
+    {{ govukNotificationBanner({
+      titleText: 'There is a problem',
+      html: '<p class="govuk-body">Failed to clear the map tile cache. Check the logs for details.</p>'
+    }) }}
+  {% endif %}
+
+  <form method="post" action="/cache/clear-tile-cache">
+    {{ govukButton({
+      text: 'Clear map tile cache',
+      classes: 'govuk-button--secondary'
+    }) }}
+  </form>
 
   {% if errorMessage %}
     {{ govukErrorSummary({

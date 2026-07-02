@@ -27,6 +27,12 @@ const requireInProduction = (envName) => (val) => {
 }
 
 export const config = convict({
+  disableAuth: {
+    doc: 'Bypass OIDC authentication entirely — for local development only. Never set in production.',
+    format: Boolean,
+    default: false,
+    env: 'DISABLE_AUTH'
+  },
   serviceVersion: {
     doc: 'The service version, this variable is injected into your docker container in CDP environments',
     format: String,
@@ -245,6 +251,21 @@ export const config = convict({
       default: '',
       sensitive: true,
       env: 'BACKEND_API_KEY'
+    }
+  },
+  frontend: {
+    apiUrl: {
+      doc: 'Base URL for the NRF frontend service',
+      format: String,
+      default: 'http://localhost:3000',
+      env: 'NRF_FRONTEND_API_URL'
+    },
+    apiKey: {
+      doc: 'Service-to-service x-api-key sent to the frontend /admin/* endpoints',
+      format: requireInProduction('FRONTEND_API_KEY'),
+      default: '',
+      sensitive: true,
+      env: 'FRONTEND_API_KEY'
     }
   },
   impactAssessor: {
