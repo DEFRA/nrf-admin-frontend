@@ -3,6 +3,19 @@ import { config } from '#/config/config.js'
 import { saveUserSession } from '#/server/common/helpers/save-user-session.js'
 
 const sessionCookieConfig = config.get('session.cookie')
+const disableAuth = config.get('disableAuth')
+
+const bypassSession = {
+  id: 'local-dev',
+  displayName: 'Local Dev User',
+  email: 'local-dev@example.com',
+  loginHint: '',
+  isAuthenticated: true,
+  accessToken: 'local-dev-token',
+  refreshToken: 'local-dev-refresh',
+  expiresIn: 86400000,
+  expiresAt: new Date(Date.now() + 86400000).toISOString()
+}
 
 export const sessionCookie = {
   plugin: {
@@ -18,11 +31,15 @@ export const sessionCookie = {
           ttl: sessionCookieConfig.ttl,
           clearInvalid: true
         },
-        redirectTo: '/sign-in',
-        appendNext: true,
+        redirectTo: disableAuth ? false : '/sign-in',
+        appendNext: !disableAuth,
         keepAlive: true,
         requestDecoratorName: 'sessionCookie',
         validate: async (request, session) => {
+          if (disableAuth) {
+            return { isValid: true, credentials: bypassSession }
+          }
+
           const sessionId = session.sessionId
           if (!session?.sessionId) {
             return { isValid: false }
@@ -67,10 +84,18 @@ export const sessionCookie = {
         }
       })
 
-      server.auth.default({
-        strategy: 'session',
-        mode: 'required'
-      })
+      if (disableAuth) {
+        // Inject bypass credentials on every request so routes requiring auth pass
+        server.ext('onPreAuth', (_request, h) => {
+          _request.auth.credentials = bypassSession
+          _request.auth.isAuthenticated = true
+          _request.auth.strategy = 'session'
+          return h.continue
+        })
+        server.auth.default({ strategy: 'session', mode: 'optional' })
+      } else {
+        server.auth.default({ strategy: 'session', mode: 'required' })
+      }
     }
   }
 }

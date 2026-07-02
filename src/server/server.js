@@ -59,6 +59,8 @@ export async function createServer() {
       strictHeader: false
     }
   })
+  const disableAuth = config.get('disableAuth')
+
   await server.register([
     requestLogger,
     requestTracing,
@@ -70,7 +72,7 @@ export async function createServer() {
     Scooter,
     sessionCookie,
     { plugin: registerCachePlugin, options: config.get('session.cache') },
-    authOidcPlugin,
+    ...(disableAuth ? [] : [authOidcPlugin]),
     contentSecurityPolicy,
     bearerAuth,
     router // Register all the controllers/routes defined in src/server/router.js
