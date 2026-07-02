@@ -3,6 +3,7 @@ import { withTraceId } from '@defra/hapi-tracing'
 
 import { config } from '../../../config/config.js'
 import { createLogger } from '../helpers/logging/logger.js'
+import { statusCodes } from '../constants/status-codes.js'
 
 const logger = createLogger()
 
@@ -22,7 +23,7 @@ export const clearFrontendTileCache = async () => {
       headers: frontendHeaders(),
       json: true
     })
-    if (res.statusCode !== 200) {
+    if (res.statusCode !== statusCodes.ok) {
       throw new Error(`Unexpected status ${res.statusCode}`)
     }
     return payload.count
