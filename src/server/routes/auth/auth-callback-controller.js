@@ -18,9 +18,19 @@ export const authCallbackController = {
     request.logger.info(
       `Auth callback ID token claims: ${JSON.stringify(redactPii(credentials.claims))}`
     )
+
+    const accessTokenPayload = decodeJwtPayload(credentials.accessToken)
     request.logger.info(
-      `Auth callback access token payload: ${JSON.stringify(redactPii(decodeJwtPayload(credentials.accessToken)))}`
+      `Auth callback access token payload: ${JSON.stringify(redactPii(accessTokenPayload))}`
     )
+
+    if (!accessTokenPayload?.roles?.includes('admin')) {
+      const error = Boom.forbidden()
+      error.data = {
+        message: 'Contact Nature Restoration Fund digital team for access'
+      }
+      throw error
+    }
 
     const { sessionCookie, yar, logger } = request
 
