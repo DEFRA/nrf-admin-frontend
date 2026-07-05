@@ -97,6 +97,29 @@ describe('#catchAll', () => {
     expect(mockToolkitCode).toHaveBeenCalledWith(statusCodes.forbidden)
   })
 
+  test('Should NOT use custom message from Boom error for 5xx errors', () => {
+    const mockRequestWithMessage = (statusCode) => ({
+      ...mockRequest(statusCode),
+      response: {
+        isBoom: true,
+        stack: mockStack,
+        data: { message: 'Internal detail that should not leak' },
+        output: { statusCode }
+      }
+    })
+
+    catchAll(
+      mockRequestWithMessage(statusCodes.internalServerError),
+      mockToolkit
+    )
+
+    expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
+      pageTitle: 'Something went wrong',
+      heading: statusCodes.internalServerError,
+      message: 'Something went wrong'
+    })
+  })
+
   test('Should provide expected "Unauthorized" page', () => {
     catchAll(mockRequest(statusCodes.unauthorized), mockToolkit)
 

@@ -42,6 +42,22 @@ describe('authCallbackController', () => {
     ).rejects.toThrow(Boom.unauthorized().message)
   })
 
+  it('throws Boom.unauthorized when access token is not a valid JWT', async () => {
+    const request = buildRequest({
+      accessToken: 'not.valid.jwt.payload',
+      refreshToken: 'refresh',
+      expiresIn: 3600,
+      claims: { oid: 'oid-1', name: 'Test User' }
+    })
+
+    await expect(
+      authCallbackController.handler(request, mockH)
+    ).rejects.toMatchObject({
+      isBoom: true,
+      output: { statusCode: 401 }
+    })
+  })
+
   it('throws Boom.forbidden with custom message when access token has no roles', async () => {
     const request = buildRequest({
       accessToken: encodeJwt(accessToken),
@@ -58,6 +74,22 @@ describe('authCallbackController', () => {
       data: {
         message: 'Contact Nature Restoration Fund digital team for access'
       }
+    })
+  })
+
+  it('throws Boom.forbidden when roles is a string rather than an array', async () => {
+    const request = buildRequest({
+      accessToken: encodeJwt({ ...accessToken, roles: 'admin' }),
+      refreshToken: 'refresh',
+      expiresIn: 3600,
+      claims: { oid: 'oid-1', name: 'Test User' }
+    })
+
+    await expect(
+      authCallbackController.handler(request, mockH)
+    ).rejects.toMatchObject({
+      isBoom: true,
+      output: { statusCode: 403 }
     })
   })
 
