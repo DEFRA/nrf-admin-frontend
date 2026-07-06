@@ -18,9 +18,13 @@ export const authCallbackController = {
     request.logger.info(
       `Auth callback ID token claims: ${JSON.stringify(redactPii(credentials.claims))}`
     )
+
+    const accessTokenPayload = decodeJwtPayload(credentials.accessToken)
     request.logger.info(
-      `Auth callback access token payload: ${JSON.stringify(redactPii(decodeJwtPayload(credentials.accessToken)))}`
+      `Auth callback access token payload: ${JSON.stringify(redactPii(accessTokenPayload))}`
     )
+
+    requireAdminRole(accessTokenPayload)
 
     const { sessionCookie, yar, logger } = request
 
@@ -44,12 +48,26 @@ export const authCallbackController = {
   }
 }
 
+const ADMIN_ROLE = 'admin'
+const ADMIN_ACCESS_MESSAGE =
+  'Contact Nature Restoration Fund digital team for access'
+
+function requireAdminRole(payload) {
+  if (!Array.isArray(payload?.roles) || !payload.roles.includes(ADMIN_ROLE)) {
+    throw Boom.forbidden(null, { message: ADMIN_ACCESS_MESSAGE })
+  }
+}
+
 function decodeJwtPayload(jwt) {
   const payload = jwt?.split('.')[1]
   if (!payload) {
     return null
   }
-  return JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'))
+  try {
+    return JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'))
+  } catch {
+    throw Boom.unauthorized('Access token is not a valid JWT')
+  }
 }
 
 const piiClaims = [

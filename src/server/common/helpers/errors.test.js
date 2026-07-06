@@ -74,6 +74,52 @@ describe('#catchAll', () => {
     expect(mockToolkitCode).toHaveBeenCalledWith(statusCodes.forbidden)
   })
 
+  test('Should use custom message from Boom error when provided', () => {
+    const customMessage =
+      'Contact Nature Restoration Fund digital team for access'
+    const mockRequestWithMessage = (statusCode) => ({
+      ...mockRequest(statusCode),
+      response: {
+        isBoom: true,
+        stack: mockStack,
+        data: { message: customMessage },
+        output: { statusCode }
+      }
+    })
+
+    catchAll(mockRequestWithMessage(statusCodes.forbidden), mockToolkit)
+
+    expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
+      pageTitle: customMessage,
+      heading: statusCodes.forbidden,
+      message: customMessage
+    })
+    expect(mockToolkitCode).toHaveBeenCalledWith(statusCodes.forbidden)
+  })
+
+  test('Should NOT use custom message from Boom error for 5xx errors', () => {
+    const mockRequestWithMessage = (statusCode) => ({
+      ...mockRequest(statusCode),
+      response: {
+        isBoom: true,
+        stack: mockStack,
+        data: { message: 'Internal detail that should not leak' },
+        output: { statusCode }
+      }
+    })
+
+    catchAll(
+      mockRequestWithMessage(statusCodes.internalServerError),
+      mockToolkit
+    )
+
+    expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
+      pageTitle: 'Something went wrong',
+      heading: statusCodes.internalServerError,
+      message: 'Something went wrong'
+    })
+  })
+
   test('Should provide expected "Unauthorized" page', () => {
     catchAll(mockRequest(statusCodes.unauthorized), mockToolkit)
 
