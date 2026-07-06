@@ -1,7 +1,8 @@
 import { config } from '#/config/config.js'
+import { auditSignOut } from '#/server/common/helpers/auditing/index.js'
 
 export const signOutController = {
-  handler: async (request, h) => {
+  async handler(request, h) {
     const userSession = request.auth.credentials
 
     if (!userSession) {
@@ -10,6 +11,8 @@ export const signOutController = {
 
     const { discoveryUri, externalBaseUrl } = config.get('auth.oidc')
     const loginHint = userSession?.loginHint
+
+    auditSignOut({ id: userSession.id, email: userSession.email })
 
     // Clear the local session before contacting the IdP so sign-out cannot
     // fail open if discovery is unreachable or returns invalid JSON.
