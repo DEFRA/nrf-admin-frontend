@@ -333,6 +333,14 @@ export const config = convict({
     }
   },
 
+  audit: {
+    isEnabled: {
+      doc: 'Enable audit logging',
+      format: Boolean,
+      default: !isTest,
+      env: 'AUDIT_ENABLED'
+    }
+  },
   auth: {
     federatedCredentials: {
       identityPoolId: {

@@ -2,13 +2,15 @@ import { randomUUID } from 'node:crypto'
 
 import Boom from '@hapi/boom'
 import escapeHtml from 'lodash/escape.js'
+import { auditSignIn } from '#/server/common/helpers/auditing/index.js'
 import { saveUserSession } from '#/server/common/helpers/save-user-session.js'
 
 export const authCallbackController = {
-  handler: async (request, h) => {
+  async handler(request, h) {
     const credentials = await request.callback(h)
     request.logger.info(
-      `Auth callback received credentials: ${Boolean(credentials)}`
+      { hasCredentials: Boolean(credentials) },
+      'Auth callback received credentials'
     )
 
     if (!credentials) {
@@ -16,12 +18,14 @@ export const authCallbackController = {
     }
 
     request.logger.info(
-      `Auth callback ID token claims: ${JSON.stringify(redactPii(credentials.claims))}`
+      { claims: redactPii(credentials.claims) },
+      'Auth callback ID token claims'
     )
 
     const accessTokenPayload = decodeJwtPayload(credentials.accessToken)
     request.logger.info(
-      `Auth callback access token payload: ${JSON.stringify(redactPii(accessTokenPayload))}`
+      { accessTokenPayload: redactPii(accessTokenPayload) },
+      'Auth callback access token payload'
     )
 
     requireAdminRole(accessTokenPayload)
@@ -30,16 +34,18 @@ export const authCallbackController = {
 
     const sessionId = randomUUID()
 
-    logger.info(`Creating user session ${sessionId}`)
+    logger.info({ sessionId }, 'Creating user session')
     const session = await saveUserSession(request, sessionId, credentials)
 
     sessionCookie.set({ sessionId })
     logger.info(
-      `User logged in sessionId: ${sessionId} userId: ${session.id} displayName: ${session.displayName}`
+      { sessionId, userId: session.id, displayName: session.displayName },
+      'User logged in'
     )
+    auditSignIn({ id: session.id, email: session.email })
 
     const redirect = yar.flash('referrer')?.at(0) ?? '/'
-    logger.info(`Login complete, redirecting user to ${redirect}`)
+    logger.info({ redirect }, 'Login complete, redirecting user')
     return h
       .response(
         `<html><head><meta http-equiv="refresh" content="0;URL='${escapeHtml(redirect)}'"></head><body></body></html>`

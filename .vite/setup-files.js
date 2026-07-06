@@ -8,3 +8,7 @@ fetchMock.enableMocks()
 global.fetch = fetchMock
 
 vi.mock('ioredis')
+vi.mock('@defra/cdp-auditing', () => ({
+  audit: vi.fn(),
+  enableAuditing: vi.fn()
+}))
