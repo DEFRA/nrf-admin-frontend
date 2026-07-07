@@ -64,6 +64,7 @@
       {% endset %}
       {% set tableRows = (tableRows.push([
         { text: quote.reference },
+        { text: quote.planningType },
         { text: quote.email.address },
         { text: quote.boundary.userInputType },
         { text: quote.development.types | join(', ') },
@@ -81,6 +82,7 @@
       classes: "govuk-table--small-text-until-tablet",
       head: [
         { text: "Reference" },
+        { text: "Planning application type" },
         { text: "Email" },
         { text: "Boundary entry type" },
         { text: "Development types" },
