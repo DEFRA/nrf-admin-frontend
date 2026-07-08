@@ -7,6 +7,15 @@ import {
   accessTokenWithRole
 } from '#/test-utils/fixtures/token.js'
 
+vi.mock('#/config/config.js', () => ({
+  config: {
+    get: (k) =>
+      ({
+        'auth.teamAdminEmails': ['allowed@defra.onmicrosoft.com']
+      })[k]
+  }
+}))
+
 vi.mock('#/server/common/helpers/save-user-session.js', () => ({
   saveUserSession: vi
     .fn()
@@ -127,5 +136,49 @@ describe('authCallbackController', () => {
     expect(request.sessionCookie.set).toHaveBeenCalledWith(
       expect.objectContaining({ sessionId: expect.any(String) })
     )
+  })
+
+  it('completes login when email is in the team admin whitelist', async () => {
+    const request = buildRequest({
+      accessToken: encodeJwt(accessToken),
+      refreshToken: 'refresh',
+      expiresIn: 3600,
+      claims: {
+        oid: 'oid-2',
+        name: 'Allowed User',
+        email: 'allowed@defra.onmicrosoft.com'
+      }
+    })
+
+    await expect(
+      authCallbackController.handler(request, mockH)
+    ).resolves.not.toThrow()
+
+    expect(request.sessionCookie.set).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionId: expect.any(String) })
+    )
+  })
+
+  it('throws Boom.forbidden when no admin role and email is not whitelisted', async () => {
+    const request = buildRequest({
+      accessToken: encodeJwt(accessToken),
+      refreshToken: 'refresh',
+      expiresIn: 3600,
+      claims: {
+        oid: 'oid-3',
+        name: 'Unknown User',
+        email: 'unknown@example.com'
+      }
+    })
+
+    await expect(
+      authCallbackController.handler(request, mockH)
+    ).rejects.toMatchObject({
+      isBoom: true,
+      output: { statusCode: 403 },
+      data: {
+        message: 'Contact Nature Restoration Fund digital team for access'
+      }
+    })
   })
 })

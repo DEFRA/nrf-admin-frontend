@@ -414,6 +414,12 @@ export const config = convict({
         default: isProduction ? 'None' : 'Lax',
         env: 'OIDC_SAME_SITE'
       }
+    },
+    teamAdminEmails: {
+      doc: 'Team admin emails',
+      format: Array,
+      default: [],
+      env: 'ENTRA_ID_TEAM_ADMIN_EMAILS'
     }
   }
 })
