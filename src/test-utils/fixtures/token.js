@@ -19,7 +19,7 @@ export const accessToken = {
   sub: '123',
   tid: '123',
   unique_id: '123',
-  upn: '[redacted]',
+  upn: 'test.user@defra.onmicrosoft.com',
   uti: '123',
   ver: '1.0',
   xms_ftd: '123'
