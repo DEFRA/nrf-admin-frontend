@@ -29,7 +29,7 @@ export const authCallbackController = {
       'Auth callback access token payload'
     )
 
-    requireAdminAccess(accessTokenPayload, credentials.claims)
+    requireAdminAccess(accessTokenPayload)
 
     const { sessionCookie, yar, logger } = request
 
@@ -58,12 +58,12 @@ export const authCallbackController = {
 const ADMIN_ROLE = 'admin'
 const ADMIN_ACCESS_MESSAGE =
   'Contact Nature Restoration Fund digital team for access'
-function requireAdminAccess(payload, claims) {
+function requireAdminAccess(payload) {
   const hasAdminRole =
     Array.isArray(payload?.roles) && payload.roles.includes(ADMIN_ROLE)
   const isWhitelisted = config
     .get('auth.teamAdminEmails')
-    .includes(claims?.email)
+    .some((email) => email.toLowerCase().trim() === payload.upn.toLowerCase())
   if (!hasAdminRole && !isWhitelisted) {
     throw Boom.forbidden(null, { message: ADMIN_ACCESS_MESSAGE })
   }
