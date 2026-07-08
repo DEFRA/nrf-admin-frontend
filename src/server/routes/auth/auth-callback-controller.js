@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 
 import Boom from '@hapi/boom'
 import escapeHtml from 'lodash/escape.js'
+import { config } from '#/config/config.js'
 import { auditSignIn } from '#/server/common/helpers/auditing/index.js'
 import { saveUserSession } from '#/server/common/helpers/save-user-session.js'
 
@@ -28,7 +29,7 @@ export const authCallbackController = {
       'Auth callback access token payload'
     )
 
-    requireAdminRole(accessTokenPayload)
+    requireAdminAccess(accessTokenPayload, credentials.claims)
 
     const { sessionCookie, yar, logger } = request
 
@@ -57,9 +58,13 @@ export const authCallbackController = {
 const ADMIN_ROLE = 'admin'
 const ADMIN_ACCESS_MESSAGE =
   'Contact Nature Restoration Fund digital team for access'
-
-function requireAdminRole(payload) {
-  if (!Array.isArray(payload?.roles) || !payload.roles.includes(ADMIN_ROLE)) {
+function requireAdminAccess(payload, claims) {
+  const hasAdminRole =
+    Array.isArray(payload?.roles) && payload.roles.includes(ADMIN_ROLE)
+  const isWhitelisted = config
+    .get('auth.teamAdminEmails')
+    .includes(claims?.email)
+  if (!hasAdminRole && !isWhitelisted) {
     throw Boom.forbidden(null, { message: ADMIN_ACCESS_MESSAGE })
   }
 }
