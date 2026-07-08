@@ -138,16 +138,15 @@ describe('authCallbackController', () => {
     )
   })
 
-  it('completes login when email is in the team admin whitelist', async () => {
+  it('completes login when upn is in the team admin whitelist', async () => {
     const request = buildRequest({
-      accessToken: encodeJwt(accessToken),
+      accessToken: encodeJwt({
+        ...accessToken,
+        upn: 'allowed@defra.onmicrosoft.com'
+      }),
       refreshToken: 'refresh',
       expiresIn: 3600,
-      claims: {
-        oid: 'oid-2',
-        name: 'Allowed User',
-        email: 'allowed@defra.onmicrosoft.com'
-      }
+      claims: { oid: 'oid-2', name: 'Allowed User' }
     })
 
     await expect(
@@ -159,16 +158,28 @@ describe('authCallbackController', () => {
     )
   })
 
-  it('throws Boom.forbidden when no admin role and email is not whitelisted', async () => {
+  it('completes login when upn matches whitelist case-insensitively', async () => {
     const request = buildRequest({
-      accessToken: encodeJwt(accessToken),
+      accessToken: encodeJwt({
+        ...accessToken,
+        upn: 'ALLOWED@DEFRA.ONMICROSOFT.COM'
+      }),
       refreshToken: 'refresh',
       expiresIn: 3600,
-      claims: {
-        oid: 'oid-3',
-        name: 'Unknown User',
-        email: 'unknown@example.com'
-      }
+      claims: { oid: 'oid-2', name: 'Allowed User' }
+    })
+
+    await expect(
+      authCallbackController.handler(request, mockH)
+    ).resolves.not.toThrow()
+  })
+
+  it('throws Boom.forbidden when no admin role and upn is not whitelisted', async () => {
+    const request = buildRequest({
+      accessToken: encodeJwt({ ...accessToken, upn: 'unknown@example.com' }),
+      refreshToken: 'refresh',
+      expiresIn: 3600,
+      claims: { oid: 'oid-3', name: 'Unknown User' }
     })
 
     await expect(
