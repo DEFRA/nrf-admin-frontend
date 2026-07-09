@@ -9,26 +9,10 @@ import { saveUserSession } from '#/server/common/helpers/save-user-session.js'
 export const authCallbackController = {
   async handler(request, h) {
     const credentials = await request.callback(h)
-    request.logger.info(
-      { hasCredentials: Boolean(credentials) },
-      'Auth callback received credentials'
-    )
-
     if (!credentials) {
       throw Boom.unauthorized()
     }
-
-    request.logger.info(
-      { claims: redactPii(credentials.claims) },
-      'Auth callback ID token claims'
-    )
-
     const accessTokenPayload = decodeJwtPayload(credentials.accessToken)
-    request.logger.info(
-      { accessTokenPayload: redactPii(accessTokenPayload) },
-      'Auth callback access token payload'
-    )
-
     requireAdminAccess(accessTokenPayload)
 
     const { sessionCookie, yar, logger } = request
@@ -39,10 +23,7 @@ export const authCallbackController = {
     const session = await saveUserSession(request, sessionId, credentials)
 
     sessionCookie.set({ sessionId })
-    logger.info(
-      { sessionId, userId: session.id, displayName: session.displayName },
-      'User logged in'
-    )
+
     auditSignIn({ id: session.id, email: session.email })
 
     const redirect = yar.flash('referrer')?.at(0) ?? '/'
@@ -55,16 +36,13 @@ export const authCallbackController = {
   }
 }
 
-const ADMIN_ROLE = 'admin'
 const ADMIN_ACCESS_MESSAGE =
   'Contact Nature Restoration Fund digital team for access'
 function requireAdminAccess(payload) {
-  const hasAdminRole =
-    Array.isArray(payload?.roles) && payload.roles.includes(ADMIN_ROLE)
   const isWhitelisted = config
     .get('auth.teamAdminEmails')
     .some((email) => email.toLowerCase().trim() === payload.upn.toLowerCase())
-  if (!hasAdminRole && !isWhitelisted) {
+  if (!isWhitelisted) {
     throw Boom.forbidden(null, { message: ADMIN_ACCESS_MESSAGE })
   }
 }
@@ -79,29 +57,4 @@ function decodeJwtPayload(jwt) {
   } catch {
     throw Boom.unauthorized('Access token is not a valid JWT')
   }
-}
-
-const piiClaims = [
-  'name',
-  'given_name',
-  'family_name',
-  'email',
-  'preferred_username',
-  'upn',
-  'unique_name',
-  'ipaddr',
-  'login_hint'
-]
-
-function redactPii(claims) {
-  if (!claims) {
-    return claims
-  }
-  const result = { ...claims }
-  for (const claim of piiClaims) {
-    if (claim in result) {
-      result[claim] = '[redacted]'
-    }
-  }
-  return result
 }
