@@ -69,6 +69,7 @@
         { text: quote.residentialBuildingCount },
         { text: quote.createdAt | govukDate },
         { text: quote.email.sendRequestAt | govukDate },
+        { text: "Yes" if quote.disableAnalyticsAudit else "No" },
         { html: edpHtml }
       ]), tableRows) %}
     {% endfor %}
@@ -84,6 +85,7 @@
         { text: "Residential building count" },
         { text: "Date submitted" },
         { text: "Email send request date" },
+        { text: "Analytics disabled" },
         { text: "EDP results" }
       ],
       rows: tableRows
