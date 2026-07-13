@@ -3,7 +3,7 @@ export const singleQuoteFixture = [
     id: 1,
     reference: 'NRF-000001',
     createdAt: '2026-03-23T00:00:00.000Z',
-    residentialBuildingCount: 10,
+    housingUnits: 10,
     boundary: {
       geoJsonWgs84: '{"type":"Polygon"}',
       userInputType: 'draw',
@@ -44,7 +44,7 @@ export const multipleQuotesFixture = [
     id: 2,
     reference: 'NRF-000002',
     createdAt: '2026-04-01T10:00:00.000Z',
-    residentialBuildingCount: 5,
+    housingUnits: 5,
     boundary: {
       geoJsonWgs84: '{"type":"Polygon"}',
       userInputType: 'upload',
