@@ -179,6 +179,26 @@ describe('authCallbackController', () => {
     ).resolves.not.toThrow()
   })
 
+  it('throws Boom.forbidden with custom message when access token has no upn', async () => {
+    const { upn: _upn, ...accessTokenWithoutUpn } = accessToken
+    const request = buildRequest({
+      accessToken: encodeJwt(accessTokenWithoutUpn),
+      refreshToken: 'refresh',
+      expiresIn: 3600,
+      claims: { oid: 'oid-4', name: 'No Upn User' }
+    })
+
+    await expect(
+      authCallbackController.handler(request, mockH)
+    ).rejects.toMatchObject({
+      isBoom: true,
+      output: { statusCode: 403 },
+      data: {
+        message: 'Contact Nature Restoration Fund digital team for access'
+      }
+    })
+  })
+
   it('throws Boom.forbidden when no admin role and upn is not whitelisted', async () => {
     const request = buildRequest({
       accessToken: encodeJwt({ ...accessToken, upn: 'unknown@example.com' }),
