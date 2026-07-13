@@ -39,9 +39,13 @@ export const authCallbackController = {
 const ADMIN_ACCESS_MESSAGE =
   'Contact Nature Restoration Fund digital team for access'
 function requireAdminAccess(payload) {
-  const isWhitelisted = config
-    .get('auth.teamAdminEmails')
-    .some((email) => email.toLowerCase().trim() === payload.upn.toLowerCase())
+  const isWhitelisted =
+    payload.upn &&
+    config
+      .get('auth.teamAdminEmails')
+      .some(
+        (email) => email.toLowerCase().trim() === payload.upn?.toLowerCase()
+      )
   if (!isWhitelisted) {
     throw Boom.forbidden(null, { message: ADMIN_ACCESS_MESSAGE })
   }
