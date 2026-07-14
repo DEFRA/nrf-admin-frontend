@@ -70,6 +70,20 @@ describe('Home page', () => {
     expect(table).toHaveTextContent('Norfolk Fens East')
   })
 
+  it('renders the boundary entry type, with the filename as an abbreviation title for uploads', async () => {
+    mswServer.use(
+      http.get(quotesEndpoint, () => HttpResponse.json(multipleQuotesFixture))
+    )
+
+    const document = await loadHomePage()
+
+    const table = getByRole(document, 'table')
+    expect(table).toHaveTextContent('draw')
+    const uploadAbbr = table.querySelector('abbr')
+    expect(uploadAbbr).toHaveTextContent('upload')
+    expect(uploadAbbr).toHaveAttribute('title', 'boundary.shp')
+  })
+
   it('formats dates in GOV.UK format', async () => {
     mswServer.use(
       http.get(quotesEndpoint, () => HttpResponse.json(singleQuoteFixture))
