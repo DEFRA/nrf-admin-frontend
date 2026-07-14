@@ -62,9 +62,17 @@
           None
         {% endif %}
       {% endset %}
+      {% set boundaryHtml %}
+        {% if quote.boundary.filename %}
+          <abbr title="{{ quote.boundary.filename }}">upload</abbr>
+        {% else %}
+        {{ quote.boundary.userInputType }}
+        {% endif %}
+      {% endset %}
       {% set tableRows = (tableRows.push([
         { text: quote.reference },
         { text: quote.planningType },
+        { html: boundaryHtml },
         { text: quote.email.address },
         { text: quote.housingUnits },
         { text: quote.createdAt | govukDate },
@@ -81,6 +89,7 @@
       head: [
         { text: "Reference" },
         { text: "Planning application type" },
+        { text: "Red line boundary" },
         { text: "Email" },
         { text: "Housing units" },
         { text: "Date submitted" },
