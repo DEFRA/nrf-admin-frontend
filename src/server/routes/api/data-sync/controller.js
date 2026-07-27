@@ -6,6 +6,8 @@ import {
   getDataSyncStatus
 } from '../../../common/services/impact-assessor.js'
 
+const UPSTREAM_UNAVAILABLE = 'Upstream data sync service unavailable'
+
 export const triggerHandler = async (request, h) => {
   const { force } = request.query
   const manifest = request.payload
@@ -19,7 +21,7 @@ export const triggerHandler = async (request, h) => {
         .code(StatusCodes.CONFLICT)
     }
     return h
-      .response({ error: 'Upstream data sync service unavailable' })
+      .response({ error: UPSTREAM_UNAVAILABLE })
       .code(StatusCodes.BAD_GATEWAY)
   }
 
@@ -49,7 +51,7 @@ export const rollbackHandler = async (request, h) => {
         .code(StatusCodes.BAD_REQUEST)
     }
     return h
-      .response({ error: 'Upstream data sync service unavailable' })
+      .response({ error: UPSTREAM_UNAVAILABLE })
       .code(StatusCodes.BAD_GATEWAY)
   }
 
@@ -70,7 +72,7 @@ export const statusHandler = async (request, h) => {
         .code(StatusCodes.NOT_FOUND)
     }
     return h
-      .response({ error: 'Upstream data sync service unavailable' })
+      .response({ error: UPSTREAM_UNAVAILABLE })
       .code(StatusCodes.BAD_GATEWAY)
   }
 

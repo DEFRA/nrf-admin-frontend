@@ -6,6 +6,8 @@ import { createLogger } from '../helpers/logging/logger.js'
 
 const logger = createLogger()
 
+const API_URL_KEY = 'impactAssessor.apiUrl'
+
 const dataSyncHeaders = () => {
   const headers = withTraceId(config.get('tracing.header'))
   const token = config.get('impactAssessor.dataSyncToken')
@@ -16,7 +18,7 @@ const dataSyncHeaders = () => {
 }
 
 export async function triggerDataSync({ force = false, manifest } = {}) {
-  const baseUrl = config.get('impactAssessor.apiUrl')
+  const baseUrl = config.get(API_URL_KEY)
   const url = `${baseUrl}/admin/data-sync?force=${force ? 'true' : 'false'}`
 
   logger.info(
@@ -44,7 +46,7 @@ export async function triggerDataSync({ force = false, manifest } = {}) {
 }
 
 export async function rollbackDataSync({ tables } = {}) {
-  const baseUrl = config.get('impactAssessor.apiUrl')
+  const baseUrl = config.get(API_URL_KEY)
   const url = `${baseUrl}/admin/data-sync/rollback`
 
   logger.info(
@@ -72,7 +74,7 @@ export async function rollbackDataSync({ tables } = {}) {
 }
 
 export async function getDataSyncStatus(runId) {
-  const baseUrl = config.get('impactAssessor.apiUrl')
+  const baseUrl = config.get(API_URL_KEY)
   const url = `${baseUrl}/admin/data-sync/${runId}`
 
   logger.info(`Fetching data sync status - url: ${url}, runId: ${runId}`)
