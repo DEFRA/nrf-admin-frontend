@@ -10,11 +10,13 @@ vi.mock('#/config/config.js', () => ({
 
 vi.mock('../../../common/services/impact-assessor.js', () => ({
   triggerDataSync: vi.fn(),
+  rollbackDataSync: vi.fn(),
   getDataSyncStatus: vi.fn()
 }))
 
 import {
   triggerDataSync,
+  rollbackDataSync,
   getDataSyncStatus
 } from '../../../common/services/impact-assessor.js'
 import { bearerAuth } from '../../../common/helpers/auth/bearer-auth.js'
@@ -23,9 +25,14 @@ import { apiDataSync } from './index.js'
 const auth = { authorization: 'Bearer secret-token' }
 const RUN_ID = '11111111-2222-4333-8444-555555555555'
 const DATA_SYNC_URL = '/api/data-sync'
+const ROLLBACK_URL = '/api/data-sync/rollback'
 const MANIFEST = {
-  data_version: '20260605_120000',
-  tables: { edp_boundary_layer: '20260521/abc/def' }
+  tables: {
+    edp_boundary_layer: {
+      key: '20260521/abc/def',
+      version: '20260605_120000'
+    }
+  }
 }
 
 async function buildServer() {
@@ -83,8 +90,50 @@ describe('POST /api/data-sync - validation and upstream errors', () => {
   })
 
   it('rejects an empty tables map', async () => {
+    const res = await postDataSync({ payload: { tables: {} } })
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
+    expect(triggerDataSync).not.toHaveBeenCalled()
+  })
+
+  it('rejects a table entry missing its version', async () => {
     const res = await postDataSync({
-      payload: { data_version: 'v1', tables: {} }
+      payload: { tables: { edp_boundary_layer: { key: '20260521/abc/def' } } }
+    })
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
+    expect(triggerDataSync).not.toHaveBeenCalled()
+  })
+
+  it('accepts a split dump given as an ordered list of part keys', async () => {
+    triggerDataSync.mockResolvedValue({ runId: 'r1', status: 'running' })
+    const manifest = {
+      tables: {
+        lookup_table: {
+          key: ['20260727/t.sql.gz.part-aa', '20260727/t.sql.gz.part-ab'],
+          version: '20260727_090000'
+        }
+      }
+    }
+    const res = await postDataSync({ payload: manifest })
+    expect(res.statusCode).toBe(StatusCodes.ACCEPTED)
+    expect(triggerDataSync).toHaveBeenCalledWith({ force: false, manifest })
+  })
+
+  it('rejects an empty part-key list', async () => {
+    const res = await postDataSync({
+      payload: {
+        tables: { lookup_table: { key: [], version: '20260727_090000' } }
+      }
+    })
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
+    expect(triggerDataSync).not.toHaveBeenCalled()
+  })
+
+  it('rejects the old flat table-name -> key shape', async () => {
+    const res = await postDataSync({
+      payload: {
+        data_version: 'v1',
+        tables: { edp_boundary_layer: '20260521/abc/def' }
+      }
     })
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
     expect(triggerDataSync).not.toHaveBeenCalled()
@@ -165,5 +214,91 @@ describe('GET /api/data-sync/{runId}', () => {
       headers: auth
     })
     expect(res.statusCode).toBe(StatusCodes.NOT_FOUND)
+  })
+})
+
+describe('POST /api/data-sync/rollback', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  async function postRollback({ headers = auth, payload = null } = {}) {
+    const server = await buildServer()
+    return server.inject({
+      method: 'POST',
+      url: ROLLBACK_URL,
+      headers,
+      payload
+    })
+  }
+
+  it('returns 401 without auth', async () => {
+    const res = await postRollback({ headers: {} })
+    expect(res.statusCode).toBe(StatusCodes.UNAUTHORIZED)
+    expect(rollbackDataSync).not.toHaveBeenCalled()
+  })
+
+  it('rolls back the last load when no body is sent', async () => {
+    rollbackDataSync.mockResolvedValue({
+      rolledBack: { edp_boundary_layer: { from: 3, to: 2 } },
+      skipped: {}
+    })
+    const res = await postRollback()
+    expect(res.statusCode).toBe(StatusCodes.OK)
+    expect(JSON.parse(res.payload)).toEqual({
+      rolledBack: { edp_boundary_layer: { from: 3, to: 2 } },
+      skipped: {}
+    })
+    expect(rollbackDataSync).toHaveBeenCalledWith({ tables: undefined })
+  })
+
+  it('passes an explicit table list through', async () => {
+    rollbackDataSync.mockResolvedValue({ rolledBack: {}, skipped: {} })
+    await postRollback({ payload: { tables: ['edp_boundary_layer'] } })
+    expect(rollbackDataSync).toHaveBeenCalledWith({
+      tables: ['edp_boundary_layer']
+    })
+  })
+
+  it('relays skipped tables alongside rolled-back ones', async () => {
+    rollbackDataSync.mockResolvedValue({
+      rolledBack: { edp_boundary_layer: { from: 3, to: 2 } },
+      skipped: { edp_excluded_areas: 'no prior version to roll back to' }
+    })
+    const res = await postRollback()
+    expect(JSON.parse(res.payload)).toMatchObject({
+      skipped: { edp_excluded_areas: 'no prior version to roll back to' }
+    })
+  })
+
+  it('rejects an empty table list', async () => {
+    const res = await postRollback({ payload: { tables: [] } })
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
+    expect(rollbackDataSync).not.toHaveBeenCalled()
+  })
+
+  it('maps upstream 409 to 409', async () => {
+    rollbackDataSync.mockResolvedValue({
+      error: 'Unable to roll back data sync',
+      statusCode: StatusCodes.CONFLICT
+    })
+    const res = await postRollback()
+    expect(res.statusCode).toBe(StatusCodes.CONFLICT)
+  })
+
+  it('maps upstream 400 to 400', async () => {
+    rollbackDataSync.mockResolvedValue({
+      error: 'Unable to roll back data sync',
+      statusCode: StatusCodes.BAD_REQUEST
+    })
+    const res = await postRollback()
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
+  })
+
+  it('returns 502 on other upstream failures', async () => {
+    rollbackDataSync.mockResolvedValue({
+      error: 'Unable to roll back data sync',
+      statusCode: StatusCodes.INTERNAL_SERVER_ERROR
+    })
+    const res = await postRollback()
+    expect(res.statusCode).toBe(StatusCodes.BAD_GATEWAY)
   })
 })

@@ -43,6 +43,34 @@ export async function triggerDataSync({ force = false, manifest } = {}) {
   }
 }
 
+export async function rollbackDataSync({ tables } = {}) {
+  const baseUrl = config.get('impactAssessor.apiUrl')
+  const url = `${baseUrl}/admin/data-sync/rollback`
+
+  logger.info(
+    `Triggering data sync rollback - url: ${url}, tables: ${tables?.join(',') ?? 'default (last load)'}`
+  )
+
+  try {
+    const { payload } = await Wreck.post(url, {
+      payload: JSON.stringify(tables ? { tables } : {}),
+      json: true,
+      headers: {
+        ...dataSyncHeaders(),
+        'Content-Type': 'application/json'
+      }
+    })
+    return { rolledBack: payload.rolled_back, skipped: payload.skipped }
+  } catch (error) {
+    const statusCode = error?.output?.statusCode
+    logger.error(
+      error,
+      `Error triggering data sync rollback - url: ${url}, statusCode: ${statusCode}`
+    )
+    return { error: 'Unable to roll back data sync', statusCode }
+  }
+}
+
 export async function getDataSyncStatus(runId) {
   const baseUrl = config.get('impactAssessor.apiUrl')
   const url = `${baseUrl}/admin/data-sync/${runId}`

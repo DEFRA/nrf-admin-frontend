@@ -2,6 +2,7 @@ import { StatusCodes } from 'http-status-codes'
 
 import {
   triggerDataSync,
+  rollbackDataSync,
   getDataSyncStatus
 } from '../../../common/services/impact-assessor.js'
 
@@ -26,6 +27,35 @@ export const triggerHandler = async (request, h) => {
   return h
     .response({ runId: result.runId, status: result.status })
     .code(StatusCodes.ACCEPTED)
+}
+
+export const rollbackHandler = async (request, h) => {
+  const { tables } = request.payload ?? {}
+
+  const result = await rollbackDataSync({ tables })
+
+  if (result.error) {
+    if (result.statusCode === StatusCodes.CONFLICT) {
+      return h
+        .response({ error: 'A data sync run is currently in progress' })
+        .code(StatusCodes.CONFLICT)
+    }
+    // Upstream 400 = nothing to roll back, or a table outside its allow-list.
+    if (result.statusCode === StatusCodes.BAD_REQUEST) {
+      return h
+        .response({
+          error: 'No reference tables to roll back, or an unknown table named'
+        })
+        .code(StatusCodes.BAD_REQUEST)
+    }
+    return h
+      .response({ error: 'Upstream data sync service unavailable' })
+      .code(StatusCodes.BAD_GATEWAY)
+  }
+
+  return h
+    .response({ rolledBack: result.rolledBack, skipped: result.skipped })
+    .code(StatusCodes.OK)
 }
 
 export const statusHandler = async (request, h) => {

@@ -1,9 +1,10 @@
 import {
   triggerQuerySchema,
   triggerBodySchema,
+  rollbackBodySchema,
   runIdParamSchema
 } from './schemas.js'
-import { triggerHandler, statusHandler } from './controller.js'
+import { triggerHandler, rollbackHandler, statusHandler } from './controller.js'
 
 export const apiDataSync = {
   plugin: {
@@ -18,6 +19,15 @@ export const apiDataSync = {
             validate: { query: triggerQuerySchema, payload: triggerBodySchema }
           },
           handler: triggerHandler
+        },
+        {
+          method: 'POST',
+          path: '/api/data-sync/rollback',
+          options: {
+            auth: 'api-bearer',
+            validate: { payload: rollbackBodySchema }
+          },
+          handler: rollbackHandler
         },
         {
           method: 'GET',

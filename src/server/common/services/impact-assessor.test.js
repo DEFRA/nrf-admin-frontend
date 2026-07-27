@@ -19,7 +19,11 @@ vi.mock('../../../config/config.js', async (importOriginal) => {
 })
 
 import Wreck from '@hapi/wreck'
-import { triggerDataSync, getDataSyncStatus } from './impact-assessor.js'
+import {
+  triggerDataSync,
+  rollbackDataSync,
+  getDataSyncStatus
+} from './impact-assessor.js'
 
 describe('impact-assessor service', () => {
   beforeEach(() => vi.clearAllMocks())
@@ -30,8 +34,12 @@ describe('impact-assessor service', () => {
         payload: { run_id: 'r1', status: 'running' }
       })
       const manifest = {
-        data_version: '20260605_120000',
-        tables: { edp_boundary_layer: '20260521/abc/def' }
+        tables: {
+          edp_boundary_layer: {
+            key: '20260521/abc/def',
+            version: '20260605_120000'
+          }
+        }
       }
 
       const result = await triggerDataSync({ force: true, manifest })
@@ -61,6 +69,49 @@ describe('impact-assessor service', () => {
       Wreck.post.mockRejectedValue(err)
       expect(await triggerDataSync({ force: false })).toEqual({
         error: 'Unable to trigger data sync',
+        statusCode: 409
+      })
+    })
+  })
+
+  describe('rollbackDataSync', () => {
+    it('posts an explicit table list with the token header and maps the response', async () => {
+      Wreck.post.mockResolvedValue({
+        payload: {
+          rolled_back: { edp_boundary_layer: { from: 3, to: 2 } },
+          skipped: { edp_excluded_areas: 'no prior version' }
+        }
+      })
+
+      const result = await rollbackDataSync({ tables: ['edp_boundary_layer'] })
+
+      expect(result).toEqual({
+        rolledBack: { edp_boundary_layer: { from: 3, to: 2 } },
+        skipped: { edp_excluded_areas: 'no prior version' }
+      })
+      const [url, opts] = Wreck.post.mock.calls[0]
+      expect(url).toBe('http://localhost:8085/admin/data-sync/rollback')
+      expect(opts.headers['x-data-sync-token']).toBe('sync-token')
+      expect(JSON.parse(opts.payload)).toEqual({
+        tables: ['edp_boundary_layer']
+      })
+    })
+
+    it('posts an empty body when no tables are named', async () => {
+      Wreck.post.mockResolvedValue({
+        payload: { rolled_back: {}, skipped: {} }
+      })
+      await rollbackDataSync()
+      expect(JSON.parse(Wreck.post.mock.calls[0][1].payload)).toEqual({})
+    })
+
+    it('returns error shape with statusCode on failure (e.g. 409)', async () => {
+      const err = Object.assign(new Error('conflict'), {
+        output: { statusCode: 409 }
+      })
+      Wreck.post.mockRejectedValue(err)
+      expect(await rollbackDataSync()).toEqual({
+        error: 'Unable to roll back data sync',
         statusCode: 409
       })
     })
