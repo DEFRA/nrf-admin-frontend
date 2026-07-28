@@ -63,7 +63,7 @@
         {% endif %}
       {% endset %}
       {% set boundaryHtml %}
-        {% if quote.boundary.filename %}
+        {% if quote.boundary.userInputType === 'upload' and quote.boundary.filename %}
           <abbr title="{{ quote.boundary.filename }}">upload</abbr>
         {% else %}
         {{ quote.boundary.userInputType }}
