@@ -84,6 +84,31 @@ describe('Home page', () => {
     expect(uploadAbbr).toHaveAttribute('title', 'boundary.shp')
   })
 
+  it('renders drawn boundaries as "draw", even with a leftover filename from an abandoned upload', async () => {
+    const [uploadQuote, drawQuote] = multipleQuotesFixture
+    mswServer.use(
+      http.get(quotesEndpoint, () =>
+        HttpResponse.json([
+          uploadQuote,
+          {
+            ...drawQuote,
+            boundary: {
+              ...drawQuote.boundary,
+              userInputType: 'draw',
+              filename: 'stale-upload.geojson'
+            }
+          }
+        ])
+      )
+    )
+
+    const document = await loadHomePage()
+
+    const table = getByRole(document, 'table')
+    expect(table).toHaveTextContent('draw')
+    expect(table.querySelectorAll('abbr')).toHaveLength(1)
+  })
+
   it('formats dates in GOV.UK format', async () => {
     mswServer.use(
       http.get(quotesEndpoint, () => HttpResponse.json(singleQuoteFixture))
