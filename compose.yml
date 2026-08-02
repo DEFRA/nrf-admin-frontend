@@ -46,6 +46,10 @@ services:
       - 'floci:floci'
       - 'redis:redis'
       - 'cdp-uploader:cdp-uploader'
+    # Docker Desktop resolves host.docker.internal already; Linux needs it
+    # mapped explicitly for NRF_IMPACT_ASSESSOR_API_URL to reach the host.
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     depends_on:
       floci:
         condition: service_healthy
@@ -67,8 +71,14 @@ services:
       BACKEND_API_KEY: local-dev-backend-key
       UPLOAD_API_BEARER_TOKEN: ${UPLOAD_API_BEARER_TOKEN:-local-dev-token}
       CDP_UPLOADER_URL: http://cdp-uploader:7337
-      CDP_UPLOADER_S3_BUCKET: ${CDP_UPLOADER_BUCKET:-data_backups}
-      CDP_UPLOADER_S3_PATH_PREFIX: admin
+      # Must match the impact-assessor's DATA_SYNC_S3_BUCKET/DATA_SYNC_S3_PREFIX
+      # so a dump uploaded here lands where that service resolves manifest keys.
+      CDP_UPLOADER_S3_BUCKET: ${CDP_UPLOADER_BUCKET:-nrf-impact-assessor-files}
+      CDP_UPLOADER_S3_PATH_PREFIX: ${CDP_UPLOADER_S3_PATH_PREFIX:-reference_data_backups}
+      # The impact-assessor is not part of this compose file, so reach it on the
+      # host rather than at localhost, which would resolve to this container.
+      NRF_IMPACT_ASSESSOR_API_URL: ${NRF_IMPACT_ASSESSOR_API_URL:-http://host.docker.internal:8085}
+      DATA_SYNC_TOKEN: ${DATA_SYNC_TOKEN:-local-dev-data-sync-token}
       # Reach floci's S3 API over the compose network (overrides aws.env's
       # localhost endpoint, which would resolve to this container).
       AWS_S3_ENDPOINT: http://floci:4566
@@ -119,7 +129,7 @@ services:
       MOCK_VIRUS_RESULT_DELAY: 3
       SQS_ENDPOINT: http://floci:4566
       S3_ENDPOINT: http://floci:4566
-      CONSUMER_BUCKETS: ${CDP_UPLOADER_BUCKET:-data_backups}
+      CONSUMER_BUCKETS: ${CDP_UPLOADER_BUCKET:-nrf-impact-assessor-files}
       # cdp-uploader defaults these to bare queue names, which the AWS SDK
       # cannot resolve against floci. Point them at full floci queue URLs
       # (account 000000000000 is the LocalStack default).

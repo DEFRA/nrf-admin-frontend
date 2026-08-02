@@ -5,6 +5,9 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     clearMocks: true,
+    // start-server.test.js boots a real hapi server in beforeAll, which can
+    // exceed the 10s default on a cold cache.
+    hookTimeout: 30000,
     setupFiles: ['.vite/setup-files.js'],
     coverage: {
       provider: 'v8',
