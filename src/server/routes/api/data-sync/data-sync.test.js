@@ -148,6 +148,31 @@ describe('POST /api/data-sync - validation and upstream errors', () => {
     expect(res.statusCode).toBe(StatusCodes.CONFLICT)
   })
 
+  it('maps an upstream 422 to 400 and relays its detail', async () => {
+    triggerDataSync.mockResolvedValue({
+      error: 'Unable to trigger data sync',
+      statusCode: StatusCodes.UNPROCESSABLE_ENTITY,
+      detail: 'manifest part keys are not contiguous: expected t.part-ab'
+    })
+    const res = await postDataSync()
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
+    expect(JSON.parse(res.payload)).toEqual({
+      error: 'manifest part keys are not contiguous: expected t.part-ab'
+    })
+  })
+
+  it('falls back to a generic message when a 422 carries no detail', async () => {
+    triggerDataSync.mockResolvedValue({
+      error: 'Unable to trigger data sync',
+      statusCode: StatusCodes.UNPROCESSABLE_ENTITY
+    })
+    const res = await postDataSync()
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
+    expect(JSON.parse(res.payload)).toEqual({
+      error: 'Invalid data sync manifest'
+    })
+  })
+
   it('returns 502 on other upstream failures', async () => {
     triggerDataSync.mockResolvedValue({
       error: 'Unable to trigger data sync',
@@ -284,13 +309,29 @@ describe('POST /api/data-sync/rollback', () => {
     expect(res.statusCode).toBe(StatusCodes.CONFLICT)
   })
 
-  it('maps upstream 400 to 400', async () => {
+  it('maps upstream 400 to 400 with a generic message when it carries no detail', async () => {
     rollbackDataSync.mockResolvedValue({
       error: 'Unable to roll back data sync',
       statusCode: StatusCodes.BAD_REQUEST
     })
     const res = await postRollback()
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
+    expect(JSON.parse(res.payload)).toEqual({
+      error: 'No reference tables to roll back, or an unknown table named'
+    })
+  })
+
+  it('relays the upstream detail on a 400', async () => {
+    rollbackDataSync.mockResolvedValue({
+      error: 'Unable to roll back data sync',
+      statusCode: StatusCodes.BAD_REQUEST,
+      detail: 'not in the data-sync allow-list: made_up_table'
+    })
+    const res = await postRollback({ payload: { tables: ['made_up_table'] } })
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
+    expect(JSON.parse(res.payload)).toEqual({
+      error: 'not in the data-sync allow-list: made_up_table'
+    })
   })
 
   it('returns 502 on other upstream failures', async () => {

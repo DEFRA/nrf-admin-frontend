@@ -72,6 +72,41 @@ describe('impact-assessor service', () => {
         statusCode: 409
       })
     })
+
+    it('surfaces the upstream detail from a 422 validation body', async () => {
+      const err = Object.assign(new Error('unprocessable'), {
+        output: { statusCode: 422 },
+        data: {
+          payload: Buffer.from(
+            JSON.stringify({
+              detail: [
+                { msg: 'Value error, manifest part keys are not contiguous' }
+              ]
+            })
+          )
+        }
+      })
+      Wreck.post.mockRejectedValue(err)
+      expect(await triggerDataSync({ force: false })).toEqual({
+        error: 'Unable to trigger data sync',
+        statusCode: 422,
+        detail: 'Value error, manifest part keys are not contiguous'
+      })
+    })
+
+    it('surfaces a string detail and tolerates an unparseable body', async () => {
+      const withPayload = (payload) =>
+        Object.assign(new Error('bad'), {
+          output: { statusCode: 400 },
+          data: { payload }
+        })
+
+      Wreck.post.mockRejectedValue(withPayload({ detail: 'no such table' }))
+      expect((await triggerDataSync()).detail).toBe('no such table')
+
+      Wreck.post.mockRejectedValue(withPayload(Buffer.from('<html>502</html>')))
+      expect((await triggerDataSync()).detail).toBeUndefined()
+    })
   })
 
   describe('rollbackDataSync', () => {
@@ -113,6 +148,26 @@ describe('impact-assessor service', () => {
       expect(await rollbackDataSync()).toEqual({
         error: 'Unable to roll back data sync',
         statusCode: 409
+      })
+    })
+
+    it('surfaces the upstream detail from a 400', async () => {
+      Wreck.post.mockRejectedValue(
+        Object.assign(new Error('bad request'), {
+          output: { statusCode: 400 },
+          data: {
+            payload: Buffer.from(
+              JSON.stringify({
+                detail: 'not in the data-sync allow-list: made_up_table'
+              })
+            )
+          }
+        })
+      )
+      expect(await rollbackDataSync({ tables: ['made_up_table'] })).toEqual({
+        error: 'Unable to roll back data sync',
+        statusCode: 400,
+        detail: 'not in the data-sync allow-list: made_up_table'
       })
     })
   })

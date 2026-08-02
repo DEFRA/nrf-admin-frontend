@@ -8,6 +8,41 @@ const logger = createLogger()
 
 const API_URL_KEY = 'impactAssessor.apiUrl'
 
+const parseBody = (payload) => {
+  if (!payload) {
+    return undefined
+  }
+  if (typeof payload === 'object' && !Buffer.isBuffer(payload)) {
+    return payload
+  }
+  try {
+    return JSON.parse(payload.toString())
+  } catch {
+    return undefined
+  }
+}
+
+// Wreck hangs the upstream response body off `error.data.payload`. The
+// impact-assessor is FastAPI, which reports failures under `detail`: a string
+// for an explicit HTTPException, or a list of per-field errors when a request
+// model rejects the payload. Either way the text names what was wrong, which a
+// bare status code cannot.
+const upstreamDetail = (error) => {
+  const { detail } = parseBody(error?.data?.payload) ?? {}
+  if (typeof detail === 'string') {
+    return detail
+  }
+  if (Array.isArray(detail)) {
+    return (
+      detail
+        .map((d) => d?.msg)
+        .filter(Boolean)
+        .join('; ') || undefined
+    )
+  }
+  return undefined
+}
+
 const dataSyncHeaders = () => {
   const headers = withTraceId(config.get('tracing.header'))
   const token = config.get('impactAssessor.dataSyncToken')
@@ -21,8 +56,12 @@ export async function triggerDataSync({ force = false, manifest } = {}) {
   const baseUrl = config.get(API_URL_KEY)
   const url = `${baseUrl}/admin/data-sync?force=${force ? 'true' : 'false'}`
 
+  // Each table carries its own version now, so there is no single data version
+  // to log — name the tables the manifest asks for instead.
+  const tableNames = Object.keys(manifest?.tables ?? {}).join(',')
+
   logger.info(
-    `Triggering data sync - url: ${url}, force: ${force}, dataVersion: ${manifest?.data_version}`
+    `Triggering data sync - url: ${url}, force: ${force}, tables: ${tableNames}`
   )
 
   try {
@@ -41,7 +80,11 @@ export async function triggerDataSync({ force = false, manifest } = {}) {
       error,
       `Error triggering data sync - url: ${url}, statusCode: ${statusCode}`
     )
-    return { error: 'Unable to trigger data sync', statusCode }
+    return {
+      error: 'Unable to trigger data sync',
+      statusCode,
+      detail: upstreamDetail(error)
+    }
   }
 }
 
@@ -69,7 +112,11 @@ export async function rollbackDataSync({ tables } = {}) {
       error,
       `Error triggering data sync rollback - url: ${url}, statusCode: ${statusCode}`
     )
-    return { error: 'Unable to roll back data sync', statusCode }
+    return {
+      error: 'Unable to roll back data sync',
+      statusCode,
+      detail: upstreamDetail(error)
+    }
   }
 }
 
