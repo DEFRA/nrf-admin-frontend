@@ -1,24 +1,16 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import Hapi from '@hapi/hapi'
 import { StatusCodes } from 'http-status-codes'
+import { http, HttpResponse } from 'msw'
 
-vi.mock('#/config/config.js', () => ({
-  config: {
-    get: (k) => ({ 'api.bearerToken': 'secret-token' })[k]
-  }
-}))
+// Set before config.js is imported, since convict reads the environment then.
+vi.hoisted(() => {
+  process.env.UPLOAD_API_BEARER_TOKEN = 'secret-token'
+  process.env.DATA_SYNC_TOKEN = 'sync-token'
+})
 
-vi.mock('../../../common/services/impact-assessor.js', () => ({
-  triggerDataSync: vi.fn(),
-  rollbackDataSync: vi.fn(),
-  getDataSyncStatus: vi.fn()
-}))
-
-import {
-  triggerDataSync,
-  rollbackDataSync,
-  getDataSyncStatus
-} from '../../../common/services/impact-assessor.js'
+import { setupMswServer } from '#/test-utils/setup-msw-server.js'
+import { config } from '#/config/config.js'
 import { bearerAuth } from '../../../common/helpers/auth/bearer-auth.js'
 import { apiDataSync } from './index.js'
 
@@ -35,6 +27,40 @@ const MANIFEST = {
   }
 }
 
+const upstream = config.get('impactAssessor.apiUrl')
+const UPSTREAM_TRIGGER = `${upstream}/admin/data-sync`
+const UPSTREAM_ROLLBACK = `${upstream}/admin/data-sync/rollback`
+const UPSTREAM_STATUS = `${upstream}/admin/data-sync/:runId`
+
+const mswServer = setupMswServer()
+
+function stubUpstream(method, url, respond) {
+  const requests = []
+  mswServer.use(
+    http[method](url, async ({ request }) => {
+      const text = await request.text()
+      requests.push({
+        url: new URL(request.url),
+        body: text ? JSON.parse(text) : undefined
+      })
+      return respond()
+    })
+  )
+  return requests
+}
+
+const stubTrigger = (
+  respond = () => HttpResponse.json({ run_id: 'r1', status: 'running' })
+) => stubUpstream('post', UPSTREAM_TRIGGER, respond)
+
+const stubRollback = (
+  respond = () => HttpResponse.json({ rolled_back: {}, skipped: {} })
+) => stubUpstream('post', UPSTREAM_ROLLBACK, respond)
+
+const stubStatus = (
+  respond = () => HttpResponse.json({ run_id: RUN_ID, status: 'complete' })
+) => stubUpstream('get', UPSTREAM_STATUS, respond)
+
 async function buildServer() {
   const server = Hapi.server()
   await server.register([bearerAuth, apiDataSync])
@@ -50,61 +76,81 @@ async function postDataSync({
   return server.inject({ method: 'POST', url, headers, payload })
 }
 
-describe('POST /api/data-sync', () => {
-  beforeEach(() => vi.clearAllMocks())
+async function postRollback({ headers = auth, payload = null } = {}) {
+  const server = await buildServer()
+  return server.inject({
+    method: 'POST',
+    url: ROLLBACK_URL,
+    headers,
+    payload
+  })
+}
 
+async function getStatus({ runId = RUN_ID } = {}) {
+  const server = await buildServer()
+  return server.inject({
+    method: 'GET',
+    url: `/api/data-sync/${runId}`,
+    headers: auth
+  })
+}
+
+describe('POST /api/data-sync', () => {
   it('returns 401 without auth', async () => {
+    const upstreamRequests = stubTrigger()
     const res = await postDataSync({ headers: {} })
     expect(res.statusCode).toBe(StatusCodes.UNAUTHORIZED)
-    expect(triggerDataSync).not.toHaveBeenCalled()
+    expect(upstreamRequests).toHaveLength(0)
   })
 
   it('returns 202 with runId and passes force and manifest through', async () => {
-    triggerDataSync.mockResolvedValue({ runId: 'r1', status: 'running' })
+    const upstreamRequests = stubTrigger()
+
     const res = await postDataSync({ url: `${DATA_SYNC_URL}?force=true` })
+
     expect(res.statusCode).toBe(StatusCodes.ACCEPTED)
     expect(JSON.parse(res.payload)).toEqual({ runId: 'r1', status: 'running' })
-    expect(triggerDataSync).toHaveBeenCalledWith({
-      force: true,
-      manifest: MANIFEST
-    })
+    expect(upstreamRequests).toHaveLength(1)
+    expect(upstreamRequests[0].url.searchParams.get('force')).toBe('true')
+    expect(upstreamRequests[0].body).toEqual(MANIFEST)
   })
 
   it('defaults force to false when omitted', async () => {
-    triggerDataSync.mockResolvedValue({ runId: 'r1', status: 'running' })
+    const upstreamRequests = stubTrigger()
+
     await postDataSync()
-    expect(triggerDataSync).toHaveBeenCalledWith({
-      force: false,
-      manifest: MANIFEST
-    })
+
+    expect(upstreamRequests[0].url.searchParams.get('force')).toBe('false')
+    expect(upstreamRequests[0].body).toEqual(MANIFEST)
   })
 })
 
 describe('POST /api/data-sync - validation and upstream errors', () => {
-  beforeEach(() => vi.clearAllMocks())
-
   it('rejects a missing body', async () => {
+    const upstreamRequests = stubTrigger()
     const res = await postDataSync({ payload: null })
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
-    expect(triggerDataSync).not.toHaveBeenCalled()
+    expect(upstreamRequests).toHaveLength(0)
   })
 
   it('rejects an empty tables map', async () => {
+    const upstreamRequests = stubTrigger()
     const res = await postDataSync({ payload: { tables: {} } })
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
-    expect(triggerDataSync).not.toHaveBeenCalled()
+    expect(upstreamRequests).toHaveLength(0)
   })
 
   it('rejects a table entry missing its version', async () => {
+    const upstreamRequests = stubTrigger()
     const res = await postDataSync({
       payload: { tables: { edp_boundary_layer: { key: '20260521/abc/def' } } }
     })
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
-    expect(triggerDataSync).not.toHaveBeenCalled()
+    expect(upstreamRequests).toHaveLength(0)
   })
 
   it('accepts a split dump given as an ordered list of part keys', async () => {
-    triggerDataSync.mockResolvedValue({ runId: 'r1', status: 'running' })
+    const upstreamRequests = stubTrigger()
     const manifest = {
       tables: {
         lookup_table: {
@@ -113,22 +159,26 @@ describe('POST /api/data-sync - validation and upstream errors', () => {
         }
       }
     }
+
     const res = await postDataSync({ payload: manifest })
+
     expect(res.statusCode).toBe(StatusCodes.ACCEPTED)
-    expect(triggerDataSync).toHaveBeenCalledWith({ force: false, manifest })
+    expect(upstreamRequests[0].body).toEqual(manifest)
   })
 
   it('rejects an empty part-key list', async () => {
+    const upstreamRequests = stubTrigger()
     const res = await postDataSync({
       payload: {
         tables: { lookup_table: { key: [], version: '20260727_090000' } }
       }
     })
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
-    expect(triggerDataSync).not.toHaveBeenCalled()
+    expect(upstreamRequests).toHaveLength(0)
   })
 
   it('rejects the old flat table-name -> key shape', async () => {
+    const upstreamRequests = stubTrigger()
     const res = await postDataSync({
       payload: {
         data_version: 'v1',
@@ -136,25 +186,31 @@ describe('POST /api/data-sync - validation and upstream errors', () => {
       }
     })
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
-    expect(triggerDataSync).not.toHaveBeenCalled()
+    expect(upstreamRequests).toHaveLength(0)
   })
 
   it('maps upstream 409 to 409', async () => {
-    triggerDataSync.mockResolvedValue({
-      error: 'Unable to trigger data sync',
-      statusCode: StatusCodes.CONFLICT
-    })
+    stubTrigger(() => new HttpResponse(null, { status: StatusCodes.CONFLICT }))
     const res = await postDataSync()
     expect(res.statusCode).toBe(StatusCodes.CONFLICT)
   })
 
   it('maps an upstream 422 to 400 and relays its detail', async () => {
-    triggerDataSync.mockResolvedValue({
-      error: 'Unable to trigger data sync',
-      statusCode: StatusCodes.UNPROCESSABLE_ENTITY,
-      detail: 'manifest part keys are not contiguous: expected t.part-ab'
-    })
+    stubTrigger(() =>
+      HttpResponse.json(
+        {
+          detail: [
+            {
+              msg: 'manifest part keys are not contiguous: expected t.part-ab'
+            }
+          ]
+        },
+        { status: StatusCodes.UNPROCESSABLE_ENTITY }
+      )
+    )
+
     const res = await postDataSync()
+
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
     expect(JSON.parse(res.payload)).toEqual({
       error: 'manifest part keys are not contiguous: expected t.part-ab'
@@ -162,11 +218,12 @@ describe('POST /api/data-sync - validation and upstream errors', () => {
   })
 
   it('falls back to a generic message when a 422 carries no detail', async () => {
-    triggerDataSync.mockResolvedValue({
-      error: 'Unable to trigger data sync',
-      statusCode: StatusCodes.UNPROCESSABLE_ENTITY
-    })
+    stubTrigger(
+      () => new HttpResponse(null, { status: StatusCodes.UNPROCESSABLE_ENTITY })
+    )
+
     const res = await postDataSync()
+
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
     expect(JSON.parse(res.payload)).toEqual({
       error: 'Invalid data sync manifest'
@@ -174,52 +231,50 @@ describe('POST /api/data-sync - validation and upstream errors', () => {
   })
 
   it('returns 502 on other upstream failures', async () => {
-    triggerDataSync.mockResolvedValue({
-      error: 'Unable to trigger data sync',
-      statusCode: StatusCodes.INTERNAL_SERVER_ERROR
-    })
+    stubTrigger(
+      () =>
+        new HttpResponse(null, { status: StatusCodes.INTERNAL_SERVER_ERROR })
+    )
+    const res = await postDataSync()
+    expect(res.statusCode).toBe(StatusCodes.BAD_GATEWAY)
+  })
+
+  it('returns 502 when the upstream is unreachable', async () => {
+    stubTrigger(() => HttpResponse.error())
     const res = await postDataSync()
     expect(res.statusCode).toBe(StatusCodes.BAD_GATEWAY)
   })
 })
 
 describe('GET /api/data-sync/{runId}', () => {
-  beforeEach(() => vi.clearAllMocks())
-
   it('returns 200 with the upstream status payload', async () => {
-    getDataSyncStatus.mockResolvedValue({ run_id: RUN_ID, status: 'complete' })
-    const server = await buildServer()
-    const res = await server.inject({
-      method: 'GET',
-      url: `/api/data-sync/${RUN_ID}`,
-      headers: auth
-    })
+    const upstreamRequests = stubStatus()
+
+    const res = await getStatus()
+
     expect(res.statusCode).toBe(StatusCodes.OK)
     expect(JSON.parse(res.payload)).toMatchObject({ status: 'complete' })
+    expect(upstreamRequests[0].url.pathname).toBe(`/admin/data-sync/${RUN_ID}`)
   })
 
   it('returns 400 for a non-uuid runId', async () => {
-    const server = await buildServer()
-    const res = await server.inject({
-      method: 'GET',
-      url: '/api/data-sync/not-a-uuid',
-      headers: auth
-    })
+    const upstreamRequests = stubStatus()
+    const res = await getStatus({ runId: 'not-a-uuid' })
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
+    expect(upstreamRequests).toHaveLength(0)
   })
 
   it('relays a failed run payload with its error field as 200', async () => {
-    getDataSyncStatus.mockResolvedValue({
-      run_id: RUN_ID,
-      status: 'failed',
-      error: 'reference data dump not found'
-    })
-    const server = await buildServer()
-    const res = await server.inject({
-      method: 'GET',
-      url: `/api/data-sync/${RUN_ID}`,
-      headers: auth
-    })
+    stubStatus(() =>
+      HttpResponse.json({
+        run_id: RUN_ID,
+        status: 'failed',
+        error: 'reference data dump not found'
+      })
+    )
+
+    const res = await getStatus()
+
     expect(res.statusCode).toBe(StatusCodes.OK)
     expect(JSON.parse(res.payload)).toMatchObject({
       status: 'failed',
@@ -228,93 +283,83 @@ describe('GET /api/data-sync/{runId}', () => {
   })
 
   it('maps upstream 404 to 404', async () => {
-    getDataSyncStatus.mockResolvedValue({
-      serviceError: 'Unable to fetch data sync status',
-      statusCode: StatusCodes.NOT_FOUND
-    })
-    const server = await buildServer()
-    const res = await server.inject({
-      method: 'GET',
-      url: `/api/data-sync/${RUN_ID}`,
-      headers: auth
-    })
+    stubStatus(() => new HttpResponse(null, { status: StatusCodes.NOT_FOUND }))
+    const res = await getStatus()
     expect(res.statusCode).toBe(StatusCodes.NOT_FOUND)
   })
 })
 
 describe('POST /api/data-sync/rollback', () => {
-  beforeEach(() => vi.clearAllMocks())
-
-  async function postRollback({ headers = auth, payload = null } = {}) {
-    const server = await buildServer()
-    return server.inject({
-      method: 'POST',
-      url: ROLLBACK_URL,
-      headers,
-      payload
-    })
-  }
-
   it('returns 401 without auth', async () => {
+    const upstreamRequests = stubRollback()
     const res = await postRollback({ headers: {} })
     expect(res.statusCode).toBe(StatusCodes.UNAUTHORIZED)
-    expect(rollbackDataSync).not.toHaveBeenCalled()
+    expect(upstreamRequests).toHaveLength(0)
   })
 
   it('rolls back the last load when no body is sent', async () => {
-    rollbackDataSync.mockResolvedValue({
-      rolledBack: { edp_boundary_layer: { from: 3, to: 2 } },
-      skipped: {}
-    })
+    const upstreamRequests = stubRollback(() =>
+      HttpResponse.json({
+        rolled_back: { edp_boundary_layer: { from: 3, to: 2 } },
+        skipped: {}
+      })
+    )
+
     const res = await postRollback()
+
     expect(res.statusCode).toBe(StatusCodes.OK)
     expect(JSON.parse(res.payload)).toEqual({
       rolledBack: { edp_boundary_layer: { from: 3, to: 2 } },
       skipped: {}
     })
-    expect(rollbackDataSync).toHaveBeenCalledWith({ tables: undefined })
+    expect(upstreamRequests[0].body).toEqual({})
   })
 
   it('passes an explicit table list through', async () => {
-    rollbackDataSync.mockResolvedValue({ rolledBack: {}, skipped: {} })
+    const upstreamRequests = stubRollback()
+
     await postRollback({ payload: { tables: ['edp_boundary_layer'] } })
-    expect(rollbackDataSync).toHaveBeenCalledWith({
+
+    expect(upstreamRequests[0].body).toEqual({
       tables: ['edp_boundary_layer']
     })
   })
 
   it('relays skipped tables alongside rolled-back ones', async () => {
-    rollbackDataSync.mockResolvedValue({
-      rolledBack: { edp_boundary_layer: { from: 3, to: 2 } },
-      skipped: { edp_excluded_areas: 'no prior version to roll back to' }
-    })
+    stubRollback(() =>
+      HttpResponse.json({
+        rolled_back: { edp_boundary_layer: { from: 3, to: 2 } },
+        skipped: { edp_excluded_areas: 'no prior version to roll back to' }
+      })
+    )
+
     const res = await postRollback()
+
     expect(JSON.parse(res.payload)).toMatchObject({
       skipped: { edp_excluded_areas: 'no prior version to roll back to' }
     })
   })
 
   it('rejects an empty table list', async () => {
+    const upstreamRequests = stubRollback()
     const res = await postRollback({ payload: { tables: [] } })
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
-    expect(rollbackDataSync).not.toHaveBeenCalled()
+    expect(upstreamRequests).toHaveLength(0)
   })
 
   it('maps upstream 409 to 409', async () => {
-    rollbackDataSync.mockResolvedValue({
-      error: 'Unable to roll back data sync',
-      statusCode: StatusCodes.CONFLICT
-    })
+    stubRollback(() => new HttpResponse(null, { status: StatusCodes.CONFLICT }))
     const res = await postRollback()
     expect(res.statusCode).toBe(StatusCodes.CONFLICT)
   })
 
   it('maps upstream 400 to 400 with a generic message when it carries no detail', async () => {
-    rollbackDataSync.mockResolvedValue({
-      error: 'Unable to roll back data sync',
-      statusCode: StatusCodes.BAD_REQUEST
-    })
+    stubRollback(
+      () => new HttpResponse(null, { status: StatusCodes.BAD_REQUEST })
+    )
+
     const res = await postRollback()
+
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
     expect(JSON.parse(res.payload)).toEqual({
       error: 'No reference tables to roll back, or an unknown table named'
@@ -322,12 +367,15 @@ describe('POST /api/data-sync/rollback', () => {
   })
 
   it('relays the upstream detail on a 400', async () => {
-    rollbackDataSync.mockResolvedValue({
-      error: 'Unable to roll back data sync',
-      statusCode: StatusCodes.BAD_REQUEST,
-      detail: 'not in the data-sync allow-list: made_up_table'
-    })
+    stubRollback(() =>
+      HttpResponse.json(
+        { detail: 'not in the data-sync allow-list: made_up_table' },
+        { status: StatusCodes.BAD_REQUEST }
+      )
+    )
+
     const res = await postRollback({ payload: { tables: ['made_up_table'] } })
+
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
     expect(JSON.parse(res.payload)).toEqual({
       error: 'not in the data-sync allow-list: made_up_table'
@@ -335,10 +383,10 @@ describe('POST /api/data-sync/rollback', () => {
   })
 
   it('returns 502 on other upstream failures', async () => {
-    rollbackDataSync.mockResolvedValue({
-      error: 'Unable to roll back data sync',
-      statusCode: StatusCodes.INTERNAL_SERVER_ERROR
-    })
+    stubRollback(
+      () =>
+        new HttpResponse(null, { status: StatusCodes.INTERNAL_SERVER_ERROR })
+    )
     const res = await postRollback()
     expect(res.statusCode).toBe(StatusCodes.BAD_GATEWAY)
   })

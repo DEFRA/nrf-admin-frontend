@@ -22,11 +22,8 @@ const parseBody = (payload) => {
   }
 }
 
-// Wreck hangs the upstream response body off `error.data.payload`. The
-// impact-assessor is FastAPI, which reports failures under `detail`: a string
-// for an explicit HTTPException, or a list of per-field errors when a request
-// model rejects the payload. Either way the text names what was wrong, which a
-// bare status code cannot.
+// Wreck hangs the upstream body off `error.data.payload`. FastAPI reports
+// failures under `detail`: a string, or a list of per-field errors.
 const upstreamDetail = (error) => {
   const { detail } = parseBody(error?.data?.payload) ?? {}
   if (typeof detail === 'string') {
@@ -56,8 +53,6 @@ export async function triggerDataSync({ force = false, manifest } = {}) {
   const baseUrl = config.get(API_URL_KEY)
   const url = `${baseUrl}/admin/data-sync?force=${force ? 'true' : 'false'}`
 
-  // Each table carries its own version now, so there is no single data version
-  // to log — name the tables the manifest asks for instead.
   const tableNames = Object.keys(manifest?.tables ?? {}).join(',')
 
   logger.info(
@@ -138,8 +133,8 @@ export async function getDataSyncStatus(runId) {
       error,
       `Error fetching data sync status - url: ${url}, runId: ${runId}, statusCode: ${statusCode}`
     )
-    // A failed run's payload legitimately carries an `error` field, so signal
-    // transport/upstream failures under a distinct key.
+    // A failed run's payload carries its own `error` field, so signal
+    // transport failures under a distinct key.
     return { serviceError: 'Unable to fetch data sync status', statusCode }
   }
 }

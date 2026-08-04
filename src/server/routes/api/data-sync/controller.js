@@ -20,10 +20,8 @@ export const triggerHandler = async (request, h) => {
         .response({ error: 'A data sync run is already in progress' })
         .code(StatusCodes.CONFLICT)
     }
-    // Upstream 422 = the manifest cleared our schema but failed a check the
-    // impact-assessor owns — part-key contiguity, most often. That is the
-    // caller's payload at fault, not a dead upstream, so answer 400 and relay
-    // the detail, which names the offending part.
+    // Upstream 422 = the caller's manifest is at fault, not a dead upstream,
+    // so answer 400 and relay the detail naming what was wrong.
     if (result.statusCode === StatusCodes.UNPROCESSABLE_ENTITY) {
       return h
         .response({ error: result.detail ?? 'Invalid data sync manifest' })
@@ -34,7 +32,6 @@ export const triggerHandler = async (request, h) => {
       .code(StatusCodes.BAD_GATEWAY)
   }
 
-  // Upstream accepts and runs the reload in the background (202).
   return h
     .response({ runId: result.runId, status: result.status })
     .code(StatusCodes.ACCEPTED)
@@ -51,8 +48,8 @@ export const rollbackHandler = async (request, h) => {
         .response({ error: 'A data sync run is currently in progress' })
         .code(StatusCodes.CONFLICT)
     }
-    // Upstream 400 = nothing to roll back, or a table outside its allow-list.
-    // Its detail distinguishes the two and names the offending tables.
+    // Upstream 400 = nothing to roll back, or a table outside its allow-list;
+    // the detail distinguishes the two.
     if (result.statusCode === StatusCodes.BAD_REQUEST) {
       return h
         .response({
