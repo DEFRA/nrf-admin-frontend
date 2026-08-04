@@ -4,6 +4,10 @@ import authBearer from 'hapi-auth-bearer-token'
 
 import { config } from '#/config/config.js'
 
+// Name of the auth strategy registered below; import this rather than
+// repeating the literal at each `options.auth`.
+export const API_BEARER_STRATEGY = 'api-bearer'
+
 function safeEqual(a, b) {
   const ab = Buffer.from(String(a))
   const bb = Buffer.from(String(b))
@@ -16,7 +20,7 @@ export const bearerAuth = {
     name: 'bearer-auth',
     async register(server) {
       await server.register(authBearer)
-      server.auth.strategy('api-bearer', 'bearer-access-token', {
+      server.auth.strategy(API_BEARER_STRATEGY, 'bearer-access-token', {
         allowQueryToken: false,
         allowMultipleHeaders: false,
         validate: async (_request, token) => {

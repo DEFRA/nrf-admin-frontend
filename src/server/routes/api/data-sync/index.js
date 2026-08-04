@@ -1,9 +1,11 @@
 import {
   triggerQuerySchema,
   triggerBodySchema,
+  rollbackBodySchema,
   runIdParamSchema
 } from './schemas.js'
-import { triggerHandler, statusHandler } from './controller.js'
+import { triggerHandler, rollbackHandler, statusHandler } from './controller.js'
+import { API_BEARER_STRATEGY } from '../../../common/helpers/auth/bearer-auth.js'
 
 export const apiDataSync = {
   plugin: {
@@ -14,16 +16,25 @@ export const apiDataSync = {
           method: 'POST',
           path: '/api/data-sync',
           options: {
-            auth: 'api-bearer',
+            auth: API_BEARER_STRATEGY,
             validate: { query: triggerQuerySchema, payload: triggerBodySchema }
           },
           handler: triggerHandler
         },
         {
+          method: 'POST',
+          path: '/api/data-sync/rollback',
+          options: {
+            auth: API_BEARER_STRATEGY,
+            validate: { payload: rollbackBodySchema }
+          },
+          handler: rollbackHandler
+        },
+        {
           method: 'GET',
           path: '/api/data-sync/{runId}',
           options: {
-            auth: 'api-bearer',
+            auth: API_BEARER_STRATEGY,
             validate: { params: runIdParamSchema }
           },
           handler: statusHandler

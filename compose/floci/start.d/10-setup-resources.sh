@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # S3 buckets
-aws s3 mb s3://data_backups
+aws s3 mb s3://nrf-impact-assessor-files
 # cdp-uploader stages incoming files here (config default S3_CDP_QUARANTINE_BUCKET)
 # before the virus scan; without it uploads fail with NoSuchBucket and stay "initiated".
 aws s3 mb s3://cdp-uploader-quarantine
