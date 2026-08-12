@@ -11,7 +11,10 @@ export const singleQuoteFixture = [
     },
     email: {
       address: 'developer@housebuilder.com',
-      sendRequestAt: null
+      sendRequestAt: null,
+      status: 'delivered',
+      notifyStatusUrl:
+        'https://www.notifications.service.gov.uk/services/a76741a1-42be-4231-ae74-15ec14b81a11/notification/47cbb989-9546-418c-8828-232c3dc57537'
     },
     edps: [
       {
@@ -52,7 +55,9 @@ export const multipleQuotesFixture = [
     },
     email: {
       address: 'another@developer.com',
-      sendRequestAt: '2026-04-01T10:05:00.000Z'
+      sendRequestAt: '2026-04-01T10:05:00.000Z',
+      status: 'sending',
+      notifyStatusUrl: null
     },
     edps: []
   },

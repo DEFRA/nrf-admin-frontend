@@ -4,6 +4,7 @@
 {% from "govuk/components/details/macro.njk" import govukDetails %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
 
 {% block content %}
   {{ appHeading({
@@ -69,6 +70,13 @@
         {{ quote.boundary.userInputType }}
         {% endif %}
       {% endset %}
+      {% set emailStatusHtml %}
+        {% if quote.email.notifyStatusUrl %}
+          <a class="govuk-link" href="{{ quote.email.notifyStatusUrl }}">{{ govukTag({ text: quote.email.statusTag.text, classes: quote.email.statusTag.classes }) }}</a>
+        {% else %}
+          {{ govukTag({ text: quote.email.statusTag.text, classes: quote.email.statusTag.classes }) }}
+        {% endif %}
+      {% endset %}
       {% set tableRows = (tableRows.push([
         { text: quote.reference },
         { text: quote.planningType },
@@ -77,6 +85,7 @@
         { text: quote.housingUnits },
         { text: quote.createdAt | govukDate },
         { text: quote.email.sendRequestAt | govukDate },
+        { html: emailStatusHtml },
         { text: "Yes" if quote.disableAnalyticsAudit else "No" },
         { html: edpHtml }
       ]), tableRows) %}
@@ -94,6 +103,7 @@
         { text: "Housing units" },
         { text: "Date submitted" },
         { text: "Email send request date" },
+        { text: "Email status" },
         { text: "Analytics disabled" },
         { text: "EDP results" }
       ],

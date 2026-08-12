@@ -120,6 +120,40 @@ describe('Home page', () => {
     expect(table).toHaveTextContent('23 March 2026')
   })
 
+  it('renders an email delivery status tag linking to the Notify status page', async () => {
+    mswServer.use(
+      http.get(quotesEndpoint, () => HttpResponse.json(singleQuoteFixture))
+    )
+
+    const document = await loadHomePage()
+
+    const table = getByRole(document, 'table')
+    expect(table).toHaveTextContent('Delivered')
+    const statusLink = table.querySelector(
+      'a[href*="notifications.service.gov.uk"]'
+    )
+    expect(statusLink).toBeInTheDocument()
+    expect(statusLink.getAttribute('href')).toBe(
+      singleQuoteFixture[0].email.notifyStatusUrl
+    )
+    expect(statusLink.querySelector('.govuk-tag')).not.toBeNull()
+  })
+
+  it('renders a status tag without a link when no Notify status URL is present', async () => {
+    mswServer.use(
+      http.get(quotesEndpoint, () => HttpResponse.json(multipleQuotesFixture))
+    )
+
+    const document = await loadHomePage()
+
+    const table = getByRole(document, 'table')
+    expect(table).toHaveTextContent('Sending')
+    // only the delivered quote carries a Notify link
+    expect(
+      table.querySelectorAll('a[href*="notifications.service.gov.uk"]')
+    ).toHaveLength(1)
+  })
+
   it('renders error message when backend call fails', async () => {
     mswServer.use(
       http.get(quotesEndpoint, () => new HttpResponse(null, { status: 500 }))
