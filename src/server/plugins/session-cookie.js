@@ -5,10 +5,6 @@ import { saveUserSession } from '#/server/common/helpers/save-user-session.js'
 const sessionCookieConfig = config.get('session.cookie')
 const disableAuth = config.get('disableAuth')
 
-if (disableAuth && config.get('isProduction')) {
-  throw new Error('DISABLE_AUTH must not be set in production')
-}
-
 const oneDayMs = 24 * 60 * 60 * 1000
 
 const bypassSession = {
