@@ -1,7 +1,7 @@
 export const singleQuoteFixture = [
   {
     id: 1,
-    reference: 'NRF-000001',
+    reference: 'NRL-000001',
     createdAt: '2026-03-23T00:00:00.000Z',
     housingUnits: 10,
     boundary: {
@@ -45,7 +45,7 @@ export const singleQuoteFixture = [
 export const multipleQuotesFixture = [
   {
     id: 2,
-    reference: 'NRF-000002',
+    reference: 'NRL-000002',
     createdAt: '2026-04-01T10:00:00.000Z',
     housingUnits: 5,
     boundary: {

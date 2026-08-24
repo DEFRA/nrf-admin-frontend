@@ -65,7 +65,7 @@ describe('Home page', () => {
     const document = await loadHomePage()
 
     const table = getByRole(document, 'table')
-    expect(table).toHaveTextContent('NRF-000001')
+    expect(table).toHaveTextContent('NRL-000001')
     expect(table).toHaveTextContent('developer@housebuilder.com')
     expect(table).toHaveTextContent('Norfolk Fens East')
   })

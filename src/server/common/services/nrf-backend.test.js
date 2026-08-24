@@ -26,7 +26,7 @@ vi.mock('../helpers/logging/logger.js', () => ({
 
 describe('getRequestFromBackend', () => {
   it('calls the correct URL and returns the response', async () => {
-    const mockResponse = { payload: [{ reference: 'NRF-000001' }] }
+    const mockResponse = { payload: [{ reference: 'NRL-000001' }] }
     vi.mocked(Wreck.get).mockResolvedValue(mockResponse)
 
     const result = await getRequestFromBackend({ endpointPath: '/quotes' })
