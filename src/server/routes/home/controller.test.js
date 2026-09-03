@@ -164,4 +164,29 @@ describe('Home page', () => {
     expect(document.body).toHaveTextContent('There is a problem')
     expect(queryByRole(document, 'table')).not.toBeInTheDocument()
   })
+
+  it('renders the levy amount, with the inflation adjusted amount, in EDP details', async () => {
+    mswServer.use(
+      http.get(quotesEndpoint, () => HttpResponse.json(singleQuoteFixture))
+    )
+
+    const document = await loadHomePage()
+
+    const table = getByRole(document, 'table')
+    expect(table).toHaveTextContent('Levy: £999.00')
+    expect(table).toHaveTextContent('(inflation adjusted: £999.00)')
+  })
+
+  it('links each quote reference to its quote page', async () => {
+    mswServer.use(
+      http.get(quotesEndpoint, () => HttpResponse.json(multipleQuotesFixture))
+    )
+
+    const document = await loadHomePage()
+
+    const table = getByRole(document, 'table')
+    const quoteLink = table.querySelector('a[href="/quote/NRL-000001"]')
+    expect(quoteLink).toBeInTheDocument()
+    expect(quoteLink).toHaveTextContent('NRL-000001')
+  })
 })

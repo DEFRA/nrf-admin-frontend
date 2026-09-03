@@ -1,6 +1,7 @@
 import inert from '@hapi/inert'
 
 import { home } from '../routes/home/index.js'
+import { quote } from '../routes/quote/index.js'
 import { about } from '../routes/about/index.js'
 import { apiUploads } from '../routes/api/uploads/index.js'
 import { apiDataSync } from '../routes/api/data-sync/index.js'
@@ -19,7 +20,7 @@ export const router = {
       await server.register([health])
 
       // Application specific routes, add your own routes here
-      await server.register([home, about, apiUploads, apiDataSync, auth])
+      await server.register([home, quote, about, apiUploads, apiDataSync, auth])
 
       // Static assets
       if (!config.get('isProduction') && !config.get('isTest')) {

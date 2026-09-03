@@ -1,0 +1,114 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+
+{% block beforeContent %}
+  {# beforeContent sits outside <main>, so the link needs its own landmark —
+     see frontend's back-link component for the same pattern #}
+  <nav>
+    {{ govukBackLink({
+      text: "Back to quotes",
+      href: "/"
+    }) }}
+  </nav>
+{% endblock %}
+
+{% block content %}
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+      {% if errorMessage %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [{ text: errorMessage }]
+        }) }}
+      {% else %}
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: { text: "Reference" },
+              value: { text: quote.reference }
+            },
+            {
+              key: { text: "Planning application type" },
+              value: { text: quote.planningType }
+            } if quote.planningType,
+            {
+              key: { text: "Number of units" },
+              value: { text: quote.housingUnits }
+            } if quote.housingUnits,
+            {
+              key: { text: "Email address" },
+              value: { text: quote.email.address }
+            } if quote.email.address,
+            {
+              key: { text: "Total rounded levy amount" },
+              value: { text: quote.levyGbp.levyAmountExcludingVat | formatCurrency }
+            } if quote.levyGbp,
+            {
+              key: { text: "Total inflation adjusted levy amount" },
+              value: { text: quote.levyGbp.levyAmountInflationAdjusted | formatCurrency }
+            } if quote.levyGbp and quote.levyGbp.levyAmountInflationAdjusted
+          ]
+        }) }}
+
+        {% if quote.edps and quote.edps.length %}
+          <h2 class="govuk-heading-m">Levy breakdown by EDP</h2>
+
+          {% for edp in quote.edps %}
+            {% if edp.levyGbp %}
+              {% set edpLevyHtml %}
+                <h3 class="govuk-heading-s">Levy calculation</h3>
+                {{ govukSummaryList({
+                  rows: [
+                    {
+                      key: { text: "Number of units used in the calculation" },
+                      value: { text: edp.levyGbp.units }
+                    } if edp.levyGbp.units,
+                    {
+                      key: { text: "Base charge price per unit" },
+                      value: { text: edp.levyGbp.baseChargePerUnit | formatCurrencyPrecise }
+                    } if edp.levyGbp.baseChargePerUnit,
+                    {
+                      key: { text: "Rounded base charge price per unit" },
+                      value: { text: edp.levyGbp.roundedBaseChargePerUnit | formatCurrency }
+                    } if edp.levyGbp.roundedBaseChargePerUnit,
+                    {
+                      key: { text: "Provisional nature restoration levy amount" },
+                      value: { text: edp.levyGbp.baseAmount | formatCurrency }
+                    } if edp.levyGbp.baseAmount,
+                    {
+                      key: { text: "Inflation rate" },
+                      value: { text: (edp.levyGbp.inflationRate * 100) | round(2) ~ '%' }
+                    } if edp.levyGbp.inflationRate,
+                    {
+                      key: { text: "Inflation adjusted amount" },
+                      value: { text: edp.levyGbp.amountInflationAdjusted | formatCurrency }
+                    } if edp.levyGbp.amountInflationAdjusted
+                  ]
+                }) }}
+                {% if edp.levyGbp.baseChargePerUnit %}
+                  <h4 class="govuk-heading-s">Calculation steps</h4>
+                  <ol class="govuk-list govuk-list--number">
+                    <li>Round base charge price per unit: {{ edp.levyGbp.baseChargePerUnit | formatCurrencyPrecise }} → {{ edp.levyGbp.roundedBaseChargePerUnit | formatCurrency }}</li>
+                    <li>Calculate provisional levy amount: {{ edp.levyGbp.units }} × {{ edp.levyGbp.roundedBaseChargePerUnit | formatCurrency }} = {{ edp.levyGbp.baseAmount | formatCurrency }}</li>
+                  </ol>
+                  <p class="govuk-body govuk-!-font-weight-bold">Provisional nature restoration levy amount: {{ edp.levyGbp.baseAmount | formatCurrency }}</p>
+                {% endif %}
+              {% endset %}
+              {{ govukDetails({
+                summaryText: edp.edpName,
+                html: edpLevyHtml
+              }) }}
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

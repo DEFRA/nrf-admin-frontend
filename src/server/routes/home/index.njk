@@ -45,7 +45,7 @@
             {% set edpDetailsHtml %}
               <ul class="govuk-list govuk-list--bullet">
                 <li>Type: {{ edp.edpType }}</li>
-                <li>Levy: {{ edp.levyGbp.min | formatCurrency }}–{{ edp.levyGbp.max | formatCurrency }}</li>
+                <li>Levy: {{ edp.levyGbp.amountExcludingVat | formatCurrency }}{% if edp.levyGbp.amountInflationAdjusted %} (inflation adjusted: {{ edp.levyGbp.amountInflationAdjusted | formatCurrency }}){% endif %}</li>
                 {% if edp.impact.nitrogenTotal %}
                   <li>Nitrogen: {{ edp.impact.nitrogenTotal.band.min }}–{{ edp.impact.nitrogenTotal.band.max }} / {{ edp.impact.nitrogenTotal.amount }} {{ edp.impact.nitrogenTotal.unit }}</li>
                 {% endif %}
@@ -77,8 +77,11 @@
           {{ govukTag({ text: quote.email.statusTag.text, classes: quote.email.statusTag.classes }) }}
         {% endif %}
       {% endset %}
+      {% set referenceHtml %}
+        <a class="govuk-link" href="/quote/{{ quote.reference }}">{{ quote.reference }}</a>
+      {% endset %}
       {% set tableRows = (tableRows.push([
-        { text: quote.reference },
+        { html: referenceHtml },
         { text: quote.planningType },
         { html: boundaryHtml },
         { text: quote.email.address },
