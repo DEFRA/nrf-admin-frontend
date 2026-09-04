@@ -2,20 +2,17 @@ import { formatCurrencyPrecise } from './format-currency-precise.js'
 
 describe('#formatCurrencyPrecise', () => {
   describe('With defaults', () => {
-    it('should keep up to four decimal places for unrounded values', () => {
-      expect(formatCurrencyPrecise('2193.6649')).toBe('£2,193.6649')
-    })
-
-    it('should pad values with fewer than two decimal places', () => {
-      expect(formatCurrencyPrecise('2193.6')).toBe('£2,193.60')
-    })
-
-    it('should leave already rounded values unchanged', () => {
-      expect(formatCurrencyPrecise('2193.66')).toBe('£2,193.66')
-    })
-
-    it('should format whole numbers to two decimal places', () => {
-      expect(formatCurrencyPrecise(999)).toBe('£999.00')
+    it.each([
+      [
+        'keeps up to four decimal places for unrounded values',
+        '2193.6649',
+        '£2,193.6649'
+      ],
+      ['pads values with fewer than two decimal places', '2193.6', '£2,193.60'],
+      ['leaves already rounded values unchanged', '2193.66', '£2,193.66'],
+      ['formats whole numbers to two decimal places', 999, '£999.00']
+    ])('should %s', (_, value, expected) => {
+      expect(formatCurrencyPrecise(value)).toBe(expected)
     })
   })
 

@@ -28,10 +28,13 @@ describe('Quote page', () => {
       auth: authenticatedRequest
     })
 
-  it('renders the page title and heading', async () => {
-    stubQuotesResponse(singleQuoteFixture)
+  const loadQuotePageWithQuotes = async (quotes, reference) => {
+    stubQuotesResponse(quotes)
+    return loadQuotePage(reference)
+  }
 
-    const document = await loadQuotePage()
+  it('renders the page title and heading', async () => {
+    const document = await loadQuotePageWithQuotes(singleQuoteFixture)
 
     expect(document.title).toContain('Quote NRL-000001')
     expect(getByRole(document, 'heading', { level: 1 })).toHaveTextContent(
@@ -40,9 +43,7 @@ describe('Quote page', () => {
   })
 
   it('renders a back link to the quotes list', async () => {
-    stubQuotesResponse(singleQuoteFixture)
-
-    const document = await loadQuotePage()
+    const document = await loadQuotePageWithQuotes(singleQuoteFixture)
 
     expect(
       getByRole(document, 'link', { name: 'Back to quotes' })
@@ -50,9 +51,7 @@ describe('Quote page', () => {
   })
 
   it('renders the quote summary with the total levy amounts in pounds sterling', async () => {
-    stubQuotesResponse(singleQuoteFixture)
-
-    const document = await loadQuotePage()
+    const document = await loadQuotePageWithQuotes(singleQuoteFixture)
 
     expect(document.body).toHaveTextContent('Reference')
     expect(document.body).toHaveTextContent('NRL-000001')
@@ -67,9 +66,7 @@ describe('Quote page', () => {
   })
 
   it('renders the provisional levy amount for each EDP', async () => {
-    stubQuotesResponse(singleQuoteFixture)
-
-    const document = await loadQuotePage()
+    const document = await loadQuotePageWithQuotes(singleQuoteFixture)
 
     expect(document.body).toHaveTextContent('Levy breakdown by EDP')
     expect(document.body).toHaveTextContent('Norfolk Fens East')
@@ -81,9 +78,7 @@ describe('Quote page', () => {
   })
 
   it('omits breakdown rows the backend does not yet supply', async () => {
-    stubQuotesResponse(singleQuoteFixture)
-
-    const document = await loadQuotePage()
+    const document = await loadQuotePageWithQuotes(singleQuoteFixture)
 
     expect(
       queryByText(document, 'Base charge price per unit')
@@ -96,9 +91,9 @@ describe('Quote page', () => {
   })
 
   it('renders the full calculation breakdown when breakdown fields are present', async () => {
-    stubQuotesResponse([quoteWithLevyBreakdownFixture])
-
-    const document = await loadQuotePage()
+    const document = await loadQuotePageWithQuotes([
+      quoteWithLevyBreakdownFixture
+    ])
 
     expect(document.body).toHaveTextContent(
       'Number of units used in the calculation'
@@ -139,7 +134,11 @@ describe('Quote page', () => {
 
   it('renders an error message when the backend call fails', async () => {
     mswServer.use(
-      http.get(quotesEndpoint, () => new HttpResponse(null, { status: 500 }))
+      http.get(
+        quotesEndpoint,
+        () =>
+          new HttpResponse(null, { status: statusCodes.internalServerError })
+      )
     )
 
     const document = await loadQuotePage()
