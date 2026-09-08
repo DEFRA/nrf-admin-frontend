@@ -1,0 +1,71 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% block beforeContent %}
+  <nav>
+    {{ govukBackLink({
+      text: "Back to quotes",
+      href: "/"
+    }) }}
+  </nav>
+{% endblock %}
+
+{% block content %}
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      {{ govukWarningText({
+        text: "Deleting these quotes is permanent and cannot be undone.",
+        iconFallbackText: "Warning"
+      }) }}
+
+      {% set tableRows = [] %}
+      {% for quote in quotes %}
+        {% set tableRows = (tableRows.push([
+          { text: quote.reference },
+          { text: quote.email.address },
+          { text: quote.createdAt | govukDate }
+        ]), tableRows) %}
+      {% endfor %}
+
+      {{ govukTable({
+        caption: quotes.length + " selected quote" + ("s" if quotes.length != 1 else ""),
+        captionClasses: "govuk-table__caption--s",
+        head: [
+          { text: "Reference" },
+          { text: "Email address" },
+          { text: "Date submitted" }
+        ],
+        rows: tableRows
+      }) }}
+
+      <p class="govuk-body">For each quote, the following will be permanently deleted:</p>
+      <ul class="govuk-list govuk-list--bullet">
+        <li>the quote and its red line boundary</li>
+        <li>the levy (EDP) results for the quote</li>
+        <li>any quote link access tokens</li>
+        <li>email notification records for the quote</li>
+      </ul>
+
+      <form method="post" action="/quotes/delete">
+        {% for quote in quotes %}
+          <input type="hidden" name="references" value="{{ quote.reference }}">
+        {% endfor %}
+        {{ govukButton({
+          text: "Yes, delete " + quotes.length + " quote" + ("s" if quotes.length != 1 else ""),
+          classes: "govuk-button--warning"
+        }) }}
+      </form>
+
+      <p class="govuk-body">
+        <a class="govuk-link" href="/">Cancel and return to the quotes</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}

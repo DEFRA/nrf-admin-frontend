@@ -5,7 +5,8 @@ import { setupMswServer } from '#/test-utils/setup-msw-server.js'
 import { loadPage, authenticatedRequest } from '#/test-utils/load-page.js'
 import {
   singleQuoteFixture,
-  multipleQuotesFixture
+  multipleQuotesFixture,
+  ineligibleQuoteFixture
 } from '#/test-utils/fixtures/quotes.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { config } from '#/config/config.js'
@@ -17,6 +18,8 @@ const mswServer = setupMswServer()
 
 const stubQuotesResponse = (quotes) =>
   mswServer.use(http.get(quotesEndpoint, () => HttpResponse.json(quotes)))
+
+const problemBannerTitle = 'There is a problem'
 
 describe('Home page', () => {
   const getServer = setupTestServer()
@@ -135,7 +138,7 @@ describe('Home page', () => {
 
     const document = await loadHomePage()
 
-    expect(document.body).toHaveTextContent('There is a problem')
+    expect(document.body).toHaveTextContent(problemBannerTitle)
     expect(queryByRole(document, 'table')).not.toBeInTheDocument()
   })
 
@@ -154,43 +157,118 @@ describe('Home page', () => {
     expect(quoteLink).toHaveTextContent('NRL-000001')
   })
 
-  it('renders a success banner after a quote is deleted', async () => {
+  it.each([
+    {
+      description: 'a success banner after a quote is deleted',
+      url: '/?notification=quote-deleted&reference=NRL-000001',
+      expectedText: ['Success', 'Quote NRL-000001 was deleted.']
+    },
+    {
+      description: 'an error banner when a quote delete fails',
+      url: '/?notification=quote-delete-error',
+      expectedText: [problemBannerTitle, 'Failed to delete the quote']
+    },
+    {
+      description:
+        'a banner explaining when a quote is not eligible for deletion',
+      url: '/?notification=quote-delete-not-eligible',
+      expectedText: [
+        'This quote cannot be deleted because it was not created with an approved internal email address.'
+      ]
+    },
+    {
+      description: 'a success banner after quotes are bulk deleted',
+      url: '/?notification=quotes-deleted&deletedCount=2',
+      expectedText: ['Success', '2 quotes were deleted.']
+    },
+    {
+      description:
+        'a partial failure banner when only some quotes were deleted',
+      url: '/?notification=quotes-delete-partial&deletedCount=1&totalCount=2',
+      expectedText: [problemBannerTitle, '1 of 2 selected quotes were deleted']
+    },
+    {
+      description: 'a failure banner when no quotes could be deleted',
+      url: '/?notification=quotes-delete-failed',
+      expectedText: [problemBannerTitle, 'No quotes were deleted']
+    },
+    {
+      description: 'a banner when no bulk-deleted quote was eligible',
+      url: '/?notification=quotes-delete-not-eligible',
+      expectedText: [
+        'No quotes were deleted because they were not created with an approved internal email address.'
+      ]
+    },
+    {
+      description: 'a banner prompting a selection when no quote was ticked',
+      url: '/?notification=quotes-bulk-none-selected',
+      expectedText: ['Select at least one quote to delete.']
+    }
+  ])('renders $description', async ({ url, expectedText }) => {
     stubQuotesResponse(singleQuoteFixture)
 
     const document = await loadPage({
-      requestUrl: '/?notification=quote-deleted&reference=NRL-000001',
+      requestUrl: url,
       server: getServer(),
       auth: authenticatedRequest
     })
 
-    expect(document.body).toHaveTextContent('Success')
-    expect(document.body).toHaveTextContent('Quote NRL-000001 was deleted.')
+    for (const text of expectedText) {
+      expect(document.body).toHaveTextContent(text)
+    }
   })
 
-  it('renders an error banner when a quote delete fails', async () => {
-    stubQuotesResponse(singleQuoteFixture)
-
-    const document = await loadPage({
-      requestUrl: '/?notification=quote-delete-error',
-      server: getServer(),
+  it('rejects query parameters that do not match the expected types', async () => {
+    const response = await getServer().inject({
+      method: 'GET',
+      url: '/?notification=quotes-deleted&deletedCount=not-a-number',
       auth: authenticatedRequest
     })
 
-    expect(document.body).toHaveTextContent('There is a problem')
-    expect(document.body).toHaveTextContent('Failed to delete the quote')
+    expect(response.statusCode).toBe(statusCodes.badRequest)
   })
 
-  it('renders a banner explaining when a quote is not eligible for deletion', async () => {
-    stubQuotesResponse(singleQuoteFixture)
+  it('renders a checkbox for each eligible quote and a select-all checkbox', async () => {
+    const table = await loadHomeTable([
+      ineligibleQuoteFixture[0],
+      singleQuoteFixture[0]
+    ])
 
-    const document = await loadPage({
-      requestUrl: '/?notification=quote-delete-not-eligible',
-      server: getServer(),
-      auth: authenticatedRequest
-    })
+    const selectAll = table.querySelector('#select-all-quotes')
+    expect(selectAll).not.toBeNull()
+    expect(
+      getByRole(table, 'checkbox', { name: 'Select all eligible quotes' })
+    ).toBeInTheDocument()
 
-    expect(document.body).toHaveTextContent(
-      'This quote cannot be deleted because it was not created with an approved internal email address.'
+    const checkboxes = table.querySelectorAll('input[name="references"]')
+    expect(checkboxes).toHaveLength(1)
+    expect(checkboxes[0].getAttribute('value')).toBe('NRL-000001')
+    expect(
+      getByRole(table, 'checkbox', { name: 'Select quote NRL-000001' })
+    ).toBeInTheDocument()
+  })
+
+  it('wraps the table in a bulk delete form when any quote is eligible', async () => {
+    const document = await loadHomePageWithQuotes(singleQuoteFixture)
+
+    const form = document.querySelector('form[action="/quotes/delete"]')
+    expect(form).not.toBeNull()
+    expect(form.getAttribute('method')).toBe('get')
+    expect(
+      getByRole(document, 'button', { name: 'Delete selected quotes' })
+    ).toBeInTheDocument()
+  })
+
+  it('renders no checkboxes or bulk delete form when no quote is eligible', async () => {
+    const document = await loadHomePageWithQuotes(ineligibleQuoteFixture)
+
+    expect(document.querySelector('#select-all-quotes')).toBeNull()
+    expect(document.querySelectorAll('input[name="references"]')).toHaveLength(
+      0
     )
+    expect(document.querySelector('form[action="/quotes/delete"]')).toBeNull()
+    expect(
+      queryByRole(document, 'button', { name: 'Delete selected quotes' })
+    ).not.toBeInTheDocument()
   })
 })

@@ -1,4 +1,4 @@
-import joi from 'joi'
+import Joi from 'joi'
 
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { deleteQuote } from './delete-quote.js'
@@ -8,7 +8,7 @@ export const deleteQuoteController = {
   options: {
     validate: {
       params: referenceParamSchema,
-      payload: joi.object({})
+      payload: Joi.object({})
     }
   },
   async handler(request, h) {

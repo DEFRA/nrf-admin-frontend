@@ -13,6 +13,12 @@ export const confirmDeleteController = {
     const { reference } = request.params
     const result = await getQuote(reference)
 
+    if (result.errorMessage) {
+      throw Boom.badGateway('Could not load quote from the backend', {
+        message: result.errorMessage
+      })
+    }
+
     if (result.quote === null) {
       throw Boom.notFound('Quote not found', {
         message: `No quote found with reference ${reference}`

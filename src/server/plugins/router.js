@@ -3,6 +3,7 @@ import inert from '@hapi/inert'
 import { home } from '../routes/home/index.js'
 import { quote } from '../routes/quote/index.js'
 import { quoteDelete } from '../routes/quote/delete/index.js'
+import { quotesBulkDelete } from '../routes/quotes/bulk-delete/index.js'
 import { about } from '../routes/about/index.js'
 import { apiUploads } from '../routes/api/uploads/index.js'
 import { apiDataSync } from '../routes/api/data-sync/index.js'
@@ -25,6 +26,7 @@ export const router = {
         home,
         quote,
         quoteDelete,
+        quotesBulkDelete,
         about,
         apiUploads,
         apiDataSync,

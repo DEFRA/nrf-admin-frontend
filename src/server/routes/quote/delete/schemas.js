@@ -1,6 +1,6 @@
 import Joi from 'joi'
 
-const referencePattern = /^NRL-\d{6}$/
+import { referencePattern } from '#/server/common/validation/reference-pattern.js'
 
 export const referenceParamSchema = Joi.object({
   reference: Joi.string().pattern(referencePattern).required()
