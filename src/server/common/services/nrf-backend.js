@@ -27,3 +27,17 @@ export const getRequestFromBackend = async ({ endpointPath }) => {
     throw error
   }
 }
+
+export const deleteRequestFromBackend = async ({ endpointPath }) => {
+  try {
+    const url = `${config.get('backend.apiUrl')}${endpointPath}`
+    const response = await Wreck.delete(url, {
+      json: true,
+      headers: backendHeaders()
+    })
+    return response
+  } catch (error) {
+    logger.error(error, 'Backend delete request failed')
+    throw error
+  }
+}

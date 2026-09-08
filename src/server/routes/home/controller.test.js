@@ -153,4 +153,44 @@ describe('Home page', () => {
     expect(quoteLink).toBeInTheDocument()
     expect(quoteLink).toHaveTextContent('NRL-000001')
   })
+
+  it('renders a success banner after a quote is deleted', async () => {
+    stubQuotesResponse(singleQuoteFixture)
+
+    const document = await loadPage({
+      requestUrl: '/?notification=quote-deleted&reference=NRL-000001',
+      server: getServer(),
+      auth: authenticatedRequest
+    })
+
+    expect(document.body).toHaveTextContent('Success')
+    expect(document.body).toHaveTextContent('Quote NRL-000001 was deleted.')
+  })
+
+  it('renders an error banner when a quote delete fails', async () => {
+    stubQuotesResponse(singleQuoteFixture)
+
+    const document = await loadPage({
+      requestUrl: '/?notification=quote-delete-error',
+      server: getServer(),
+      auth: authenticatedRequest
+    })
+
+    expect(document.body).toHaveTextContent('There is a problem')
+    expect(document.body).toHaveTextContent('Failed to delete the quote')
+  })
+
+  it('renders a banner explaining when a quote is not eligible for deletion', async () => {
+    stubQuotesResponse(singleQuoteFixture)
+
+    const document = await loadPage({
+      requestUrl: '/?notification=quote-delete-not-eligible',
+      server: getServer(),
+      auth: authenticatedRequest
+    })
+
+    expect(document.body).toHaveTextContent(
+      'This quote cannot be deleted because it was not created with an approved internal email address.'
+    )
+  })
 })

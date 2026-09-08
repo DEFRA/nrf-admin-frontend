@@ -3,6 +3,8 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
 
 {% block beforeContent %}
   {# beforeContent sits outside <main>, so the link needs its own landmark —
@@ -107,6 +109,18 @@
               }) }}
             {% endif %}
           {% endfor %}
+        {% endif %}
+
+        {% if quote.deleteEligible %}
+          {{ govukButton({
+            text: "Delete quote",
+            href: "/quote/" + quote.reference + "/delete",
+            classes: "govuk-button--warning"
+          }) }}
+        {% else %}
+          {{ govukInsetText({
+            text: "This quote cannot be deleted because it was not created with an approved internal email address."
+          }) }}
         {% endif %}
       {% endif %}
     </div>
