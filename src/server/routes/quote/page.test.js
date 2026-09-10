@@ -1,11 +1,12 @@
-import { getByRole, queryByText } from '@testing-library/dom'
+import { getByRole, queryByRole, queryByText } from '@testing-library/dom'
 import { http, HttpResponse } from 'msw'
 import { setupTestServer } from '#/test-utils/setup-test-server.js'
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
 import { loadPage, authenticatedRequest } from '#/test-utils/load-page.js'
 import {
   singleQuoteFixture,
-  quoteWithLevyBreakdownFixture
+  quoteWithLevyBreakdownFixture,
+  ineligibleQuoteFixture
 } from '#/test-utils/fixtures/quotes.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { config } from '#/config/config.js'
@@ -114,6 +115,28 @@ describe('Quote page', () => {
     )
     expect(document.body).toHaveTextContent(
       'Provisional nature restoration levy amount: £21,936.60'
+    )
+  })
+
+  it('renders a delete button for a quote eligible for deletion', async () => {
+    const document = await loadQuotePageWithQuotes(singleQuoteFixture)
+
+    expect(
+      getByRole(document, 'button', { name: 'Delete quote' })
+    ).toHaveAttribute('href', '/quote/NRL-000001/delete')
+  })
+
+  it('explains why an ineligible quote cannot be deleted', async () => {
+    const document = await loadQuotePageWithQuotes(
+      ineligibleQuoteFixture,
+      'NRL-000003'
+    )
+
+    expect(
+      queryByRole(document, 'button', { name: 'Delete quote' })
+    ).not.toBeInTheDocument()
+    expect(document.body).toHaveTextContent(
+      'This quote cannot be deleted because it was not created with an approved internal email address.'
     )
   })
 
