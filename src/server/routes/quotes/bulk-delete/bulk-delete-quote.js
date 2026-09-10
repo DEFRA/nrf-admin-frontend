@@ -12,8 +12,14 @@ import { deleteQuote } from '../../quote/delete/delete-quote.js'
  *   eligibility check refusing the quote, as distinct from server faults
  */
 export async function deleteQuotes(references) {
-  const results = await Promise.all(
+  const outcomes = await Promise.allSettled(
     references.map((reference) => deleteQuote(reference))
+  )
+  // deleteQuote catches its own backend errors, but allSettled keeps one
+  // unexpected rejection from cutting the remaining deletes short — a
+  // rejected outcome just counts as a failed quote
+  const results = outcomes.map((outcome) =>
+    outcome.status === 'fulfilled' ? outcome.value : { deleted: false }
   )
 
   const deleted = results.filter((result) => result.deleted).length
