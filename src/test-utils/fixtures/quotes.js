@@ -12,11 +12,24 @@ export const singleQuoteFixture = [
     },
     email: {
       address: 'developer@housebuilder.com',
-      sendRequestAt: null,
-      status: 'delivered',
+      sendRequestAt: '2026-03-23T10:00:00.000Z',
+      notifySendStatus: 'delivered',
+      emailType: 'quote_results',
+      sendRetryCount: 0,
       notifyStatusUrl:
         'https://www.notifications.service.gov.uk/services/a76741a1-42be-4231-ae74-15ec14b81a11/notification/47cbb989-9546-418c-8828-232c3dc57537'
     },
+    emailNotifications: [
+      {
+        emailType: 'quote_results',
+        notifySendStatus: 'delivered',
+        sendRetryCount: 0,
+        sendRequestAt: '2026-03-23T10:00:00.000Z',
+        notificationId: '47cbb989-9546-418c-8828-232c3dc57537',
+        notifyStatusUrl:
+          'https://www.notifications.service.gov.uk/services/a76741a1-42be-4231-ae74-15ec14b81a11/notification/47cbb989-9546-418c-8828-232c3dc57537'
+      }
+    ],
     disableAnalyticsAudit: false,
     deleteEligible: true,
     edps: [
@@ -66,9 +79,21 @@ export const multipleQuotesFixture = [
     email: {
       address: 'another@developer.com',
       sendRequestAt: '2026-04-01T10:05:00.000Z',
-      status: 'sending',
+      notifySendStatus: 'sending',
+      emailType: 'quote_results',
+      sendRetryCount: 3,
       notifyStatusUrl: null
     },
+    emailNotifications: [
+      {
+        emailType: 'quote_results',
+        notifySendStatus: 'sending',
+        sendRetryCount: 3,
+        sendRequestAt: '2026-04-01T10:05:00.000Z',
+        notificationId: null,
+        notifyStatusUrl: null
+      }
+    ],
     disableAnalyticsAudit: false,
     deleteEligible: true,
     edps: [],

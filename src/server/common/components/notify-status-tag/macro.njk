@@ -1,0 +1,11 @@
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
+{% macro appNotifyStatusTag(params) %}
+  {% if not params.statusTag %}
+    -
+  {% elif params.notifyStatusUrl %}
+    <a class="govuk-link" href="{{ params.notifyStatusUrl }}">{{ govukTag({ text: params.statusTag.text, classes: params.statusTag.classes }) }}</a>
+  {% else %}
+    {{ govukTag({ text: params.statusTag.text, classes: params.statusTag.classes }) }}
+  {% endif %}
+{% endmacro %}

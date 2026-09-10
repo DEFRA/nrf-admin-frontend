@@ -1,10 +1,8 @@
 {% extends 'layouts/page.njk' %}
 {% from "govuk/components/table/macro.njk" import govukTable %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
-{% from "govuk/components/details/macro.njk" import govukDetails %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
-{% from "govuk/components/tag/macro.njk" import govukTag %}
 
 {% block content %}
   {{ appHeading({
@@ -93,54 +91,20 @@
       {% set tableHead = (tableHead.push({ html: selectAllHtml }), tableHead) %}
     {% endif %}
     {% set tableHead = (tableHead.push(
+      { text: "Date submitted" },
       { text: "Reference" },
       { text: "Planning application type" },
       { text: "Red line boundary" },
-      { text: "Email" },
       { text: "Housing units" },
-      { text: "Date submitted" },
-      { text: "Email send request date" },
-      { text: "Email status" },
-      { text: "Analytics disabled" },
-      { text: "EDP results" }
+      { text: "Email" },
+      { text: "Analytics disabled" }
     ), tableHead) %}
     {% for quote in quotes %}
-      {% set edpHtml %}
-        {% if quote.edps.length %}
-          {% for edp in quote.edps %}
-            {% set edpDetailsHtml %}
-              <ul class="govuk-list govuk-list--bullet">
-                <li>Type: {{ edp.edpType }}</li>
-                <li>Levy: {{ edp.levyGbp.amountExcludingVat | formatCurrency }}{% if edp.levyGbp.amountInflationAdjusted %} (inflation adjusted: {{ edp.levyGbp.amountInflationAdjusted | formatCurrency }}){% endif %}</li>
-                {% if edp.impact.nitrogenTotal %}
-                  <li>Nitrogen: {{ edp.impact.nitrogenTotal.band.min }}–{{ edp.impact.nitrogenTotal.band.max }} / {{ edp.impact.nitrogenTotal.amount }} {{ edp.impact.nitrogenTotal.unit }}</li>
-                {% endif %}
-                {% if edp.impact.phosphorusTotal %}
-                  <li>Phosphorus: {{ edp.impact.phosphorusTotal.band.min }}–{{ edp.impact.phosphorusTotal.band.max }} / {{ edp.impact.phosphorusTotal.amount }} {{ edp.impact.phosphorusTotal.unit }}</li>
-                {% endif %}
-              </ul>
-            {% endset %}
-            {{ govukDetails({
-              summaryText: edp.edpName,
-              html: edpDetailsHtml
-            }) }}
-          {% endfor %}
-        {% else %}
-          None
-        {% endif %}
-      {% endset %}
       {% set boundaryHtml %}
         {% if quote.boundary.userInputType === 'upload' and quote.boundary.filename %}
           <abbr title="{{ quote.boundary.filename }}">upload</abbr>
         {% else %}
         {{ quote.boundary.userInputType }}
-        {% endif %}
-      {% endset %}
-      {% set emailStatusHtml %}
-        {% if quote.email.notifyStatusUrl %}
-          <a class="govuk-link" href="{{ quote.email.notifyStatusUrl }}">{{ govukTag({ text: quote.email.statusTag.text, classes: quote.email.statusTag.classes }) }}</a>
-        {% else %}
-          {{ govukTag({ text: quote.email.statusTag.text, classes: quote.email.statusTag.classes }) }}
         {% endif %}
       {% endset %}
       {% set referenceHtml %}
@@ -163,16 +127,13 @@
         {% set rowCells = (rowCells.push({ html: selectHtml }), rowCells) %}
       {% endif %}
       {% set tableRows = (tableRows.push(rowCells.concat([
+        { text: quote.createdAt | formatDateTime },
         { html: referenceHtml },
         { text: quote.planningType },
         { html: boundaryHtml },
-        { text: quote.email.address },
         { text: quote.housingUnits },
-        { text: quote.createdAt | govukDate },
-        { text: quote.email.sendRequestAt | govukDate },
-        { html: emailStatusHtml },
-        { text: "Yes" if quote.disableAnalyticsAudit else "No" },
-        { html: edpHtml }
+        { text: quote.email.address },
+        { text: "Yes" if quote.disableAnalyticsAudit else "No" }
       ])), tableRows) %}
     {% endfor %}
 

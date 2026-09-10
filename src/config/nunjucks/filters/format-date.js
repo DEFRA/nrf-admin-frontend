@@ -5,3 +5,9 @@ export function formatDate(value, formattedDateStr = 'EEE do MMMM yyyy') {
 
   return format(date, formattedDateStr)
 }
+
+export function formatDateTime(value) {
+  const date = isDate(value) ? value : parseISO(value)
+
+  return format(date, "d MMM yyyy 'at' HH:mm")
+}
