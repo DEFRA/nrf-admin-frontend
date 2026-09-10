@@ -1,0 +1,73 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% block beforeContent %}
+  <nav>
+    {{ govukBackLink({
+      text: "Back to quote",
+      href: "/quote/" + quote.reference
+    }) }}
+  </nav>
+{% endblock %}
+
+{% block content %}
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+      {% if errorMessage %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [{ text: errorMessage }]
+        }) }}
+      {% else %}
+        {{ govukWarningText({
+          text: "Deleting this quote is permanent and cannot be undone.",
+          iconFallbackText: "Warning"
+        }) }}
+
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: { text: "Reference" },
+              value: { text: quote.reference }
+            },
+            {
+              key: { text: "Email address" },
+              value: { text: quote.email.address }
+            } if quote.email.address,
+            {
+              key: { text: "Date submitted" },
+              value: { text: quote.createdAt | govukDate }
+            }
+          ]
+        }) }}
+
+        <p class="govuk-body">The following will be permanently deleted:</p>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>the quote and its red line boundary</li>
+          <li>the levy (EDP) results for the quote</li>
+          <li>any quote link access tokens</li>
+          <li>email notification records for the quote</li>
+        </ul>
+
+        <form method="post" action="/quote/{{ quote.reference }}/delete">
+          {{ govukButton({
+            text: "Yes, delete this quote",
+            classes: "govuk-button--warning"
+          }) }}
+        </form>
+
+        <p class="govuk-body">
+          <a class="govuk-link" href="/quote/{{ quote.reference }}">Cancel and return to the quote</a>
+        </p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

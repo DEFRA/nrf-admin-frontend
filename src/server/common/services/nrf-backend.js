@@ -27,3 +27,22 @@ export const getRequestFromBackend = async ({ endpointPath }) => {
     throw error
   }
 }
+
+/**
+ * @param {object} params
+ * @param {string} params.endpointPath - backend endpoint, e.g. /quotes/NRL-000001
+ * @returns {Promise<object>} Wreck response with a parsed payload
+ */
+export const deleteRequestFromBackend = async ({ endpointPath }) => {
+  try {
+    const url = `${config.get('backend.apiUrl')}${endpointPath}`
+    const response = await Wreck.delete(url, {
+      json: true,
+      headers: backendHeaders()
+    })
+    return response
+  } catch (error) {
+    logger.error(error, 'Backend delete request failed')
+    throw error
+  }
+}

@@ -18,6 +18,7 @@ export const singleQuoteFixture = [
         'https://www.notifications.service.gov.uk/services/a76741a1-42be-4231-ae74-15ec14b81a11/notification/47cbb989-9546-418c-8828-232c3dc57537'
     },
     disableAnalyticsAudit: false,
+    deleteEligible: true,
     edps: [
       {
         edpId: 42,
@@ -69,10 +70,25 @@ export const multipleQuotesFixture = [
       notifyStatusUrl: null
     },
     disableAnalyticsAudit: false,
+    deleteEligible: true,
     edps: [],
     levyGbp: null
   },
   ...singleQuoteFixture
+]
+
+// A quote the backend has flagged as not deletable — in production, only
+// quotes created with an approved internal email address can be deleted.
+export const ineligibleQuoteFixture = [
+  {
+    ...singleQuoteFixture[0],
+    reference: 'NRL-000003',
+    email: {
+      ...singleQuoteFixture[0].email,
+      address: 'developer@housebuilder.com'
+    },
+    deleteEligible: false
+  }
 ]
 
 // Shape the quote API will return once the levy breakdown fields (units,
