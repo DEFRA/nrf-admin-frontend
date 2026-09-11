@@ -1,5 +1,6 @@
 import { getRequestFromBackend } from '#/server/common/services/nrf-backend.js'
 import { createLogger } from '#/server/common/helpers/logging/logger.js'
+import { emailStatusTag } from '#/server/common/helpers/email-status-tag.js'
 
 const logger = createLogger()
 
@@ -13,7 +14,20 @@ const logger = createLogger()
 export async function getQuote(reference) {
   try {
     const { payload } = await getRequestFromBackend({ endpointPath: '/quotes' })
-    const quote = payload.find((item) => item.reference === reference) ?? null
+    const found = payload.find((item) => item.reference === reference) ?? null
+    const quote = found
+      ? {
+          ...found,
+          emailNotifications: (found.emailNotifications ?? []).map((n) => ({
+            ...n,
+            statusTag: emailStatusTag(
+              n.notifySendStatus,
+              n.emailType,
+              n.notificationId ?? null
+            )
+          }))
+        }
+      : null
     return { quote }
   } catch (error) {
     logger.error(error, 'Failed to fetch quotes from backend')

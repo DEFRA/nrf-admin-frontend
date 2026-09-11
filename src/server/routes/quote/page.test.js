@@ -54,6 +54,8 @@ describe('Quote page', () => {
   it('renders the quote summary with the total levy amounts in pounds sterling', async () => {
     const document = await loadQuotePageWithQuotes(singleQuoteFixture)
 
+    expect(document.body).toHaveTextContent('Date submitted')
+    expect(document.body).toHaveTextContent('23 Mar 2026 at 00:00')
     expect(document.body).toHaveTextContent('Reference')
     expect(document.body).toHaveTextContent('NRL-000001')
     expect(document.body).toHaveTextContent('full-planning-permission')
@@ -137,6 +139,69 @@ describe('Quote page', () => {
     ).not.toBeInTheDocument()
     expect(document.body).toHaveTextContent(
       'This quote cannot be deleted because it was not created with an approved internal email address.'
+    )
+  })
+
+  it('renders the email delivery section with type, status, retry count, send date and Notify link', async () => {
+    const document = await loadQuotePageWithQuotes(singleQuoteFixture)
+
+    expect(document.body).toHaveTextContent('Emails sent to user')
+    expect(document.body).toHaveTextContent('Email type')
+    expect(document.body).toHaveTextContent('quote_results')
+    expect(document.body).toHaveTextContent('Notification ID')
+    expect(document.body).toHaveTextContent(
+      '47cbb989-9546-418c-8828-232c3dc57537'
+    )
+    expect(document.body).toHaveTextContent('Notify send status')
+    expect(document.body).toHaveTextContent('Delivered')
+    expect(document.body).toHaveTextContent('Retry count')
+    expect(document.body).toHaveTextContent('0')
+    expect(document.body).toHaveTextContent('Send requested')
+    const viewEmailLink = document.body.querySelector(
+      'a[href*="notifications.service.gov.uk/services"]'
+    )
+    expect(viewEmailLink).toBeInTheDocument()
+    expect(viewEmailLink).toHaveTextContent('(view email)')
+  })
+
+  it('shows a hyphen for notify send status when no notification id (Notify rejected the send)', async () => {
+    const quoteWithNoNotifyId = [
+      {
+        ...singleQuoteFixture[0],
+        emailNotifications: [
+          {
+            ...singleQuoteFixture[0].emailNotifications[0],
+            notifySendStatus: null,
+            sendRetryCount: 1,
+            notificationId: null,
+            notifyStatusUrl: null
+          }
+        ]
+      }
+    ]
+    const document = await loadQuotePageWithQuotes(quoteWithNoNotifyId)
+
+    expect(document.body).not.toHaveTextContent('Awaiting status')
+    expect(document.body).toHaveTextContent('Notification ID')
+    expect(
+      document.body.querySelector(
+        'a[href*="notifications.service.gov.uk/services"]'
+      )
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows the email delivery section with an explanatory message when no notification row exists', async () => {
+    const quoteWithNoEmail = [
+      {
+        ...singleQuoteFixture[0],
+        emailNotifications: []
+      }
+    ]
+    const document = await loadQuotePageWithQuotes(quoteWithNoEmail)
+
+    expect(document.body).toHaveTextContent('Emails sent to user')
+    expect(document.body).toHaveTextContent(
+      'No email has been sent for this quote. The levy calculation did not complete.'
     )
   })
 

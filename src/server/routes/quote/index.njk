@@ -33,6 +33,10 @@
         {{ govukSummaryList({
           rows: [
             {
+              key: { text: "Date submitted" },
+              value: { text: quote.createdAt | formatDateTime }
+            } if quote.createdAt,
+            {
               key: { text: "Reference" },
               value: { text: quote.reference }
             },
@@ -45,10 +49,6 @@
               value: { text: quote.housingUnits }
             } if quote.housingUnits,
             {
-              key: { text: "Email address" },
-              value: { text: quote.email.address }
-            } if quote.email.address,
-            {
               key: { text: "Total rounded levy amount" },
               value: { text: quote.levyGbp.levyAmountExcludingVat | formatCurrency }
             } if quote.levyGbp,
@@ -58,6 +58,48 @@
             } if quote.levyGbp and quote.levyGbp.levyAmountInflationAdjusted
           ]
         }) }}
+
+        <h2 class="govuk-heading-m">Emails sent to user</h2>
+        {% if quote.emailNotifications and quote.emailNotifications.length %}
+          {% for notification in quote.emailNotifications %}
+            {% set notifyStatusHtml %}
+              {{ appNotifyStatusTag({ statusTag: notification.statusTag }) }}
+              {% if notification.notifyStatusUrl %}
+                <a class="govuk-link govuk-!-margin-left-2" href="{{ notification.notifyStatusUrl }}">(view email)</a>
+              {% endif %}
+            {% endset %}
+            {{ govukSummaryList({
+              rows: [
+                {
+                  key: { text: "Send requested" },
+                  value: { text: notification.sendRequestAt | formatDateTime }
+                } if notification.sendRequestAt,
+                {
+                  key: { text: "Email address" },
+                  value: { text: quote.email.address }
+                } if quote.email.address,
+                {
+                  key: { text: "Email type" },
+                  value: { text: notification.emailType }
+                },
+                {
+                  key: { text: "Notification ID" },
+                  value: { text: notification.notificationId if notification.notificationId else 'Initial send attempt errored, no notification ID returned' }
+                },
+                {
+                  key: { html: "Notify send status (<a href='https://docs.notifications.service.gov.uk/node.html#email-status-descriptions'>reference</a>)" },
+                  value: { html: notifyStatusHtml }
+                },
+                {
+                  key: { text: "Retry count" },
+                  value: { text: notification.sendRetryCount }
+                }
+              ]
+            }) }}
+          {% endfor %}
+        {% else %}
+          <p class="govuk-body">No email has been sent for this quote. The levy calculation did not complete.</p>
+        {% endif %}
 
         {% if quote.edps and quote.edps.length %}
           <h2 class="govuk-heading-m">Levy breakdown by EDP</h2>

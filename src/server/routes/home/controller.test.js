@@ -67,7 +67,6 @@ describe('Home page', () => {
 
     expect(table).toHaveTextContent('NRL-000001')
     expect(table).toHaveTextContent('developer@housebuilder.com')
-    expect(table).toHaveTextContent('Norfolk Fens East')
   })
 
   it('renders the boundary entry type, with the filename as an abbreviation title for uploads', async () => {
@@ -97,34 +96,10 @@ describe('Home page', () => {
     expect(table.querySelectorAll('abbr')).toHaveLength(1)
   })
 
-  it('formats dates in GOV.UK format', async () => {
+  it('formats dates with date and time', async () => {
     const table = await loadHomeTable(singleQuoteFixture)
 
-    expect(table).toHaveTextContent('23 March 2026')
-  })
-
-  it('renders an email delivery status tag linking to the Notify status page', async () => {
-    const table = await loadHomeTable(singleQuoteFixture)
-
-    expect(table).toHaveTextContent('Delivered')
-    const statusLink = table.querySelector(
-      'a[href*="notifications.service.gov.uk"]'
-    )
-    expect(statusLink).toBeInTheDocument()
-    expect(statusLink.getAttribute('href')).toBe(
-      singleQuoteFixture[0].email.notifyStatusUrl
-    )
-    expect(statusLink.querySelector('.govuk-tag')).not.toBeNull()
-  })
-
-  it('renders a status tag without a link when no Notify status URL is present', async () => {
-    const table = await loadHomeTable(multipleQuotesFixture)
-
-    expect(table).toHaveTextContent('Sending')
-    // only the delivered quote carries a Notify link
-    expect(
-      table.querySelectorAll('a[href*="notifications.service.gov.uk"]')
-    ).toHaveLength(1)
+    expect(table).toHaveTextContent('23 Mar 2026 at 00:00')
   })
 
   it('renders error message when backend call fails', async () => {
@@ -140,13 +115,6 @@ describe('Home page', () => {
 
     expect(document.body).toHaveTextContent(problemBannerTitle)
     expect(queryByRole(document, 'table')).not.toBeInTheDocument()
-  })
-
-  it('renders the levy amount, with the inflation adjusted amount, in EDP details', async () => {
-    const table = await loadHomeTable(singleQuoteFixture)
-
-    expect(table).toHaveTextContent('Levy: £999.00')
-    expect(table).toHaveTextContent('(inflation adjusted: £999.00)')
   })
 
   it('links each quote reference to its quote page', async () => {

@@ -19,7 +19,17 @@ describe('#getQuote', () => {
 
     const result = await getQuote('NRL-000001')
 
-    expect(result).toEqual({ quote: singleQuoteFixture[0] })
+    expect(result).toEqual({
+      quote: {
+        ...singleQuoteFixture[0],
+        emailNotifications: [
+          {
+            ...singleQuoteFixture[0].emailNotifications[0],
+            statusTag: { text: 'Delivered', classes: 'govuk-tag--green' }
+          }
+        ]
+      }
+    })
   })
 
   it('should return a null quote when no quote matches the reference', async () => {

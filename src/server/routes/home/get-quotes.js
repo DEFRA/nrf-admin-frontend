@@ -1,28 +1,8 @@
 import { getRequestFromBackend } from '#/server/common/services/nrf-backend.js'
 import { createLogger } from '#/server/common/helpers/logging/logger.js'
+import { emailStatusTag } from '#/server/common/helpers/email-status-tag.js'
 
 const logger = createLogger()
-
-/**
- * Map a GOV.UK Notify delivery status to a GOV.UK tag ({ text, classes }) for
- * the quotes table. Unknown/null statuses render as a neutral "Pending" tag.
- */
-const emailStatusTag = (status) => {
-  switch (status) {
-    case 'delivered':
-      return { text: 'Delivered', classes: 'govuk-tag--green' }
-    case 'permanent-failure':
-    case 'technical-failure':
-      return { text: 'Failed', classes: 'govuk-tag--red' }
-    case 'temporary-failure':
-      return { text: 'Temporary failure', classes: 'govuk-tag--yellow' }
-    case 'created':
-    case 'sending':
-      return { text: 'Sending', classes: 'govuk-tag--blue' }
-    default:
-      return { text: 'Pending', classes: 'govuk-tag--grey' }
-  }
-}
 
 const transformQuotes = (quotes) =>
   quotes.map((quote) => ({
@@ -33,7 +13,10 @@ const transformQuotes = (quotes) =>
     },
     email: {
       ...quote.email,
-      statusTag: emailStatusTag(quote.email?.status)
+      statusTag: emailStatusTag(
+        quote.email?.notifySendStatus,
+        quote.email?.emailType
+      )
     }
   }))
 
