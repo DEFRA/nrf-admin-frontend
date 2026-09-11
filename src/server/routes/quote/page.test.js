@@ -71,13 +71,20 @@ describe('Quote page', () => {
   it('renders the provisional levy amount for each EDP', async () => {
     const document = await loadQuotePageWithQuotes(singleQuoteFixture)
 
-    expect(document.body).toHaveTextContent('Levy breakdown by EDP')
+    expect(document.body).toHaveTextContent('EDPs')
     expect(document.body).toHaveTextContent('Norfolk Fens East')
-    expect(document.body).toHaveTextContent('Levy calculation')
     expect(document.body).toHaveTextContent(
       'Provisional nature restoration levy amount'
     )
     expect(document.body).toHaveTextContent('£999.00')
+  })
+
+  it('renders catchments for each EDP', async () => {
+    const document = await loadQuotePageWithQuotes(singleQuoteFixture)
+
+    expect(document.body).toHaveTextContent('Catchments')
+    expect(document.body).toHaveTextContent('Broads SAC — 67.4% overlap')
+    expect(document.body).toHaveTextContent('River Wensum SAC — 32.6% overlap')
   })
 
   it('omits breakdown rows the backend does not yet supply', async () => {

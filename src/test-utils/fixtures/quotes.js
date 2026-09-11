@@ -49,6 +49,18 @@ export const singleQuoteFixture = [
             unit: 'mg/l TP'
           }
         },
+        catchments: [
+          {
+            label: 'Broads SAC',
+            catchmentId: '27',
+            catchmentOverlapPercentage: 67.4
+          },
+          {
+            label: 'River Wensum SAC',
+            catchmentId: '29',
+            catchmentOverlapPercentage: 32.6
+          }
+        ],
         levyGbp: {
           amountExcludingVat: '999.00',
           amountInflationAdjusted: '999.00',
