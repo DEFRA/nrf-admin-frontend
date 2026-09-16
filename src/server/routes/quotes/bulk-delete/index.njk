@@ -19,18 +19,22 @@
   }) }}
 
   <div class="govuk-grid-row">
-    <div class="govuk-grid-column-full">
+
+    <div class="govuk-grid-column-two-thirds-from-desktop">
       {{ govukWarningText({
-        text: "Deleting these quotes is permanent and cannot be undone.",
+        html: "<p class='govuk-body'>Deleting these quotes is permanent and cannot be undone.</p><p class='govuk-body'>If any did not have analytics disabled, then audit and Google Analytics events would have been created and will need to be cleaned up or filtered out of reports.</p>",
         iconFallbackText: "Warning"
       }) }}
+    </div>
+    <div class="govuk-grid-column-full">
 
       {% set tableRows = [] %}
       {% for quote in quotes %}
         {% set tableRows = (tableRows.push([
           { text: quote.reference },
           { text: quote.email.address },
-          { text: quote.createdAt | govukDate }
+          { text: quote.createdAt | govukDate },
+          { text: "Yes" if quote.disableAnalyticsAudit else "No" }
         ]), tableRows) %}
       {% endfor %}
 
@@ -40,7 +44,8 @@
         head: [
           { text: "Reference" },
           { text: "Email address" },
-          { text: "Date submitted" }
+          { text: "Date submitted" },
+          { text: "Analytics disabled" }
         ],
         rows: tableRows
       }) }}
