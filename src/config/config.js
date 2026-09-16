@@ -158,6 +158,17 @@ export const config = convict({
       }
     },
     cookie: {
+      // Must differ from the public frontend's yar cookie name ('session'):
+      // the two apps run on the same host in local/UAT (ports are ignored for
+      // cookies), and with the same name each app's clearInvalid cookie
+      // handling wipes the other's session cookie — losing in-progress public
+      // quote journeys when admin is used in the same browser.
+      name: {
+        doc: 'Session cookie name',
+        format: String,
+        default: 'admin-session',
+        env: 'SESSION_COOKIE_NAME'
+      },
       ttl: {
         doc: 'Session cookie ttl',
         format: Number,
