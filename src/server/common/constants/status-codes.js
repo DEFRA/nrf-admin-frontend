@@ -1,12 +1,4 @@
-export const statusCodes = {
-  ok: 200,
-  noContent: 204,
-  badRequest: 400,
-  unauthorized: 401,
-  forbidden: 403,
-  notFound: 404,
-  redirect: 302,
-  redirectAfterPost: 303,
-  imATeapot: 418,
-  internalServerError: 500
-}
+// Re-exported from @defra/nrf-library (NRF2-1213) — the shared map of HTTP
+// status codes, aligned with nrf-backend and nrf-frontend. The library's
+// `found` key replaces this repo's former `redirect` alias for 302.
+export { statusCodes } from '@defra/nrf-library'
