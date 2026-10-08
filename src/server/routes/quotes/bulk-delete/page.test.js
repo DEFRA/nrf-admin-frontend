@@ -66,7 +66,7 @@ describe('Bulk delete quotes confirmation page', () => {
       auth: authenticatedRequest
     })
 
-    expect(response.statusCode).toBe(statusCodes.redirect)
+    expect(response.statusCode).toBe(statusCodes.found)
     expect(response.headers.location).toBe(
       '/?notification=quotes-bulk-none-selected'
     )
