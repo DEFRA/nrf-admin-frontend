@@ -138,18 +138,18 @@ export const quoteWithLevyBreakdownFixture = {
       ...singleQuoteFixture[0].edps[0],
       levyGbp: {
         units: 10,
-        baseChargePerUnit: '2193.6649',
-        roundedBaseChargePerUnit: '2193.66',
-        amountExcludingVat: '21936.60',
-        amountInflationAdjusted: '23033.43',
-        baseAmount: '21936.60',
+        baseChargePerUnit: '2675.0000',
+        roundedBaseChargePerUnit: '2675.00',
+        amountExcludingVat: '26750.00',
+        amountInflationAdjusted: '28187.50',
+        baseAmount: '26750.00',
         inflationRate: 0.05,
         modelVersion: 1
       }
     }
   ],
   levyGbp: {
-    levyAmountExcludingVat: 21936.6,
-    levyAmountInflationAdjusted: 23033.43
+    levyAmountExcludingVat: 26750.0,
+    levyAmountInflationAdjusted: 28187.5
   }
 }

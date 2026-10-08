@@ -109,7 +109,7 @@ describe('Quote page', () => {
       'Number of units used in the calculation'
     )
     expect(document.body).toHaveTextContent('Base charge price per unit')
-    expect(document.body).toHaveTextContent('£2,193.6649')
+    expect(document.body).toHaveTextContent('£2,675.00')
     expect(document.body).toHaveTextContent(
       'Rounded base charge price per unit'
     )
@@ -117,13 +117,13 @@ describe('Quote page', () => {
     expect(document.body).toHaveTextContent('5%')
     expect(document.body).toHaveTextContent('Calculation steps')
     expect(document.body).toHaveTextContent(
-      'Round base charge price per unit: £2,193.6649 → £2,193.66'
+      'Round base charge price per unit: £2,675.00 → £2,675.00'
     )
     expect(document.body).toHaveTextContent(
-      'Calculate provisional levy amount: 10 × £2,193.66 = £21,936.60'
+      'Calculate provisional levy amount: 10 × £2,675.00 = £26,750.00'
     )
     expect(document.body).toHaveTextContent(
-      'Provisional nature restoration levy amount: £21,936.60'
+      'Provisional nature restoration levy amount: £26,750.00'
     )
   })
 
