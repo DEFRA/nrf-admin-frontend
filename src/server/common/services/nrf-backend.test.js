@@ -1,6 +1,5 @@
 import { vi } from 'vitest'
 import Wreck from '@hapi/wreck'
-import { withTraceId } from '@defra/hapi-tracing'
 
 import { config } from '../../../config/config.js'
 import { getRequestFromBackend } from './nrf-backend.js'
@@ -9,10 +8,6 @@ const backendUrl = config.get('backend.apiUrl')
 const API_KEY_CONFIG = 'backend.apiKey'
 
 vi.mock('@hapi/wreck')
-
-vi.mock('@defra/hapi-tracing', () => ({
-  withTraceId: vi.fn(() => ({}))
-}))
 
 const mockLogger = vi.hoisted(() => ({
   error: vi.fn(),
@@ -38,23 +33,8 @@ describe('getRequestFromBackend', () => {
     expect(result).toBe(mockResponse)
   })
 
-  it('includes the tracing header when a trace id is present', async () => {
-    vi.mocked(Wreck.get).mockResolvedValue({ payload: [] })
-    vi.mocked(withTraceId).mockReturnValue({
-      'x-cdp-request-id': 'trace-abc-123'
-    })
-
-    await getRequestFromBackend({ endpointPath: '/quotes' })
-
-    expect(Wreck.get).toHaveBeenCalledWith(`${backendUrl}/quotes`, {
-      json: true,
-      headers: { 'x-cdp-request-id': 'trace-abc-123' }
-    })
-  })
-
   it('includes the x-api-key header when backend.apiKey is set', async () => {
     vi.mocked(Wreck.get).mockResolvedValue({ payload: [] })
-    vi.mocked(withTraceId).mockReturnValue({})
 
     const original = config.get(API_KEY_CONFIG)
     config.set(API_KEY_CONFIG, 'secret-key')

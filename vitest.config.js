@@ -4,6 +4,13 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    // Inline @defra/nrf-library so vi.mock intercepts the packages it
+    // imports internally (for example @hapi/wreck in getRequestFromService)
+    server: {
+      deps: {
+        inline: ['@defra/nrf-library']
+      }
+    },
     clearMocks: true,
     // start-server.test.js boots a real hapi server in beforeAll, which can
     // exceed the 10s default on a cold cache.

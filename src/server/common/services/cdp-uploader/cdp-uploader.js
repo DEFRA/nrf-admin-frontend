@@ -1,5 +1,6 @@
 import Wreck from '@hapi/wreck'
 import { withTraceId } from '@defra/hapi-tracing'
+import { wreckErrorContext } from '@defra/nrf-library'
 
 import { config } from '#/config/config.js'
 import { createLogger } from '../../helpers/logging/logger.js'
@@ -45,8 +46,7 @@ export async function initiateUpload({
 
     return { uploadId: payload.uploadId, uploadUrl }
   } catch (error) {
-    const statusCode = error?.output?.statusCode
-    const responsePayload = error?.data?.payload
+    const { statusCode, responsePayload } = wreckErrorContext(error)
     logger.error(
       error,
       `Error initiating upload - url: ${url}, baseUrl: ${baseUrl}, s3Bucket: ${s3Bucket}, s3Path: ${s3Path}, statusCode: ${statusCode}, responsePayload: ${JSON.stringify(responsePayload)}`
@@ -80,7 +80,7 @@ export async function proxyUpload({ uploadId, stream, headers = {} }) {
     })
     return { statusCode: res.statusCode, headers: res.headers, stream: res }
   } catch (error) {
-    const statusCode = error?.output?.statusCode
+    const { statusCode } = wreckErrorContext(error)
     logger.error(
       error,
       `Error proxying upload - url: ${url}, baseUrl: ${baseUrl}, uploadId: ${uploadId}, statusCode: ${statusCode}`
@@ -102,8 +102,7 @@ export async function getUploadStatus(uploadId) {
     })
     return { uploadStatus: payload.uploadStatus ?? 'unknown' }
   } catch (error) {
-    const statusCode = error?.output?.statusCode
-    const responsePayload = error?.data?.payload
+    const { statusCode, responsePayload } = wreckErrorContext(error)
     logger.error(
       error,
       `Error fetching upload status - url: ${url}, baseUrl: ${baseUrl}, uploadId: ${uploadId}, statusCode: ${statusCode}, responsePayload: ${JSON.stringify(responsePayload)}`
@@ -125,8 +124,7 @@ export async function getUploadDetails(uploadId) {
     })
     return payload
   } catch (error) {
-    const statusCode = error?.output?.statusCode
-    const responsePayload = error?.data?.payload
+    const { statusCode, responsePayload } = wreckErrorContext(error)
     logger.error(
       error,
       `Error fetching upload details - url: ${url}, uploadId: ${uploadId}, statusCode: ${statusCode}, responsePayload: ${JSON.stringify(responsePayload)}`
