@@ -1,5 +1,5 @@
 import Wreck from '@hapi/wreck'
-import { withTraceId } from '@defra/hapi-tracing'
+import { buildServiceHeaders, wreckErrorContext } from '@defra/nrf-library'
 
 import { config } from '#/config/config.js'
 import { createLogger } from '../helpers/logging/logger.js'
@@ -40,14 +40,12 @@ const upstreamDetail = (error) => {
   return undefined
 }
 
-const dataSyncHeaders = () => {
-  const headers = withTraceId(config.get('tracing.header'))
-  const token = config.get('impactAssessor.dataSyncToken')
-  if (token) {
-    headers['x-data-sync-token'] = token
-  }
-  return headers
-}
+const dataSyncHeaders = () =>
+  buildServiceHeaders({
+    traceHeaderName: config.get('tracing.header'),
+    serviceKey: config.get('impactAssessor.dataSyncToken'),
+    serviceKeyHeaderName: 'x-data-sync-token'
+  })
 
 export async function triggerDataSync({ force = false, manifest } = {}) {
   const baseUrl = config.get(API_URL_KEY)
@@ -70,7 +68,7 @@ export async function triggerDataSync({ force = false, manifest } = {}) {
     })
     return { runId: payload.run_id, status: payload.status }
   } catch (error) {
-    const statusCode = error?.output?.statusCode
+    const { statusCode } = wreckErrorContext(error)
     logger.error(
       error,
       `Error triggering data sync - url: ${url}, statusCode: ${statusCode}`
@@ -102,7 +100,7 @@ export async function rollbackDataSync({ tables } = {}) {
     })
     return { rolledBack: payload.rolled_back, skipped: payload.skipped }
   } catch (error) {
-    const statusCode = error?.output?.statusCode
+    const { statusCode } = wreckErrorContext(error)
     logger.error(
       error,
       `Error triggering data sync rollback - url: ${url}, statusCode: ${statusCode}`
@@ -128,7 +126,7 @@ export async function getDataSyncStatus(runId) {
     })
     return payload
   } catch (error) {
-    const statusCode = error?.output?.statusCode
+    const { statusCode } = wreckErrorContext(error)
     logger.error(
       error,
       `Error fetching data sync status - url: ${url}, runId: ${runId}, statusCode: ${statusCode}`

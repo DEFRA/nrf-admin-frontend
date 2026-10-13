@@ -1,5 +1,5 @@
 import Wreck from '@hapi/wreck'
-import { withTraceId } from '@defra/hapi-tracing'
+import { buildServiceHeaders } from '@defra/nrf-library'
 
 import { config } from '../../../config/config.js'
 import { createLogger } from '../helpers/logging/logger.js'
@@ -7,14 +7,11 @@ import { statusCodes } from '../constants/status-codes.js'
 
 const logger = createLogger()
 
-const frontendHeaders = () => {
-  const headers = withTraceId(config.get('tracing.header'))
-  const apiKey = config.get('frontend.apiKey')
-  if (apiKey) {
-    headers['x-api-key'] = apiKey
-  }
-  return headers
-}
+const frontendHeaders = () =>
+  buildServiceHeaders({
+    traceHeaderName: config.get('tracing.header'),
+    serviceKey: config.get('frontend.apiKey')
+  })
 
 export const clearFrontendTileCache = async () => {
   try {

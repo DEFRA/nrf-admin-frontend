@@ -1,32 +1,24 @@
 import Wreck from '@hapi/wreck'
+import { buildServiceHeaders, getRequestFromService } from '@defra/nrf-library'
+
 import { config } from '../../../config/config.js'
 import { createLogger } from '../helpers/logging/logger.js'
-import { withTraceId } from '@defra/hapi-tracing'
 
 const logger = createLogger()
 
-const backendHeaders = () => {
-  const headers = withTraceId(config.get('tracing.header'))
-  const apiKey = config.get('backend.apiKey')
-  if (apiKey) {
-    headers['x-api-key'] = apiKey
-  }
-  return headers
-}
+const backendHeaders = () =>
+  buildServiceHeaders({
+    traceHeaderName: config.get('tracing.header'),
+    serviceKey: config.get('backend.apiKey')
+  })
 
-export const getRequestFromBackend = async ({ endpointPath }) => {
-  try {
-    const url = `${config.get('backend.apiUrl')}${endpointPath}`
-    const response = await Wreck.get(url, {
-      json: true,
-      headers: backendHeaders()
-    })
-    return response
-  } catch (error) {
-    logger.error(error, 'Backend request failed')
-    throw error
-  }
-}
+export const getRequestFromBackend = ({ endpointPath }) =>
+  getRequestFromService({
+    url: `${config.get('backend.apiUrl')}${endpointPath}`,
+    headers: backendHeaders(),
+    logger,
+    errorMessage: 'Backend request failed'
+  })
 
 /**
  * @param {object} params
