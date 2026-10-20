@@ -159,6 +159,9 @@ export const quoteWithLevyBreakdownFixture = {
 const NOTIFY_STATUS_URL_PREFIX =
   'https://www.notifications.service.gov.uk/services/a76741a1-42be-4231-ae74-15ec14b81a11/notification'
 
+// The notification id of the successful retry in quoteWithRetriedEmailFixture
+const RETRIED_NOTIFICATION_ID = '8b1dcb42-6ea5-49d3-9cb0-0f4e5a1b2c3d'
+
 // A quote whose initial email came back temporary-failure and was re-sent
 // successfully by the retry worker — the per-attempt history shape the
 // backend returns since NRF2-1258.
@@ -169,8 +172,8 @@ export const quoteWithRetriedEmailFixture = {
     ...singleQuoteFixture[0].email,
     notifySendStatus: 'delivered',
     sendRetryCount: 1,
-    notificationId: '8b1dcb42-6ea5-49d3-9cb0-0f4e5a1b2c3d',
-    notifyStatusUrl: `${NOTIFY_STATUS_URL_PREFIX}/8b1dcb42-6ea5-49d3-9cb0-0f4e5a1b2c3d`
+    notificationId: RETRIED_NOTIFICATION_ID,
+    notifyStatusUrl: `${NOTIFY_STATUS_URL_PREFIX}/${RETRIED_NOTIFICATION_ID}`
   },
   emailNotifications: [
     {
@@ -178,8 +181,8 @@ export const quoteWithRetriedEmailFixture = {
       notifySendStatus: 'delivered',
       sendRetryCount: 1,
       sendRequestAt: SEND_REQUEST_AT,
-      notificationId: '8b1dcb42-6ea5-49d3-9cb0-0f4e5a1b2c3d',
-      notifyStatusUrl: `${NOTIFY_STATUS_URL_PREFIX}/8b1dcb42-6ea5-49d3-9cb0-0f4e5a1b2c3d`,
+      notificationId: RETRIED_NOTIFICATION_ID,
+      notifyStatusUrl: `${NOTIFY_STATUS_URL_PREFIX}/${RETRIED_NOTIFICATION_ID}`,
       attempts: [
         {
           attemptNo: 1,
@@ -190,10 +193,10 @@ export const quoteWithRetriedEmailFixture = {
         },
         {
           attemptNo: 2,
-          notificationId: '8b1dcb42-6ea5-49d3-9cb0-0f4e5a1b2c3d',
+          notificationId: RETRIED_NOTIFICATION_ID,
           notifySendStatus: 'delivered',
           attemptedAt: '2026-03-23T10:05:00.000Z',
-          notifyStatusUrl: `${NOTIFY_STATUS_URL_PREFIX}/8b1dcb42-6ea5-49d3-9cb0-0f4e5a1b2c3d`
+          notifyStatusUrl: `${NOTIFY_STATUS_URL_PREFIX}/${RETRIED_NOTIFICATION_ID}`
         }
       ]
     }
