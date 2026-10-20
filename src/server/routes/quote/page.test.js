@@ -16,6 +16,9 @@ import { config } from '#/config/config.js'
 const backendUrl = config.get('backend.apiUrl')
 const quotesEndpoint = `${backendUrl}/quotes`
 
+const NOTIFY_LINK_SELECTOR = 'a[href*="notifications.service.gov.uk/services"]'
+const SEND_ATTEMPTS_HEADING = 'Send attempts'
+
 const mswServer = setupMswServer()
 
 const stubQuotesResponse = (quotes) =>
@@ -166,9 +169,7 @@ describe('Quote page', () => {
     expect(document.body).toHaveTextContent('Retry count')
     expect(document.body).toHaveTextContent('0')
     expect(document.body).toHaveTextContent('Send requested')
-    const viewEmailLink = document.body.querySelector(
-      'a[href*="notifications.service.gov.uk/services"]'
-    )
+    const viewEmailLink = document.body.querySelector(NOTIFY_LINK_SELECTOR)
     expect(viewEmailLink).toBeInTheDocument()
     expect(viewEmailLink).toHaveTextContent('(view email)')
   })
@@ -193,9 +194,7 @@ describe('Quote page', () => {
     expect(document.body).not.toHaveTextContent('Awaiting status')
     expect(document.body).toHaveTextContent('Notification ID')
     expect(
-      document.body.querySelector(
-        'a[href*="notifications.service.gov.uk/services"]'
-      )
+      document.body.querySelector(NOTIFY_LINK_SELECTOR)
     ).not.toBeInTheDocument()
   })
 
@@ -205,16 +204,14 @@ describe('Quote page', () => {
       'NRL-000004'
     )
 
-    expect(document.body).toHaveTextContent('Send attempts')
+    expect(document.body).toHaveTextContent(SEND_ATTEMPTS_HEADING)
     expect(document.body).toHaveTextContent('Initial send')
     expect(document.body).toHaveTextContent('Retry 1')
     expect(document.body).toHaveTextContent('Temporary failure')
     expect(document.body).toHaveTextContent('Delivered')
     expect(document.body).toHaveTextContent('23 Mar 2026 at 10:00')
     expect(document.body).toHaveTextContent('23 Mar 2026 at 10:05')
-    const attemptLinks = document.body.querySelectorAll(
-      'a[href*="notifications.service.gov.uk/services"]'
-    )
+    const attemptLinks = document.body.querySelectorAll(NOTIFY_LINK_SELECTOR)
     // the summary list's "(view email)" link plus one per attempt with an id
     expect(attemptLinks).toHaveLength(3)
   })
@@ -225,23 +222,19 @@ describe('Quote page', () => {
       'NRL-000005'
     )
 
-    expect(document.body).toHaveTextContent('Send attempts')
+    expect(document.body).toHaveTextContent(SEND_ATTEMPTS_HEADING)
     expect(document.body).toHaveTextContent('Initial send')
     expect(document.body).toHaveTextContent(
       'Initial send attempt errored, no notification ID returned'
     )
-    expect(
-      document.body.querySelectorAll(
-        'a[href*="notifications.service.gov.uk/services"]'
-      )
-    ).toHaveLength(0)
+    expect(document.body.querySelectorAll(NOTIFY_LINK_SELECTOR)).toHaveLength(0)
   })
 
   it('hides the send attempts section when the backend sends no attempt history', async () => {
     const document = await loadQuotePageWithQuotes(singleQuoteFixture)
 
     expect(
-      queryByRole(document, 'heading', { name: 'Send attempts' })
+      queryByRole(document, 'heading', { name: SEND_ATTEMPTS_HEADING })
     ).toBeNull()
   })
 

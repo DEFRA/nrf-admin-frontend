@@ -119,6 +119,8 @@
                 ]), attemptRows) %}
               {% endfor %}
               {{ govukTable({
+                caption: "Send attempts",
+                captionClasses: "govuk-visually-hidden",
                 head: [
                   { text: "Attempt" },
                   { text: "Notification ID" },
