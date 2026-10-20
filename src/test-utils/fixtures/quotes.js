@@ -1,3 +1,5 @@
+const SEND_REQUEST_AT = '2026-03-23T10:00:00.000Z'
+
 export const singleQuoteFixture = [
   {
     id: 1,
@@ -12,7 +14,7 @@ export const singleQuoteFixture = [
     },
     email: {
       address: 'developer@housebuilder.com',
-      sendRequestAt: '2026-03-23T10:00:00.000Z',
+      sendRequestAt: SEND_REQUEST_AT,
       notifySendStatus: 'delivered',
       emailType: 'quote_results',
       sendRetryCount: 0,
@@ -24,7 +26,7 @@ export const singleQuoteFixture = [
         emailType: 'quote_results',
         notifySendStatus: 'delivered',
         sendRetryCount: 0,
-        sendRequestAt: '2026-03-23T10:00:00.000Z',
+        sendRequestAt: SEND_REQUEST_AT,
         notificationId: '47cbb989-9546-418c-8828-232c3dc57537',
         notifyStatusUrl:
           'https://www.notifications.service.gov.uk/services/a76741a1-42be-4231-ae74-15ec14b81a11/notification/47cbb989-9546-418c-8828-232c3dc57537'
@@ -175,7 +177,7 @@ export const quoteWithRetriedEmailFixture = {
       emailType: 'quote_results',
       notifySendStatus: 'delivered',
       sendRetryCount: 1,
-      sendRequestAt: '2026-03-23T10:00:00.000Z',
+      sendRequestAt: SEND_REQUEST_AT,
       notificationId: '8b1dcb42-6ea5-49d3-9cb0-0f4e5a1b2c3d',
       notifyStatusUrl: `${NOTIFY_STATUS_URL_PREFIX}/8b1dcb42-6ea5-49d3-9cb0-0f4e5a1b2c3d`,
       attempts: [
@@ -215,7 +217,7 @@ export const quoteWithRejectedEmailFixture = {
       emailType: 'quote_results',
       notifySendStatus: null,
       sendRetryCount: 1,
-      sendRequestAt: '2026-03-23T10:00:00.000Z',
+      sendRequestAt: SEND_REQUEST_AT,
       notificationId: null,
       notifyStatusUrl: null,
       attempts: [
@@ -223,7 +225,7 @@ export const quoteWithRejectedEmailFixture = {
           attemptNo: 1,
           notificationId: null,
           notifySendStatus: null,
-          attemptedAt: '2026-03-23T10:00:00.000Z',
+          attemptedAt: SEND_REQUEST_AT,
           notifyStatusUrl: null
         }
       ]
