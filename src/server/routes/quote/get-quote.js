@@ -24,7 +24,17 @@ export async function getQuote(reference) {
               n.notifySendStatus,
               n.emailType,
               n.notificationId ?? null
-            )
+            ),
+            // one row per send attempt (initial + retries); older backends
+            // don't send attempts, so the section simply stays hidden
+            attempts: (n.attempts ?? []).map((a) => ({
+              ...a,
+              statusTag: emailStatusTag(
+                a.notifySendStatus,
+                n.emailType,
+                a.notificationId ?? null
+              )
+            }))
           }))
         }
       : null

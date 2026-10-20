@@ -6,7 +6,8 @@ import { loadPage, authenticatedRequest } from '#/test-utils/load-page.js'
 import { runAxeChecks } from '#/test-utils/axe-helper.js'
 import {
   singleQuoteFixture,
-  quoteWithLevyBreakdownFixture
+  quoteWithLevyBreakdownFixture,
+  quoteWithRetriedEmailFixture
 } from '#/test-utils/fixtures/quotes.js'
 import { config } from '#/config/config.js'
 
@@ -41,6 +42,22 @@ describe('Quote page accessibility checks', () => {
 
     const document = await loadPage({
       requestUrl: '/quote/NRL-000001',
+      server: getServer(),
+      auth: authenticatedRequest
+    })
+
+    await runAxeChecks(document.documentElement)
+  })
+
+  it('should have no HTML accessibility issues with per-attempt email history', async () => {
+    mswServer.use(
+      http.get(quotesEndpoint, () =>
+        HttpResponse.json([quoteWithRetriedEmailFixture])
+      )
+    )
+
+    const document = await loadPage({
+      requestUrl: '/quote/NRL-000004',
       server: getServer(),
       auth: authenticatedRequest
     })

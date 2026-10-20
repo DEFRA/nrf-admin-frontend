@@ -153,3 +153,80 @@ export const quoteWithLevyBreakdownFixture = {
     levyAmountInflationAdjusted: 28187.5
   }
 }
+
+const NOTIFY_STATUS_URL_PREFIX =
+  'https://www.notifications.service.gov.uk/services/a76741a1-42be-4231-ae74-15ec14b81a11/notification'
+
+// A quote whose initial email came back temporary-failure and was re-sent
+// successfully by the retry worker — the per-attempt history shape the
+// backend returns since NRF2-1258.
+export const quoteWithRetriedEmailFixture = {
+  ...singleQuoteFixture[0],
+  reference: 'NRL-000004',
+  email: {
+    ...singleQuoteFixture[0].email,
+    notifySendStatus: 'delivered',
+    sendRetryCount: 1,
+    notificationId: '8b1dcb42-6ea5-49d3-9cb0-0f4e5a1b2c3d',
+    notifyStatusUrl: `${NOTIFY_STATUS_URL_PREFIX}/8b1dcb42-6ea5-49d3-9cb0-0f4e5a1b2c3d`
+  },
+  emailNotifications: [
+    {
+      emailType: 'quote_results',
+      notifySendStatus: 'delivered',
+      sendRetryCount: 1,
+      sendRequestAt: '2026-03-23T10:00:00.000Z',
+      notificationId: '8b1dcb42-6ea5-49d3-9cb0-0f4e5a1b2c3d',
+      notifyStatusUrl: `${NOTIFY_STATUS_URL_PREFIX}/8b1dcb42-6ea5-49d3-9cb0-0f4e5a1b2c3d`,
+      attempts: [
+        {
+          attemptNo: 1,
+          notificationId: '47cbb989-9546-418c-8828-232c3dc57537',
+          notifySendStatus: 'temporary-failure',
+          attemptedAt: '2026-03-23T10:00:05.000Z',
+          notifyStatusUrl: `${NOTIFY_STATUS_URL_PREFIX}/47cbb989-9546-418c-8828-232c3dc57537`
+        },
+        {
+          attemptNo: 2,
+          notificationId: '8b1dcb42-6ea5-49d3-9cb0-0f4e5a1b2c3d',
+          notifySendStatus: 'delivered',
+          attemptedAt: '2026-03-23T10:05:00.000Z',
+          notifyStatusUrl: `${NOTIFY_STATUS_URL_PREFIX}/8b1dcb42-6ea5-49d3-9cb0-0f4e5a1b2c3d`
+        }
+      ]
+    }
+  ]
+}
+
+// A quote whose initial send Notify rejected outright — no notification id,
+// one attempt row recording that a send was attempted all the same.
+export const quoteWithRejectedEmailFixture = {
+  ...singleQuoteFixture[0],
+  reference: 'NRL-000005',
+  email: {
+    ...singleQuoteFixture[0].email,
+    notifySendStatus: null,
+    sendRetryCount: 1,
+    notificationId: null,
+    notifyStatusUrl: null
+  },
+  emailNotifications: [
+    {
+      emailType: 'quote_results',
+      notifySendStatus: null,
+      sendRetryCount: 1,
+      sendRequestAt: '2026-03-23T10:00:00.000Z',
+      notificationId: null,
+      notifyStatusUrl: null,
+      attempts: [
+        {
+          attemptNo: 1,
+          notificationId: null,
+          notifySendStatus: null,
+          attemptedAt: '2026-03-23T10:00:00.000Z',
+          notifyStatusUrl: null
+        }
+      ]
+    }
+  ]
+}

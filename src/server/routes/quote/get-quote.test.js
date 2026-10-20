@@ -1,6 +1,9 @@
 import { http, HttpResponse } from 'msw'
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
-import { singleQuoteFixture } from '#/test-utils/fixtures/quotes.js'
+import {
+  singleQuoteFixture,
+  quoteWithRetriedEmailFixture
+} from '#/test-utils/fixtures/quotes.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { config } from '#/config/config.js'
 import { getQuote } from './get-quote.js'
@@ -25,11 +28,34 @@ describe('#getQuote', () => {
         emailNotifications: [
           {
             ...singleQuoteFixture[0].emailNotifications[0],
-            statusTag: { text: 'Delivered', classes: 'govuk-tag--green' }
+            statusTag: { text: 'Delivered', classes: 'govuk-tag--green' },
+            attempts: []
           }
         ]
       }
     })
+  })
+
+  it('should map each attempt with its own status tag', async () => {
+    stubQuotesResponse([quoteWithRetriedEmailFixture])
+
+    const result = await getQuote('NRL-000004')
+
+    const [notification] = result.quote.emailNotifications
+    expect(notification.statusTag).toEqual({
+      text: 'Delivered',
+      classes: 'govuk-tag--green'
+    })
+    expect(notification.attempts).toEqual([
+      {
+        ...quoteWithRetriedEmailFixture.emailNotifications[0].attempts[0],
+        statusTag: { text: 'Temporary failure', classes: 'govuk-tag--yellow' }
+      },
+      {
+        ...quoteWithRetriedEmailFixture.emailNotifications[0].attempts[1],
+        statusTag: { text: 'Delivered', classes: 'govuk-tag--green' }
+      }
+    ])
   })
 
   it('should return a null quote when no quote matches the reference', async () => {

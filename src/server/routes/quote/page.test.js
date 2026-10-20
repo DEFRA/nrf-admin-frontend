@@ -6,6 +6,8 @@ import { loadPage, authenticatedRequest } from '#/test-utils/load-page.js'
 import {
   singleQuoteFixture,
   quoteWithLevyBreakdownFixture,
+  quoteWithRetriedEmailFixture,
+  quoteWithRejectedEmailFixture,
   ineligibleQuoteFixture
 } from '#/test-utils/fixtures/quotes.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
@@ -195,6 +197,52 @@ describe('Quote page', () => {
         'a[href*="notifications.service.gov.uk/services"]'
       )
     ).not.toBeInTheDocument()
+  })
+
+  it('renders each send attempt with its own outcome when the email was retried', async () => {
+    const document = await loadQuotePageWithQuotes(
+      [quoteWithRetriedEmailFixture],
+      'NRL-000004'
+    )
+
+    expect(document.body).toHaveTextContent('Send attempts')
+    expect(document.body).toHaveTextContent('Initial send')
+    expect(document.body).toHaveTextContent('Retry 1')
+    expect(document.body).toHaveTextContent('Temporary failure')
+    expect(document.body).toHaveTextContent('Delivered')
+    expect(document.body).toHaveTextContent('23 Mar 2026 at 10:00')
+    expect(document.body).toHaveTextContent('23 Mar 2026 at 10:05')
+    const attemptLinks = document.body.querySelectorAll(
+      'a[href*="notifications.service.gov.uk/services"]'
+    )
+    // the summary list's "(view email)" link plus one per attempt with an id
+    expect(attemptLinks).toHaveLength(3)
+  })
+
+  it('renders an errored initial attempt without a notification id or status', async () => {
+    const document = await loadQuotePageWithQuotes(
+      [quoteWithRejectedEmailFixture],
+      'NRL-000005'
+    )
+
+    expect(document.body).toHaveTextContent('Send attempts')
+    expect(document.body).toHaveTextContent('Initial send')
+    expect(document.body).toHaveTextContent(
+      'Initial send attempt errored, no notification ID returned'
+    )
+    expect(
+      document.body.querySelectorAll(
+        'a[href*="notifications.service.gov.uk/services"]'
+      )
+    ).toHaveLength(0)
+  })
+
+  it('hides the send attempts section when the backend sends no attempt history', async () => {
+    const document = await loadQuotePageWithQuotes(singleQuoteFixture)
+
+    expect(
+      queryByRole(document, 'heading', { name: 'Send attempts' })
+    ).toBeNull()
   })
 
   it('shows the email delivery section with an explanatory message when no notification row exists', async () => {

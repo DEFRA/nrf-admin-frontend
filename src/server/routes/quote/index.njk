@@ -2,6 +2,7 @@
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
 {% from "govuk/components/details/macro.njk" import govukDetails %}
 {% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
@@ -96,6 +97,37 @@
                 }
               ]
             }) }}
+            {% if notification.attempts and notification.attempts.length %}
+              <h3 class="govuk-heading-m">Send attempts</h3>
+              {% set attemptRows = [] %}
+              {% for attempt in notification.attempts %}
+                {% set attemptStatusHtml %}
+                  {{ appNotifyStatusTag({ statusTag: attempt.statusTag, notifyStatusUrl: attempt.notifyStatusUrl }) }}
+                {% endset %}
+                {% if attempt.attemptNo === 1 %}
+                  {% set attemptLabel = 'Initial send' %}
+                  {% set noIdText = 'Initial send attempt errored, no notification ID returned' %}
+                {% else %}
+                  {% set attemptLabel = 'Retry ' ~ (attempt.attemptNo - 1) %}
+                  {% set noIdText = 'Retry attempt errored, no notification ID returned' %}
+                {% endif %}
+                {% set attemptRows = (attemptRows.push([
+                  { text: attemptLabel },
+                  { text: attempt.notificationId if attempt.notificationId else noIdText },
+                  { html: attemptStatusHtml },
+                  { text: attempt.attemptedAt | formatDateTime }
+                ]), attemptRows) %}
+              {% endfor %}
+              {{ govukTable({
+                head: [
+                  { text: "Attempt" },
+                  { text: "Notification ID" },
+                  { text: "Notify send status" },
+                  { text: "Attempted at" }
+                ],
+                rows: attemptRows
+              }) }}
+            {% endif %}
           {% endfor %}
         {% else %}
           <p class="govuk-body">No email has been sent for this quote. The levy calculation did not complete.</p>
