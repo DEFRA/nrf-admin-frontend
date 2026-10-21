@@ -6,69 +6,16 @@ updates:
     directory: /
     open-pull-requests-limit: 10
 
-    # Group packages into shared PR
+    # One PR for all minor and patch updates; majors arrive as separate PRs
     groups:
-      build:
-        patterns:
-          - '@babel/*'
-          - 'cssnano'
-          - 'cssnano-*'
-          - 'webpack-*'
-          - 'sass-*'
-          - 'postcss-*'
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
 
-      lint:
-        patterns:
-          - 'prettier'
-          - 'stylelint'
-          - 'stylelint-*'
-          - 'neostandard'
-          - 'eslint'
-
-      logging:
-        patterns:
-          - '*-pino'
-          - '*-pino-format'
-          - 'pino'
-          - 'pino-*'
-          - '@elastic/ecs-pino-format'
-
-      tools:
-        patterns:
-          - 'husky'
-          - 'nodemon'
-          - 'npm-run-all'
-          - 'semver'
-
-      testing:
-        patterns:
-          - 'vitest'
-          - 'vitest-*'
-          - '@vitest/*'
-          - '@testing-library/*'
-          - 'cheerio'
-          - 'jsdom'
-
-      hapi:
-        patterns:
-          - '@hapi/*'
-          - 'hapi-*'
-          - '@defra/hapi-*'
-
-      config:
-        patterns:
-          - 'convict'
-          - 'convict-format-with-validator'
-
-      code:
-        patterns:
-          - 'lodash'
-          - 'blankie'
-          - 'date-fns'
-          - 'ioredis'
-          - 'node-fetch'
-          - 'nunjucks'
-          - 'undici'
+    # Wait before proposing brand new releases
+    cooldown:
+      default-days: 3
 
     ignore:
       - dependency-name: 'eslint-*'
