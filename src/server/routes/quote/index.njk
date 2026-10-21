@@ -50,11 +50,11 @@
             } if quote.housingUnits,
             {
               key: { text: "Total rounded levy amount" },
-              value: { text: quote.levyGbp.levyAmountExcludingVat | formatCurrency }
+              value: { text: quote.levyGbp.levyAmountExcludingVat | formatCurrency({ hideZeroPence: true }) }
             } if quote.levyGbp,
             {
               key: { text: "Total inflation adjusted levy amount" },
-              value: { text: quote.levyGbp.levyAmountInflationAdjusted | formatCurrency }
+              value: { text: quote.levyGbp.levyAmountInflationAdjusted | formatCurrency({ hideZeroPence: true }) }
             } if quote.levyGbp and quote.levyGbp.levyAmountInflationAdjusted
           ]
         }) }}
@@ -132,7 +132,7 @@
                   } if edp.levyGbp.roundedBaseChargePerUnit,
                   {
                     key: { text: "Provisional nature restoration levy amount" },
-                    value: { text: edp.levyGbp.baseAmount | formatCurrency }
+                    value: { text: edp.levyGbp.baseAmount | formatCurrency({ hideZeroPence: true }) }
                   } if edp.levyGbp.baseAmount,
                   {
                     key: { text: "Inflation rate" },
@@ -140,7 +140,7 @@
                   } if edp.levyGbp.inflationRate,
                   {
                     key: { text: "Inflation adjusted amount" },
-                    value: { text: edp.levyGbp.amountInflationAdjusted | formatCurrency }
+                    value: { text: edp.levyGbp.amountInflationAdjusted | formatCurrency({ hideZeroPence: true }) }
                   } if edp.levyGbp.amountInflationAdjusted
                 ]
               }) }}
@@ -151,10 +151,10 @@
                     → {{ edp.levyGbp.roundedBaseChargePerUnit | formatCurrency }}</li>
                   <li>Calculate provisional levy amount: {{ edp.levyGbp.units }}
                     × {{ edp.levyGbp.roundedBaseChargePerUnit | formatCurrency }}
-                    = {{ edp.levyGbp.baseAmount | formatCurrency }}</li>
+                    = {{ edp.levyGbp.baseAmount | formatCurrency({ hideZeroPence: true }) }}</li>
                 </ol>
                 <p class="govuk-body govuk-!-font-weight-bold">Provisional nature restoration levy
-                  amount: {{ edp.levyGbp.baseAmount | formatCurrency }}</p>
+                  amount: {{ edp.levyGbp.baseAmount | formatCurrency({ hideZeroPence: true }) }}</p>
               {% endif %}
             {% endif %}
           {% endfor %}
