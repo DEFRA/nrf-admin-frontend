@@ -62,10 +62,19 @@ describe('Quote page', () => {
     expect(document.body).toHaveTextContent('Number of units')
     expect(document.body).toHaveTextContent('10')
     expect(document.body).toHaveTextContent('Total rounded levy amount')
-    expect(document.body).toHaveTextContent('£999.00')
     expect(document.body).toHaveTextContent(
       'Total inflation adjusted levy amount'
     )
+  })
+
+  it('shows whole pound levy amounts without the pence', async () => {
+    const document = await loadQuotePageWithQuotes(singleQuoteFixture)
+
+    expect(document.body).toHaveTextContent('Total rounded levy amount £999')
+    expect(document.body).toHaveTextContent(
+      'Provisional nature restoration levy amount £999'
+    )
+    expect(document.body).not.toHaveTextContent('£999.00')
   })
 
   it('renders the provisional levy amount for each EDP', async () => {
@@ -76,7 +85,6 @@ describe('Quote page', () => {
     expect(document.body).toHaveTextContent(
       'Provisional nature restoration levy amount'
     )
-    expect(document.body).toHaveTextContent('£999.00')
   })
 
   it('renders catchments for each EDP', async () => {
@@ -120,10 +128,24 @@ describe('Quote page', () => {
       'Round base charge price per unit: £2,675.00 → £2,675.00'
     )
     expect(document.body).toHaveTextContent(
-      'Calculate provisional levy amount: 10 × £2,675.00 = £26,750.00'
+      'Calculate provisional levy amount: 10 × £2,675.00 = £26,750'
     )
     expect(document.body).toHaveTextContent(
-      'Provisional nature restoration levy amount: £26,750.00'
+      'Provisional nature restoration levy amount: £26,750'
+    )
+    expect(document.body).not.toHaveTextContent('£26,750.00')
+  })
+
+  it('shows a levy amount with pence to two decimal places', async () => {
+    const document = await loadQuotePageWithQuotes([
+      quoteWithLevyBreakdownFixture
+    ])
+
+    expect(document.body).toHaveTextContent(
+      'Inflation adjusted amount £28,187.50'
+    )
+    expect(document.body).toHaveTextContent(
+      'Total inflation adjusted levy amount £28,187.50'
     )
   })
 
