@@ -1,6 +1,8 @@
 import { getRequestFromBackend } from '#/server/common/services/nrf-backend.js'
 import { createLogger } from '#/server/common/helpers/logging/logger.js'
 import { emailStatusTag } from '#/server/common/helpers/email-status-tag.js'
+import { canDeleteQuote } from '#/server/common/helpers/can-delete-quote.js'
+import { config } from '#/config/config.js'
 
 const logger = createLogger()
 
@@ -25,7 +27,12 @@ export async function getQuote(reference) {
               n.emailType,
               n.notificationId ?? null
             )
-          }))
+          })),
+          deleteEligible: canDeleteQuote({
+            email: found.email?.address,
+            patterns: config.get('quoteDelete.eligibleEmailPatterns'),
+            isProd: config.get('cdpEnvironment') === 'prod'
+          })
         }
       : null
     return { quote }

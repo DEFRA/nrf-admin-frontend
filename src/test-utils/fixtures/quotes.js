@@ -114,17 +114,17 @@ export const multipleQuotesFixture = [
   ...singleQuoteFixture
 ]
 
-// A quote the backend has flagged as not deletable — in production, only
-// quotes created with an approved internal email address can be deleted.
+// A quote created with an address outside the approved delete list. The
+// backend always reports deleteEligible true (NRF2-1343) — the admin app's
+// own email check decides it is not deletable.
 export const ineligibleQuoteFixture = [
   {
     ...singleQuoteFixture[0],
     reference: 'NRL-000003',
     email: {
       ...singleQuoteFixture[0].email,
-      address: 'developer@housebuilder.com'
-    },
-    deleteEligible: false
+      address: 'genuine.customer@example.com'
+    }
   }
 ]
 

@@ -89,6 +89,21 @@ export const config = convict({
     format: Boolean,
     default: isTest
   },
+  cdpEnvironment: {
+    doc: 'The CDP environment the app is running in',
+    format: [
+      'local',
+      'infra-dev',
+      'management',
+      'dev',
+      'test',
+      'perf-test',
+      'ext-test',
+      'prod'
+    ],
+    default: 'local',
+    env: 'ENVIRONMENT'
+  },
   log: {
     enabled: {
       doc: 'Is logging enabled',
@@ -262,6 +277,14 @@ export const config = convict({
       default: '',
       sensitive: true,
       env: 'BACKEND_API_KEY'
+    }
+  },
+  quoteDelete: {
+    eligibleEmailPatterns: {
+      doc: 'Comma-separated email addresses or @domain suffixes whose quotes may be deleted when cdpEnvironment is prod (from cdp-app-config). An empty list in prod disables deletion entirely; other environments ignore it. Eligibility is enforced by this app, not the backend',
+      format: Array,
+      default: [],
+      env: 'QUOTE_DELETE_ELIGIBLE_EMAIL_PATTERNS'
     }
   },
   frontend: {
