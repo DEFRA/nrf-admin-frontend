@@ -20,12 +20,10 @@ const transformQuotes = (quotes) =>
         quote.email?.emailType
       )
     },
-    // The backend no longer gates deletion (NRF2-1343 opened the endpoint to
-    // the request-to-use journey) — eligibility is decided here instead
     deleteEligible: canDeleteQuote({
       email: quote.email?.address,
       patterns: config.get('quoteDelete.eligibleEmailPatterns'),
-      isProd: config.get('isProduction')
+      isProd: config.get('cdpEnvironment') === 'prod'
     })
   }))
 

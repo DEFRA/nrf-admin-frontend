@@ -1,8 +1,8 @@
 /**
  * Wraps the real config for `vi.mock('#/config/config.js')` so a test file
- * runs as production with an approved delete-eligibility address list — the
- * quote fixtures' emails are approved, the ineligible fixture's external
- * address is not. Use inside the mock factory:
+ * runs as the prod CDP environment with an approved delete-eligibility
+ * address list — the quote fixtures' emails are approved, the ineligible
+ * fixture's external address is not. Use inside the mock factory:
  *
  * vi.mock('#/config/config.js', async (importOriginal) => {
  *   const { config } = await importOriginal()
@@ -16,15 +16,18 @@
  * hoists above.
  *
  * @param {import('#/config/config.js').config} config - the real config
- * @returns {object} config with production + patterns overlaid
+ * @returns {object} config with prod environment + patterns overlaid
  */
 export const productionDeleteEligibilityConfig = (config) => ({
   config: {
-    get: (key) =>
-      key === 'isProduction'
-        ? true
-        : key === 'quoteDelete.eligibleEmailPatterns'
-          ? ['developer@housebuilder.com', 'another@developer.com']
-          : config.get(key)
+    get: (key) => {
+      if (key === 'cdpEnvironment') {
+        return 'prod'
+      }
+      if (key === 'quoteDelete.eligibleEmailPatterns') {
+        return ['developer@housebuilder.com', 'another@developer.com']
+      }
+      return config.get(key)
+    }
   }
 })
