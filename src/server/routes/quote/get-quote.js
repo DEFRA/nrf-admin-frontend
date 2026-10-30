@@ -1,6 +1,8 @@
 import { getRequestFromBackend } from '#/server/common/services/nrf-backend.js'
 import { createLogger } from '#/server/common/helpers/logging/logger.js'
 import { emailStatusTag } from '#/server/common/helpers/email-status-tag.js'
+import { canDeleteQuote } from '#/server/common/helpers/can-delete-quote.js'
+import { config } from '#/config/config.js'
 
 const logger = createLogger()
 
@@ -25,7 +27,15 @@ export async function getQuote(reference) {
               n.emailType,
               n.notificationId ?? null
             )
-          }))
+          })),
+          // The backend no longer gates deletion (NRF2-1343 opened the
+          // endpoint to the request-to-use journey) — eligibility is decided
+          // here instead
+          deleteEligible: canDeleteQuote({
+            email: found.email?.address,
+            patterns: config.get('quoteDelete.eligibleEmailPatterns'),
+            isProd: config.get('isProduction')
+          })
         }
       : null
     return { quote }

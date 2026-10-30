@@ -1,5 +1,6 @@
 import { getByRole } from '@testing-library/dom'
 import { http, HttpResponse } from 'msw'
+import { vi } from 'vitest'
 import { setupTestServer } from '#/test-utils/setup-test-server.js'
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
 import { loadPage, authenticatedRequest } from '#/test-utils/load-page.js'
@@ -9,6 +10,23 @@ import {
 } from '#/test-utils/fixtures/quotes.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { config } from '#/config/config.js'
+
+// Eligibility is decided by this app — run these tests as production with an
+// approved address list so the ineligible fixture (created with an external
+// address) is genuinely refused
+vi.mock('#/config/config.js', async (importOriginal) => {
+  const { config } = await importOriginal()
+  return {
+    config: {
+      get: (key) =>
+        key === 'isProduction'
+          ? true
+          : key === 'quoteDelete.eligibleEmailPatterns'
+            ? ['developer@housebuilder.com', 'another@developer.com']
+            : config.get(key)
+    }
+  }
+})
 
 const backendUrl = config.get('backend.apiUrl')
 const quotesEndpoint = `${backendUrl}/quotes`
@@ -20,6 +38,9 @@ const stubDeleteResponse = (status) =>
   mswServer.use(
     http.delete(quoteEndpoint, () => new HttpResponse(null, { status }))
   )
+
+const stubQuotes = (quotes = singleQuoteFixture) =>
+  mswServer.use(http.get(quotesEndpoint, () => HttpResponse.json(quotes)))
 
 describe('Delete quote confirmation page', () => {
   const getServer = setupTestServer()
@@ -97,6 +118,7 @@ describe('Delete quote confirmation page', () => {
   })
 
   it('deletes the quote and redirects to the quotes list', async () => {
+    stubQuotes()
     stubDeleteResponse(statusCodes.noContent)
 
     const response = await getServer().inject({
@@ -112,7 +134,40 @@ describe('Delete quote confirmation page', () => {
     )
   })
 
+  it('refuses to delete without calling the backend when the quote fails the eligibility check', async () => {
+    stubQuotes(ineligibleQuoteFixture)
+
+    const response = await getServer().inject({
+      method: 'POST',
+      url: '/quote/NRL-000003/delete',
+      payload: {},
+      auth: authenticatedRequest
+    })
+
+    expect(response.statusCode).toBe(statusCodes.redirectAfterPost)
+    expect(response.headers.location).toBe(
+      '/?notification=quote-delete-not-eligible'
+    )
+  })
+
+  it('fails safe with an error banner when eligibility cannot be checked', async () => {
+    mswServer.use(
+      http.get(quotesEndpoint, () => new HttpResponse(null, { status: 500 }))
+    )
+
+    const response = await getServer().inject({
+      method: 'POST',
+      url: '/quote/NRL-000001/delete',
+      payload: {},
+      auth: authenticatedRequest
+    })
+
+    expect(response.statusCode).toBe(statusCodes.redirectAfterPost)
+    expect(response.headers.location).toBe('/?notification=quote-delete-error')
+  })
+
   it('redirects with a not-eligible notification when the backend forbids the delete', async () => {
+    stubQuotes()
     stubDeleteResponse(statusCodes.forbidden)
 
     const response = await getServer().inject({

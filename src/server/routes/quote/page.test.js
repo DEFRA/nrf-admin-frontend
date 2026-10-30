@@ -1,5 +1,6 @@
 import { getByRole, queryByRole, queryByText } from '@testing-library/dom'
 import { http, HttpResponse } from 'msw'
+import { vi } from 'vitest'
 import { setupTestServer } from '#/test-utils/setup-test-server.js'
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
 import { loadPage, authenticatedRequest } from '#/test-utils/load-page.js'
@@ -10,6 +11,23 @@ import {
 } from '#/test-utils/fixtures/quotes.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { config } from '#/config/config.js'
+
+// Eligibility is decided by this app — run these tests as production with an
+// approved address list so the ineligible fixture (created with an external
+// address) is genuinely refused
+vi.mock('#/config/config.js', async (importOriginal) => {
+  const { config } = await importOriginal()
+  return {
+    config: {
+      get: (key) =>
+        key === 'isProduction'
+          ? true
+          : key === 'quoteDelete.eligibleEmailPatterns'
+            ? ['developer@housebuilder.com', 'another@developer.com']
+            : config.get(key)
+    }
+  }
+})
 
 const backendUrl = config.get('backend.apiUrl')
 const quotesEndpoint = `${backendUrl}/quotes`

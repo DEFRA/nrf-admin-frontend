@@ -264,6 +264,14 @@ export const config = convict({
       env: 'BACKEND_API_KEY'
     }
   },
+  quoteDelete: {
+    eligibleEmailPatterns: {
+      doc: 'Comma-separated email addresses or @domain suffixes whose quotes may be deleted in production (from cdp-app-config). An empty list in production disables deletion entirely; other environments ignore it. Eligibility is enforced by this app, not the backend',
+      format: Array,
+      default: [],
+      env: 'QUOTE_DELETE_ELIGIBLE_EMAIL_PATTERNS'
+    }
+  },
   frontend: {
     apiUrl: {
       doc: 'Base URL for the NRF frontend service',
