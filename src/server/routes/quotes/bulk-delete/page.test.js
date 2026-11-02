@@ -1,14 +1,25 @@
 // @vitest-environment jsdom
 import { http, HttpResponse } from 'msw'
+import { vi } from 'vitest'
 import { setupTestServer } from '#/test-utils/setup-test-server.js'
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
 import { loadPage, authenticatedRequest } from '#/test-utils/load-page.js'
 import {
   singleQuoteFixture,
+  multipleQuotesFixture,
   ineligibleQuoteFixture
 } from '#/test-utils/fixtures/quotes.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { config } from '#/config/config.js'
+
+// Run as production with an approved address list so the ineligible fixture
+// (created with an external address) is genuinely refused
+vi.mock('#/config/config.js', async (importOriginal) => {
+  const { config } = await importOriginal()
+  const { productionDeleteEligibilityConfig } =
+    await import('#/test-utils/production-delete-eligibility.js')
+  return productionDeleteEligibilityConfig(config)
+})
 
 const backendUrl = config.get('backend.apiUrl')
 const quotesEndpoint = `${backendUrl}/quotes`
@@ -17,10 +28,8 @@ const bulkDeleteUrl = '/quotes/delete'
 
 const mswServer = setupMswServer()
 
-const stubQuotes = () =>
-  mswServer.use(
-    http.get(quotesEndpoint, () => HttpResponse.json(singleQuoteFixture))
-  )
+const stubQuotes = (quotes = singleQuoteFixture) =>
+  mswServer.use(http.get(quotesEndpoint, () => HttpResponse.json(quotes)))
 
 const stubDelete = (reference, status) =>
   mswServer.use(
@@ -83,6 +92,7 @@ describe('Bulk delete quotes confirmation page', () => {
   })
 
   it('deletes the selected quotes and redirects to the quotes list', async () => {
+    stubQuotes(multipleQuotesFixture)
     stubDelete('NRL-000001', statusCodes.noContent)
     stubDelete('NRL-000002', statusCodes.noContent)
 
@@ -100,6 +110,7 @@ describe('Bulk delete quotes confirmation page', () => {
   })
 
   it('reports a partial failure when some quotes cannot be deleted', async () => {
+    stubQuotes(multipleQuotesFixture)
     stubDelete('NRL-000001', statusCodes.noContent)
     stubDelete('NRL-000002', statusCodes.internalServerError)
 
@@ -116,13 +127,13 @@ describe('Bulk delete quotes confirmation page', () => {
     )
   })
 
-  it('reports a not-eligible banner when every quote is rejected as forbidden', async () => {
-    stubDelete('NRL-000001', statusCodes.forbidden)
+  it('reports a not-eligible banner and deletes nothing when every quote fails the eligibility check', async () => {
+    stubQuotes(ineligibleQuoteFixture)
 
     const response = await getServer().inject({
       method: 'POST',
       url: bulkDeleteUrl,
-      payload: { references: ['NRL-000001'] },
+      payload: { references: ['NRL-000003'] },
       auth: authenticatedRequest
     })
 
@@ -132,7 +143,25 @@ describe('Bulk delete quotes confirmation page', () => {
     )
   })
 
+  it('deletes only the eligible quotes and reports a partial result', async () => {
+    stubQuotes([...multipleQuotesFixture, ...ineligibleQuoteFixture])
+    stubDelete('NRL-000001', statusCodes.noContent)
+
+    const response = await getServer().inject({
+      method: 'POST',
+      url: bulkDeleteUrl,
+      payload: { references: ['NRL-000001', 'NRL-000003'] },
+      auth: authenticatedRequest
+    })
+
+    expect(response.statusCode).toBe(statusCodes.redirectAfterPost)
+    expect(response.headers.location).toBe(
+      '/?notification=quotes-delete-partial&deletedCount=1&totalCount=2'
+    )
+  })
+
   it('reports a failure when no quotes could be deleted', async () => {
+    stubQuotes()
     stubDelete('NRL-000001', statusCodes.internalServerError)
 
     const response = await getServer().inject({
