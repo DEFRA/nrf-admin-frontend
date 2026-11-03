@@ -55,7 +55,11 @@
             {
               key: { text: "Total inflation adjusted levy amount" },
               value: { text: quote.levyGbp.levyAmountInflationAdjusted | formatCurrency({ hideZeroPence: true }) }
-            } if quote.levyGbp and quote.levyGbp.levyAmountInflationAdjusted
+            } if quote.levyGbp and quote.levyGbp.levyAmountInflationAdjusted,
+            {
+              key: { text: "Commitment certificate created at" },
+              value: { text: (quote.commitmentCertificateCreatedAt | formatDateTime) if quote.commitmentCertificateCreatedAt else "Not created" }
+            }
           ]
         }) }}
 
