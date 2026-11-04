@@ -53,6 +53,28 @@ describe('Quote page', () => {
     )
   })
 
+  it('shows when the commitment certificate was created', async () => {
+    const document = await loadQuotePageWithQuotes([
+      {
+        ...singleQuoteFixture[0],
+        commitmentCertificateCreatedAt: '2026-01-02T14:30:00.000Z'
+      }
+    ])
+
+    expect(document.body).toHaveTextContent('Commitment certificate created at')
+    expect(document.body).toHaveTextContent('2 Jan 2026 at 14:30')
+  })
+
+  it('shows Not created when no commitment certificate has been created', async () => {
+    const document = await loadQuotePageWithQuotes([
+      { ...singleQuoteFixture[0], commitmentCertificateCreatedAt: null }
+    ])
+
+    expect(document.body).toHaveTextContent(
+      'Commitment certificate created at Not created'
+    )
+  })
+
   it('renders a back link to the quotes list', async () => {
     const document = await loadQuotePageWithQuotes(singleQuoteFixture)
 
