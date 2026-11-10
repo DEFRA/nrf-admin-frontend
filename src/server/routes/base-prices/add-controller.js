@@ -1,5 +1,5 @@
 import { statusCodes } from '#/server/common/constants/status-codes.js'
-import { addBasePrice } from '#/server/common/services/impact-assessor.js'
+import { addBasePrice } from '#/server/common/services/impact-assessor-base-prices.js'
 import { basePricesPath, DEFAULT_EDP_ID } from './constants.js'
 import { buildFormViewModel, redirectToFormWithErrors } from './form-page.js'
 import {

@@ -1,7 +1,7 @@
 import Boom from '@hapi/boom'
 
 import { utcToUkLocal } from '#/server/common/helpers/uk-local-time.js'
-import { getBasePrices } from '#/server/common/services/impact-assessor.js'
+import { getBasePrices } from '#/server/common/services/impact-assessor-base-prices.js'
 import { DEFAULT_EDP_ID } from './constants.js'
 
 const FLASH_KEY = 'basePriceForm'
@@ -15,8 +15,8 @@ const fieldIds = {
 }
 
 /**
- * @typedef {import('#/server/common/services/impact-assessor.js').BasePrice} BasePrice
- * @typedef {import('#/server/common/services/impact-assessor.js').EdpBasePrices} EdpBasePrices
+ * @typedef {import('#/server/common/services/impact-assessor-base-prices.js').BasePrice} BasePrice
+ * @typedef {import('#/server/common/services/impact-assessor-base-prices.js').EdpBasePrices} EdpBasePrices
  * @typedef {import('./form-validation.js').BasePriceFormErrors} BasePriceFormErrors
  * @typedef {{ values: Record<string, string>, errors: BasePriceFormErrors }} FormState
  */

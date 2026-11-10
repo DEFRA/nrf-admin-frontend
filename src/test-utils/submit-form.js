@@ -1,9 +1,4 @@
-const sessionCookieOf = (response) =>
-  [response.headers['set-cookie']]
-    .flat()
-    .filter(Boolean)
-    .map((cookie) => cookie.split(';')[0])
-    .join('; ')
+import { getSessionCookie } from './session-cookie.js'
 
 export const submitForm = async ({ server, url, payload, auth, cookie }) => {
   const response = await server.inject({
@@ -13,5 +8,5 @@ export const submitForm = async ({ server, url, payload, auth, cookie }) => {
     auth,
     headers: cookie ? { cookie } : {}
   })
-  return { response, cookie: sessionCookieOf(response) || cookie }
+  return { response, cookie: getSessionCookie(response) || cookie }
 }

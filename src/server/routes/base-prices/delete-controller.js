@@ -2,7 +2,7 @@ import Boom from '@hapi/boom'
 import Joi from 'joi'
 
 import { statusCodes } from '#/server/common/constants/status-codes.js'
-import { deleteBasePrice } from '#/server/common/services/impact-assessor.js'
+import { deleteBasePrice } from '#/server/common/services/impact-assessor-base-prices.js'
 import { basePricesPath } from './constants.js'
 import { isFuture, loadBasePrice } from './form-state.js'
 import { notificationFor, takenEffectStatus } from './notifications.js'

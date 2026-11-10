@@ -1,6 +1,6 @@
 import Joi from 'joi'
 
-import { getBasePrices } from '#/server/common/services/impact-assessor.js'
+import { getBasePrices } from '#/server/common/services/impact-assessor-base-prices.js'
 import {
   addBasePricePath,
   changeBasePricePath,

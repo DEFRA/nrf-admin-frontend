@@ -1,9 +1,8 @@
 import { getByLabelText, getByRole, getByText } from '@testing-library/dom'
-import { JSDOM } from 'jsdom'
 import { http, HttpResponse } from 'msw'
 import { setupTestServer } from '#/test-utils/setup-test-server.js'
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
-import { loadPage } from '#/test-utils/load-page.js'
+import { loadPage, loadPageWithCookie } from '#/test-utils/load-page.js'
 import { submitForm } from '#/test-utils/submit-form.js'
 import {
   edpWithHistory,
@@ -149,29 +148,20 @@ describe('Add base price page', () => {
       comment: ''
     })
     stubBasePrices(pastBasePrice)
+    const pageOptions = {
+      requestUrl: addUrl,
+      server: getServer(),
+      auth: signedInStaff
+    }
 
-    const first = await getServer().inject({
-      method: 'GET',
-      url: addUrl,
-      auth: signedInStaff,
-      headers: { cookie }
-    })
-    const cookieAfterFirst = first.headers['set-cookie']
-      ?.map((header) => header.split(';')[0])
-      .join('; ')
-    const second = await getServer().inject({
-      method: 'GET',
-      url: addUrl,
-      auth: signedInStaff,
-      headers: { cookie: cookieAfterFirst ?? cookie }
+    const first = await loadPageWithCookie({ ...pageOptions, cookie })
+    const second = await loadPageWithCookie({
+      ...pageOptions,
+      cookie: first.cookie
     })
 
-    expect(new JSDOM(first.result).window.document.body).toHaveTextContent(
-      'Enter a comment'
-    )
-    expect(new JSDOM(second.result).window.document.body).not.toHaveTextContent(
-      'Enter a comment'
-    )
+    expect(first.document.body).toHaveTextContent('Enter a comment')
+    expect(second.document.body).not.toHaveTextContent('Enter a comment')
   })
 
   it('tells the user when a base price was added by someone else in the meantime', async () => {
