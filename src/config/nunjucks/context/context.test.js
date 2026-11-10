@@ -65,7 +65,7 @@ describe('context and cache', () => {
             { href: '/map-tile-cache', text: 'Map tile cache', active: false },
             { href: '/sign-out', text: 'Sign out' }
           ],
-          serviceName: 'Nature Restoration Fund',
+          serviceName: 'Nature Restoration Fund Admin',
           serviceUrl: '/'
         })
       })
@@ -148,7 +148,7 @@ describe('context and cache', () => {
             { href: '/map-tile-cache', text: 'Map tile cache', active: false },
             { href: '/sign-out', text: 'Sign out' }
           ],
-          serviceName: 'Nature Restoration Fund',
+          serviceName: 'Nature Restoration Fund Admin',
           serviceUrl: '/'
         })
       })

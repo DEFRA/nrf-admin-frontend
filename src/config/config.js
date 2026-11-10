@@ -61,7 +61,7 @@ export const config = convict({
   serviceName: {
     doc: 'Applications Service Name',
     format: String,
-    default: 'Nature Restoration Fund'
+    default: 'Nature Restoration Fund Admin'
   },
   root: {
     doc: 'Project root',
