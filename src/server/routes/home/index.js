@@ -1,5 +1,4 @@
 import { homeController } from './controller.js'
-import { clearTileCacheController } from './clear-tile-cache-controller.js'
 
 /**
  * Sets up the routes used in the home page.
@@ -14,11 +13,6 @@ export const home = {
           method: 'GET',
           path: '/',
           ...homeController
-        },
-        {
-          method: 'POST',
-          path: '/cache/clear-tile-cache',
-          ...clearTileCacheController
         }
       ])
     }

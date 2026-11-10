@@ -60,10 +60,10 @@ describe('context and cache', () => {
           breadcrumbs: [],
           getAssetPath: expect.any(Function),
           navigation: [
-            {
-              href: '/sign-out',
-              text: 'Sign out'
-            }
+            { href: '/', text: 'Quotes', active: true },
+            { href: '/base-prices', text: 'Base prices', active: false },
+            { href: '/map-tile-cache', text: 'Map tile cache', active: false },
+            { href: '/sign-out', text: 'Sign out' }
           ],
           serviceName: 'Nature Restoration Fund',
           serviceUrl: '/'
@@ -143,10 +143,10 @@ describe('context and cache', () => {
           breadcrumbs: [],
           getAssetPath: expect.any(Function),
           navigation: [
-            {
-              href: '/sign-out',
-              text: 'Sign out'
-            }
+            { href: '/', text: 'Quotes', active: true },
+            { href: '/base-prices', text: 'Base prices', active: false },
+            { href: '/map-tile-cache', text: 'Map tile cache', active: false },
+            { href: '/sign-out', text: 'Sign out' }
           ],
           serviceName: 'Nature Restoration Fund',
           serviceUrl: '/'

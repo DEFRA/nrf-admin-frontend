@@ -1,0 +1,129 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
+{% from "govuk/components/date-input/macro.njk" import govukDateInput %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block beforeContent %}
+  <nav>
+    {{ govukBackLink({
+      text: "Back to base prices",
+      href: backHref
+    }) }}
+  </nav>
+{% endblock %}
+
+{% block pageTitle %}
+  {{ "Error: " if errorList.length }}{{ pageTitle }} | {{ serviceName }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+      {% if errorList.length %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: errorList
+        }) }}
+      {% endif %}
+
+      {{ appHeading({
+        text: heading
+      }) }}
+
+      {{ govukSummaryList({
+        rows: [
+          { key: { text: "EDP" }, value: { text: edpName } },
+          { key: { text: "Your name" }, value: { text: staffName } },
+          { key: { text: "Your email" }, value: { text: staffEmail } }
+        ]
+      }) }}
+
+      <form method="post" action="{{ formAction }}" novalidate>
+        {{ govukInput({
+          id: "basePrice",
+          name: "basePrice",
+          label: {
+            text: "Base price per unit",
+            classes: "govuk-label--m"
+          },
+          hint: { text: "In pounds, like 2675.50. It must be more than £0 and under £100,000,000, with no more than 2 decimal places." },
+          prefix: { text: "£" },
+          classes: "govuk-input--width-10",
+          inputmode: "decimal",
+          spellcheck: false,
+          value: values.basePrice,
+          errorMessage: { text: errors.basePrice } if errors.basePrice
+        }) }}
+
+        {{ govukDateInput({
+          id: "effectiveFrom",
+          namePrefix: "effectiveFrom",
+          fieldset: {
+            legend: {
+              text: "Effective from date",
+              classes: "govuk-fieldset__legend--m"
+            }
+          },
+          hint: { text: "For example, 27 3 2027" },
+          errorMessage: { text: errors.effectiveFrom } if errors.effectiveFrom,
+          items: [
+            {
+              name: "day",
+              classes: "govuk-input--width-2" + (" govuk-input--error" if errors.effectiveFrom),
+              value: values["effectiveFrom-day"]
+            },
+            {
+              name: "month",
+              classes: "govuk-input--width-2" + (" govuk-input--error" if errors.effectiveFrom),
+              value: values["effectiveFrom-month"]
+            },
+            {
+              name: "year",
+              classes: "govuk-input--width-4" + (" govuk-input--error" if errors.effectiveFrom),
+              value: values["effectiveFrom-year"]
+            }
+          ]
+        }) }}
+
+        {{ govukInput({
+          id: "effectiveFromTime",
+          name: "effectiveFromTime",
+          label: {
+            text: "Effective from time",
+            classes: "govuk-label--m"
+          },
+          hint: { text: "Use the 24-hour clock in UK time, like 14:30. Enter 00:00 for the start of the day." },
+          classes: "govuk-input--width-5",
+          spellcheck: false,
+          value: values.effectiveFromTime,
+          errorMessage: { text: errors.effectiveFromTime } if errors.effectiveFromTime
+        }) }}
+
+        {{ govukCharacterCount({
+          id: "comment",
+          name: "comment",
+          label: {
+            text: "Comment",
+            classes: "govuk-label--m"
+          },
+          hint: { text: "Say why the base price is changing, for example the NE advice it follows." },
+          maxlength: maxCommentLength,
+          value: values.comment,
+          errorMessage: { text: errors.comment } if errors.comment
+        }) }}
+
+        {{ govukButton({
+          text: "Save"
+        }) }}
+      </form>
+
+      <p class="govuk-body">
+        <a class="govuk-link" href="{{ backHref }}">Cancel</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}

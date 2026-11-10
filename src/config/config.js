@@ -315,6 +315,13 @@ export const config = convict({
       default: '',
       sensitive: true,
       env: 'DATA_SYNC_TOKEN'
+    },
+    apiKey: {
+      doc: 'Service-to-service x-api-key sent to the impact-assessor /base-prices endpoints',
+      format: requireInProduction('IMPACT_ASSESSOR_API_KEY'),
+      default: '',
+      sensitive: true,
+      env: 'IMPACT_ASSESSOR_API_KEY'
     }
   },
   api: {
