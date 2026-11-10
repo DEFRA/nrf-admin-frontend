@@ -23,9 +23,6 @@ export const auth = {
           handler: authCallbackController.handler,
           options: {
             auth: false,
-            plugins: {
-              crumb: false
-            },
             payload: {
               parse: true,
               allow: 'application/x-www-form-urlencoded'

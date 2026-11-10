@@ -43,6 +43,7 @@
       }) }}
 
       <form method="post" action="{{ formAction }}" novalidate>
+        {% include "partials/csrf-token.njk" %}
         {{ govukInput({
           id: "basePrice",
           name: "basePrice",

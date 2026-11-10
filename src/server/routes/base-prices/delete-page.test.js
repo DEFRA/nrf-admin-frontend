@@ -48,6 +48,9 @@ describe('Delete base price page', () => {
       'href',
       '/base-prices'
     )
+    expect(
+      document.querySelector('form input[name="csrfToken"]')
+    ).toBeInTheDocument()
   })
 
   it('sends the user back when the base price has already taken effect', async () => {

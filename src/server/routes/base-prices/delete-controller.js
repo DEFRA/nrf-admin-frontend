@@ -1,15 +1,15 @@
-import Boom from '@hapi/boom'
 import Joi from 'joi'
 
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { deleteBasePrice } from '#/server/common/services/impact-assessor-base-prices.js'
 import { basePricesPath } from './constants.js'
 import { isFuture, loadBasePrice } from './form-state.js'
-import { notificationFor, takenEffectStatus } from './notifications.js'
-
-const idParamSchema = Joi.object({
-  id: Joi.number().integer().positive().required()
-})
+import {
+  notificationFor,
+  redirectToList,
+  takenEffectStatus
+} from './notifications.js'
+import { idParamSchema } from './schemas.js'
 
 export const deleteBasePriceConfirmController = {
   options: {
@@ -21,15 +21,8 @@ export const deleteBasePriceConfirmController = {
     const { id } = request.params
     const { edp, basePrice } = await loadBasePrice(id)
 
-    if (!basePrice) {
-      throw Boom.notFound('Base price not found', {
-        message: `No base price found with id ${id}`
-      })
-    }
     if (!isFuture({ basePrice, now: new Date() })) {
-      return h.redirect(
-        `${basePricesPath}?notification=base-price-taken-effect`
-      )
+      return redirectToList({ h, notification: 'base-price-taken-effect' })
     }
 
     return h.view('base-prices/delete', {
@@ -58,8 +51,8 @@ export const deleteBasePriceController = {
       byStatus: takenEffectStatus
     })
 
-    return h
-      .redirect(`${basePricesPath}?notification=${notification}`)
-      .code(statusCodes.redirectAfterPost)
+    return redirectToList({ h, notification }).code(
+      statusCodes.redirectAfterPost
+    )
   }
 }

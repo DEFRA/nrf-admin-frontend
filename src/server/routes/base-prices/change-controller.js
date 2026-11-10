@@ -1,6 +1,3 @@
-import Boom from '@hapi/boom'
-import Joi from 'joi'
-
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { updateBasePrice } from '#/server/common/services/impact-assessor-base-prices.js'
 import { basePricesPath } from './constants.js'
@@ -15,12 +12,13 @@ import {
   basePriceFormPayloadSchema,
   validateBasePriceForm
 } from './form-validation.js'
-import { notificationFor, takenEffectStatus } from './notifications.js'
+import {
+  notificationFor,
+  redirectToList,
+  takenEffectStatus
+} from './notifications.js'
+import { idParamSchema } from './schemas.js'
 import { getStaffDetails } from './staff-details.js'
-
-const idParamSchema = Joi.object({
-  id: Joi.number().integer().positive().required()
-})
 
 export const changeBasePriceFormController = {
   options: {
@@ -31,15 +29,8 @@ export const changeBasePriceFormController = {
   async handler(request, h) {
     const { edp, basePrice } = await loadBasePrice(request.params.id)
 
-    if (!basePrice) {
-      throw Boom.notFound('Base price not found', {
-        message: `No base price found with id ${request.params.id}`
-      })
-    }
     if (!isFuture({ basePrice, now: new Date() })) {
-      return h.redirect(
-        `${basePricesPath}?notification=base-price-taken-effect`
-      )
+      return redirectToList({ h, notification: 'base-price-taken-effect' })
     }
 
     return h.view(
@@ -83,8 +74,8 @@ export const changeBasePriceController = {
       byStatus: takenEffectStatus
     })
 
-    return h
-      .redirect(`${basePricesPath}?notification=${notification}`)
-      .code(statusCodes.redirectAfterPost)
+    return redirectToList({ h, notification }).code(
+      statusCodes.redirectAfterPost
+    )
   }
 }

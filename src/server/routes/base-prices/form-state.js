@@ -1,6 +1,9 @@
 import Boom from '@hapi/boom'
 
-import { utcToUkLocal } from '#/server/common/helpers/uk-local-time.js'
+import {
+  emptyUkDateTimeFormValues,
+  ukDateTimeFormValues
+} from '#/server/common/helpers/uk-date-time-form-values.js'
 import { getBasePrices } from '#/server/common/services/impact-assessor-base-prices.js'
 import { DEFAULT_EDP_ID } from './constants.js'
 
@@ -21,15 +24,12 @@ const fieldIds = {
  * @typedef {{ values: Record<string, string>, errors: BasePriceFormErrors }} FormState
  */
 
-const pad = (number) => String(number).padStart(TWO_DIGITS, '0')
+const EFFECTIVE_FROM_PREFIX = 'effectiveFrom'
 
 /** @returns {Record<string, string>} A blank add form, with the time at the start of the day */
 export const emptyFormValues = () => ({
   basePrice: '',
-  'effectiveFrom-day': '',
-  'effectiveFrom-month': '',
-  'effectiveFrom-year': '',
-  effectiveFromTime: '00:00',
+  ...emptyUkDateTimeFormValues(EFFECTIVE_FROM_PREFIX),
   comment: ''
 })
 
@@ -37,19 +37,14 @@ export const emptyFormValues = () => ({
  * @param {BasePrice} basePrice
  * @returns {Record<string, string>} The change form's values for a saved price, in UK local time
  */
-export function formValuesFor(basePrice) {
-  const { year, month, day, hour, minute } = utcToUkLocal(
-    basePrice.effectiveFrom
-  )
-  return {
-    basePrice: basePrice.basePrice.toFixed(TWO_DIGITS),
-    'effectiveFrom-day': String(day),
-    'effectiveFrom-month': String(month),
-    'effectiveFrom-year': String(year),
-    effectiveFromTime: `${pad(hour)}:${pad(minute)}`,
-    comment: basePrice.comment
-  }
-}
+export const formValuesFor = (basePrice) => ({
+  basePrice: basePrice.basePrice.toFixed(TWO_DIGITS),
+  ...ukDateTimeFormValues({
+    prefix: EFFECTIVE_FROM_PREFIX,
+    utc: basePrice.effectiveFrom
+  }),
+  comment: basePrice.comment
+})
 
 /**
  * Keeps a rejected submission for the redirect back to the form.
@@ -78,14 +73,17 @@ export const toErrorList = (errors) =>
 
 /**
  * @param {number} basePriceId
- * @returns {Promise<{ edp: EdpBasePrices, basePrice: BasePrice | undefined }>}
+ * @returns {Promise<{ edp: EdpBasePrices, basePrice: BasePrice }>}
  */
 export async function loadBasePrice(basePriceId) {
   const edp = await loadDefaultEdp()
-  return {
-    edp,
-    basePrice: edp.basePrices.find(({ id }) => id === basePriceId)
+  const basePrice = edp.basePrices.find(({ id }) => id === basePriceId)
+  if (!basePrice) {
+    throw Boom.notFound('Base price not found', {
+      message: `No base price found with id ${basePriceId}`
+    })
   }
+  return { edp, basePrice }
 }
 
 /** @returns {Promise<EdpBasePrices>} The default EDP with its base prices */

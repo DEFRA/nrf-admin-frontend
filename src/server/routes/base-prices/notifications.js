@@ -1,4 +1,5 @@
 import { statusCodes } from '#/server/common/constants/status-codes.js'
+import { basePricesPath } from './constants.js'
 
 const problemTitle = 'There is a problem'
 
@@ -48,3 +49,11 @@ export const takenEffectStatus = {
   [statusCodes.conflict]: 'base-price-taken-effect',
   [statusCodes.notFound]: 'base-price-not-found'
 }
+
+/**
+ * @param {object} params
+ * @param {import('@hapi/hapi').ResponseToolkit} params.h
+ * @param {string} params.notification A key of `notifications`
+ */
+export const redirectToList = ({ h, notification }) =>
+  h.redirect(`${basePricesPath}?notification=${notification}`)

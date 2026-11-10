@@ -1,5 +1,6 @@
 const MS_PER_MINUTE = 60_000
 const MINUTES_PER_HOUR = 60
+// Intl's en-GB short month gives "Sept"; the service style is "Sep"
 const MONTH_ABBREVIATIONS = [
   'Jan',
   'Feb',

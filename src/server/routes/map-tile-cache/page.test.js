@@ -27,6 +27,9 @@ describe('Map tile cache page', () => {
     expect(
       getByRole(document, 'button', { name: 'Clear map tile cache' })
     ).toBeInTheDocument()
+    expect(
+      document.querySelector('form input[name="csrfToken"]')
+    ).toBeInTheDocument()
   })
 
   it('is no longer on the quotes page', async () => {

@@ -20,7 +20,8 @@
     text: heading
   }) }}
 
-  <form method="post" action="/map-tile-cache/clear">
+  <form method="post" action="{{ clearPath }}">
+    {% include "partials/csrf-token.njk" %}
     {{ govukButton({
       text: 'Clear map tile cache',
       classes: 'govuk-button--secondary'

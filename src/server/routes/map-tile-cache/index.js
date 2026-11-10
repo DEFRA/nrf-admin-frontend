@@ -1,5 +1,6 @@
 import { tileCacheController } from './controller.js'
 import { clearTileCacheController } from './clear-controller.js'
+import { clearTileCachePath, tileCachePath } from './constants.js'
 
 /**
  * Sets up the routes used in the tile cache page.
@@ -12,12 +13,12 @@ export const tileCache = {
       server.route([
         {
           method: 'GET',
-          path: '/map-tile-cache',
+          path: tileCachePath,
           ...tileCacheController
         },
         {
           method: 'POST',
-          path: '/map-tile-cache/clear',
+          path: clearTileCachePath,
           ...clearTileCacheController
         }
       ])

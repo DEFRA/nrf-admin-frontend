@@ -1,5 +1,7 @@
 import joi from 'joi'
 
+import { clearTileCachePath } from './constants.js'
+
 export const tileCacheController = {
   options: {
     validate: {
@@ -17,6 +19,7 @@ export const tileCacheController = {
       pageTitle: 'Map tile cache',
       heading: 'Map tile cache',
       notification,
+      clearPath: clearTileCachePath,
       clearedCount: count
     })
   }

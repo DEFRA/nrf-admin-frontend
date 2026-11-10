@@ -62,6 +62,9 @@ describe('Delete quote confirmation page', () => {
     expect(
       getByRole(document, 'link', { name: 'Cancel and return to the quote' })
     ).toHaveAttribute('href', '/quote/NRL-000001')
+    expect(
+      document.querySelector('form input[name="csrfToken"]')
+    ).toBeInTheDocument()
   })
 
   it('returns a 404 page for an unknown quote reference', async () => {

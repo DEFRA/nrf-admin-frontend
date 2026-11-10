@@ -12,11 +12,12 @@ import {
   basePriceFormPayloadSchema,
   validateBasePriceForm
 } from './form-validation.js'
-import { futureExistsStatus, notificationFor } from './notifications.js'
+import {
+  futureExistsStatus,
+  notificationFor,
+  redirectToList
+} from './notifications.js'
 import { getStaffDetails } from './staff-details.js'
-
-const redirectToList = ({ h, notification }) =>
-  h.redirect(`${basePricesPath}?notification=${notification}`)
 
 export const addBasePriceFormController = {
   async handler(request, h) {

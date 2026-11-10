@@ -35,6 +35,7 @@
       }) }}
 
       <form method="post" action="{{ formAction }}">
+        {% include "partials/csrf-token.njk" %}
         {{ govukButton({
           text: "Yes, delete this base price",
           classes: "govuk-button--warning"
