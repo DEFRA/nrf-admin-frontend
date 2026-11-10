@@ -9,6 +9,7 @@ const MAX_DATE_PART_LENGTH = 10
 const MAX_TIME_INPUT_LENGTH = 10
 const COMMENT_INPUT_HEADROOM = 4
 
+const NONEXISTENT_TIME_ERROR = 'That time does not exist'
 const MAX_BASE_PRICE_PATTERN = /^\d{1,8}(\.\d{1,2})?$/
 const TIME_PATTERN = /^([01]?\d|2[0-3]):([0-5]\d)$/
 const DAY_OR_MONTH_PATTERN = /^\d{1,2}$/
@@ -60,7 +61,7 @@ function validateBasePrice(rawPrice) {
 function validateDate({ day, month, year }) {
   const parts = { day, month, year }
   const missing = Object.keys(parts).filter((name) => !parts[name])
-  if (missing.length === 3) {
+  if (missing.length === Object.keys(parts).length) {
     return { error: 'Enter the date the base price takes effect' }
   }
   if (missing.length > 0) {
@@ -108,8 +109,7 @@ function validateEffectiveFrom({ date, time, now }) {
   const instant = ukLocalToUtc({ ...date, ...time })
   if (!instant) {
     return {
-      error:
-        'That time does not exist because the clocks go forward. Enter a different time'
+      error: `${NONEXISTENT_TIME_ERROR} because the clocks go forward. Enter a different time`
     }
   }
   if (instant <= now) {
@@ -132,6 +132,21 @@ function validateComment(rawComment) {
     }
   }
   return { comment: rawComment }
+}
+
+/**
+ * A time that does not exist belongs to the time field, a past moment to the date.
+ *
+ * @param {string | undefined} error
+ * @returns {BasePriceFormErrors}
+ */
+function effectiveFromErrors(error) {
+  if (!error) {
+    return {}
+  }
+  return error.startsWith(NONEXISTENT_TIME_ERROR)
+    ? { effectiveFromTime: error }
+    : { effectiveFrom: error }
 }
 
 /**
@@ -160,18 +175,11 @@ export function validateBasePriceForm({ payload, now }) {
           now
         })
       : {}
-  // A time that does not exist belongs to the time field, a past moment to the date
-  const nonexistentTime = effective.error?.startsWith(
-    'That time does not exist'
-  )
-
   const errors = {
     ...(price.error && { basePrice: price.error }),
     ...(dateResult.error && { effectiveFrom: dateResult.error }),
-    ...(effective.error &&
-      !nonexistentTime && { effectiveFrom: effective.error }),
+    ...effectiveFromErrors(effective.error),
     ...(timeResult.error && { effectiveFromTime: timeResult.error }),
-    ...(nonexistentTime && { effectiveFromTime: effective.error }),
     ...(comment.error && { comment: comment.error })
   }
 
