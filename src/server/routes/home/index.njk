@@ -123,11 +123,12 @@
       <form method="get" action="/quotes/delete">
     {% endif %}
     {% if hasEligible %}
-        {{ govukButton({
-          text: "Delete selected quotes",
-          classes: "govuk-button--warning"
-        }) }}
-
+        <div class="govuk-!-text-align-right">
+          {{ govukButton({
+            text: "Delete selected",
+            classes: "govuk-button--warning"
+          }) }}
+        </div>
     {% endif %}
 
     {{ govukTable({
