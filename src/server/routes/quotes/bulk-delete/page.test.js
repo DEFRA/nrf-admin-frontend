@@ -62,6 +62,9 @@ describe('Bulk delete quotes confirmation page', () => {
         'form[action="/quotes/delete"] input[name="references"][value="NRL-000001"]'
       )
     ).not.toBeNull()
+    expect(
+      document.querySelector('form input[name="csrfToken"]')
+    ).toBeInTheDocument()
   })
 
   it('omits selected quotes that are not eligible for deletion', async () => {

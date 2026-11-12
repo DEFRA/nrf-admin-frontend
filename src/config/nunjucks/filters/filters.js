@@ -8,6 +8,8 @@ import {
 import { formatDateTime } from './format-date.js'
 import { govukDate } from './govuk-date.js'
 
+export { formatUkDateTime } from '#/server/common/helpers/uk-local-time.js'
+
 export {
   assign,
   formatDate,

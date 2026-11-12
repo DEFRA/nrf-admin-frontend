@@ -8,7 +8,6 @@ const count = Joi.number().integer().min(0)
 
 export const homeQuerySchema = Joi.object({
   notification: Joi.string(),
-  count,
   reference: Joi.string().pattern(referencePattern),
   deletedCount: count,
   totalCount: count

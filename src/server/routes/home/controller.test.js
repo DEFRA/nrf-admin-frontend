@@ -233,7 +233,7 @@ describe('Home page', () => {
     expect(form).not.toBeNull()
     expect(form.getAttribute('method')).toBe('get')
     expect(
-      getByRole(document, 'button', { name: 'Delete selected quotes' })
+      getByRole(document, 'button', { name: 'Delete selected' })
     ).toBeInTheDocument()
   })
 
@@ -246,7 +246,7 @@ describe('Home page', () => {
     )
     expect(document.querySelector('form[action="/quotes/delete"]')).toBeNull()
     expect(
-      queryByRole(document, 'button', { name: 'Delete selected quotes' })
+      queryByRole(document, 'button', { name: 'Delete selected' })
     ).not.toBeInTheDocument()
   })
 })
