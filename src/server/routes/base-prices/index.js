@@ -1,9 +1,11 @@
 import {
   addBasePricePath,
+  basePriceDetailsPath,
   basePricesPath,
   changeBasePricePath,
   deleteBasePricePath
 } from './constants.js'
+import { basePriceDetailsController } from './details-controller.js'
 import { listBasePricesController } from './list-controller.js'
 import {
   addBasePriceController,
@@ -37,6 +39,11 @@ export const basePrices = {
           method: 'POST',
           path: addBasePricePath,
           ...addBasePriceController
+        },
+        {
+          method: 'GET',
+          path: basePriceDetailsPath('{id}'),
+          ...basePriceDetailsController
         },
         {
           method: 'GET',

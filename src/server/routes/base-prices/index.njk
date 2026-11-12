@@ -37,7 +37,9 @@
     {% set tableRows = [] %}
     {% for basePrice in edp.basePrices %}
       {% set actionsHtml %}
+        <a class="govuk-link" href="{{ basePrice.detailsPath }}">View details<span class="govuk-visually-hidden"> of the base price effective from {{ basePrice.effectiveFrom | formatUkDateTime }}</span></a>
         {% if basePrice.isFuture %}
+          <br>
           <a class="govuk-link" href="{{ basePrice.changePath }}">Change<span class="govuk-visually-hidden"> the base price effective from {{ basePrice.effectiveFrom | formatUkDateTime }}</span></a>
           <br>
           <a class="govuk-link" href="{{ basePrice.deletePath }}">Delete<span class="govuk-visually-hidden"> the base price effective from {{ basePrice.effectiveFrom | formatUkDateTime }}</span></a>
@@ -46,11 +48,6 @@
       {% set tableRows = (tableRows.push([
         { text: basePrice.basePrice | formatCurrencyPrecise, format: "numeric" },
         { text: basePrice.effectiveFrom | formatUkDateTime },
-        { text: basePrice.createdAt | formatUkDateTime },
-        { text: basePrice.comment },
-        { text: basePrice.staffFullName },
-        { text: basePrice.staffEmail },
-        { text: basePrice.staffId },
         { html: actionsHtml }
       ]), tableRows) %}
     {% endfor %}
@@ -63,11 +60,6 @@
         head: [
           { text: "Base price", format: "numeric" },
           { text: "Effective from" },
-          { text: "Created" },
-          { text: "Comment" },
-          { text: "Saved by" },
-          { text: "Email" },
-          { text: "Entra ID" },
           { html: '<span class="govuk-visually-hidden">Actions</span>' }
         ],
         rows: tableRows

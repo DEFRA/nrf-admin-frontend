@@ -1,0 +1,45 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block beforeContent %}
+  <nav>
+    {{ govukBackLink({
+      text: "Back to base prices",
+      href: backHref
+    }) }}
+  </nav>
+{% endblock %}
+
+{% block content %}
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  {% set jiraTicketHtml %}
+    {% if jiraTicketUrl %}
+      <a class="govuk-link" href="{{ jiraTicketUrl }}" target="_blank" rel="noopener noreferrer">{{ basePrice.jiraTicket }} (opens in new tab)</a>
+    {% else %}
+      –
+    {% endif %}
+  {% endset %}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+      {{ govukSummaryList({
+        rows: [
+          { key: { text: "EDP" }, value: { text: edpName } },
+          { key: { text: "Base price" }, value: { text: basePrice.basePrice | formatCurrencyPrecise } },
+          { key: { text: "Effective from" }, value: { text: basePrice.effectiveFrom | formatUkDateTime } },
+          { key: { text: "Created" }, value: { text: basePrice.createdAt | formatUkDateTime } },
+          { key: { text: "Requestor" }, value: { text: basePrice.requestor or "–" } },
+          { key: { text: "Jira ticket" }, value: { html: jiraTicketHtml } },
+          { key: { text: "Comment" }, value: { text: basePrice.comment } },
+          { key: { text: "Saved by" }, value: { text: basePrice.staffFullName } },
+          { key: { text: "Saved by (email)" }, value: { text: basePrice.staffEmail } },
+          { key: { text: "Saved by (Entra ID)" }, value: { text: basePrice.staffId } }
+        ]
+      }) }}
+    </div>
+  </div>
+{% endblock %}

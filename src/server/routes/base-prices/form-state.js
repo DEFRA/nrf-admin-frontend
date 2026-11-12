@@ -14,6 +14,8 @@ const fieldIds = {
   basePrice: 'basePrice',
   effectiveFrom: 'effectiveFrom-day',
   effectiveFromTime: 'effectiveFromTime',
+  requestor: 'requestor',
+  jiraTicket: 'jiraTicket',
   comment: 'comment'
 }
 
@@ -30,6 +32,8 @@ const EFFECTIVE_FROM_PREFIX = 'effectiveFrom'
 export const emptyFormValues = () => ({
   basePrice: '',
   ...emptyUkDateTimeFormValues(EFFECTIVE_FROM_PREFIX),
+  requestor: '',
+  jiraTicket: '',
   comment: ''
 })
 
@@ -43,6 +47,8 @@ export const formValuesFor = (basePrice) => ({
     prefix: EFFECTIVE_FROM_PREFIX,
     utc: basePrice.effectiveFrom
   }),
+  requestor: basePrice.requestor ?? '',
+  jiraTicket: basePrice.jiraTicket ?? '',
   comment: basePrice.comment
 })
 

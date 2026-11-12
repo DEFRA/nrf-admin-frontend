@@ -104,6 +104,35 @@
           errorMessage: { text: errors.effectiveFromTime } if errors.effectiveFromTime
         }) }}
 
+        {{ govukInput({
+          id: "requestor",
+          name: "requestor",
+          label: {
+            text: "Requestor",
+            classes: "govuk-label--m"
+          },
+          hint: { text: "The name of the person who asked for the change. This can be different from your name." },
+          classes: "govuk-!-width-one-half",
+          autocomplete: "off",
+          value: values.requestor,
+          errorMessage: { text: errors.requestor } if errors.requestor
+        }) }}
+
+        {{ govukInput({
+          id: "jiraTicket",
+          name: "jiraTicket",
+          label: {
+            text: "Jira ticket",
+            classes: "govuk-label--m"
+          },
+          hint: { text: "The Jira ticket for the request, like NRF2-1234." },
+          classes: "govuk-input--width-10",
+          autocomplete: "off",
+          spellcheck: false,
+          value: values.jiraTicket,
+          errorMessage: { text: errors.jiraTicket } if errors.jiraTicket
+        }) }}
+
         {{ govukCharacterCount({
           id: "comment",
           name: "comment",
