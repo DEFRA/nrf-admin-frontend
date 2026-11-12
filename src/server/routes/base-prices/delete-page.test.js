@@ -44,10 +44,9 @@ describe('Delete base price page', () => {
     expect(
       getByRole(document, 'button', { name: 'Yes, delete this base price' })
     ).toBeInTheDocument()
-    expect(getByRole(document, 'link', { name: 'Cancel' })).toHaveAttribute(
-      'href',
-      '/base-prices'
-    )
+    expect(
+      getByRole(document, 'link', { name: 'Cancel deleting this base price' })
+    ).toHaveAttribute('href', '/base-prices')
     expect(
       document.querySelector('form input[name="csrfToken"]')
     ).toBeInTheDocument()
