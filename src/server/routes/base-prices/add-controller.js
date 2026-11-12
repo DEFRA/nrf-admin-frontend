@@ -17,7 +17,7 @@ import {
   notificationFor,
   redirectToList
 } from './notifications.js'
-import { getStaffDetails } from './staff-details.js'
+import { getStaffDetails } from '#/server/common/helpers/staff-details.js'
 
 export const addBasePriceFormController = {
   async handler(request, h) {

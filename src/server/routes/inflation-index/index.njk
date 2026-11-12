@@ -1,0 +1,86 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{% block content %}
+  {% if banner %}
+    {{ govukNotificationBanner({
+      type: banner.type,
+      titleText: banner.titleText,
+      text: banner.text
+    }) }}
+  {% endif %}
+
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  {% if errorMessage %}
+    {{ govukErrorSummary({
+      titleText: "There is a problem",
+      errorList: [{ text: errorMessage }]
+    }) }}
+  {% endif %}
+
+  <p class="govuk-body">The RICS CIL Index published each autumn, applied from 1 January of the following year.</p>
+
+  {% if canAdd %}
+    <p class="govuk-body">
+      <a class="govuk-link" href="{{ addPath }}">Add inflation index</a>
+    </p>
+  {% endif %}
+
+  {% set tableRows = [] %}
+  {% for inflationIndex in inflationIndexes %}
+    {% set actionsHtml %}
+      {% if inflationIndex.isFuture %}
+        <a class="govuk-link" href="{{ inflationIndex.changePath }}">Change<span class="govuk-visually-hidden"> the inflation index for {{ inflationIndex.chargingYear }}</span></a>
+        <br>
+        <a class="govuk-link" href="{{ inflationIndex.deletePath }}">Delete<span class="govuk-visually-hidden"> the inflation index for {{ inflationIndex.chargingYear }}</span></a>
+      {% endif %}
+    {% endset %}
+    {% set yearHtml %}
+      {{ inflationIndex.chargingYear }}
+      {% if inflationIndex.isInForce %}
+        {{ govukTag({ text: "In force", classes: "govuk-tag--blue" }) }}
+      {% endif %}
+    {% endset %}
+    {% set tableRows = (tableRows.push([
+      { html: yearHtml },
+      { text: inflationIndex.cilIndex, format: "numeric" },
+      { text: inflationIndex.indexFactor.toFixed(4), format: "numeric" },
+      { text: inflationIndex.effectiveFrom | govukDate },
+      { text: inflationIndex.createdAt | formatUkDateTime },
+      { text: inflationIndex.comment },
+      { text: inflationIndex.staffFullName },
+      { text: inflationIndex.staffEmail },
+      { text: inflationIndex.staffId },
+      { html: actionsHtml }
+    ]), tableRows) %}
+  {% endfor %}
+
+  {% if tableRows.length %}
+    {{ govukTable({
+      caption: "Inflation index history",
+      captionClasses: "govuk-visually-hidden",
+      classes: "govuk-table--small-text-until-tablet",
+      head: [
+        { text: "Charging year" },
+        { text: "RICS CIL Index", format: "numeric" },
+        { text: "Factor", format: "numeric" },
+        { text: "Effective from" },
+        { text: "Created" },
+        { text: "Comment" },
+        { text: "Saved by" },
+        { text: "Email" },
+        { text: "Entra ID" },
+        { html: '<span class="govuk-visually-hidden">Actions</span>' }
+      ],
+      rows: tableRows
+    }) }}
+  {% else %}
+    <p class="govuk-body">No inflation indexes have been added.</p>
+  {% endif %}
+{% endblock %}

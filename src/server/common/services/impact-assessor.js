@@ -23,7 +23,8 @@ const parseBody = (payload) => {
 }
 
 // Wreck hangs the upstream body off `error.data.payload`. FastAPI reports
-// failures under `detail`: a string, or a list of per-field errors.
+// failures under `detail`: a string, a list of per-field errors, or an object
+// with a machine-readable `error` code and a human `message`.
 export const upstreamDetail = (error) => {
   const { detail } = parseBody(error?.data?.payload) ?? {}
   if (typeof detail === 'string') {
@@ -37,7 +38,16 @@ export const upstreamDetail = (error) => {
         .join('; ') || undefined
     )
   }
+  if (typeof detail?.message === 'string') {
+    return detail.message
+  }
   return undefined
+}
+
+/** The machine-readable `error` code the impact assessor put on a failure, when it sent one. */
+export const upstreamErrorCode = (error) => {
+  const { detail } = parseBody(error?.data?.payload) ?? {}
+  return typeof detail?.error === 'string' ? detail.error : undefined
 }
 
 const dataSyncHeaders = () =>

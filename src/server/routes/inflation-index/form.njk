@@ -1,0 +1,96 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block beforeContent %}
+  <nav>
+    {{ govukBackLink({
+      text: "Back to inflation index",
+      href: backHref
+    }) }}
+  </nav>
+{% endblock %}
+
+{% block pageTitle %}
+  {{ "Error: " if errorList.length }}{{ pageTitle }} | {{ serviceName }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+      {% if errorList.length %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: errorList
+        }) }}
+      {% endif %}
+
+      {{ appHeading({
+        text: heading
+      }) }}
+
+      {{ govukSummaryList({
+        rows: summaryRows
+      }) }}
+
+      <form method="post" action="{{ formAction }}" novalidate>
+        {% include "partials/csrf-token.njk" %}
+
+        {% if yearItems %}
+          {{ govukSelect({
+            id: "chargingYear",
+            name: "chargingYear",
+            label: {
+              text: "Charging year",
+              classes: "govuk-label--m"
+            },
+            hint: { text: "The year the index applies to. It takes effect on 1 January of that year." },
+            errorMessage: { text: errors.chargingYear } if errors.chargingYear,
+            items: yearItems
+          }) }}
+        {% endif %}
+
+        {{ govukInput({
+          id: "cilIndex",
+          name: "cilIndex",
+          label: {
+            text: "RICS CIL Index",
+            classes: "govuk-label--m"
+          },
+          hint: { text: "The published index number, like 384.21. The factor applied to the levy is worked out from it. It must be more than 0 and have no more than 4 decimal places." },
+          classes: "govuk-input--width-10",
+          inputmode: "decimal",
+          spellcheck: false,
+          value: values.cilIndex,
+          errorMessage: { text: errors.cilIndex } if errors.cilIndex
+        }) }}
+
+        {{ govukCharacterCount({
+          id: "comment",
+          name: "comment",
+          label: {
+            text: "Comment",
+            classes: "govuk-label--m"
+          },
+          hint: { text: "Say why the index is being saved, for example the NE advice it follows." },
+          maxlength: maxCommentLength,
+          value: values.comment,
+          errorMessage: { text: errors.comment } if errors.comment
+        }) }}
+
+        {{ govukButton({
+          text: "Save"
+        }) }}
+      </form>
+
+      <p class="govuk-body">
+        <a class="govuk-link" href="{{ backHref }}">Cancel</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}
