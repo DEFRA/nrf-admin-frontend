@@ -1,0 +1,77 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{% block content %}
+  {% if banner %}
+    {{ govukNotificationBanner({
+      type: banner.type,
+      titleText: banner.titleText,
+      text: banner.text
+    }) }}
+  {% endif %}
+
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  {% if errorMessage %}
+    {{ govukErrorSummary({
+      titleText: "There is a problem",
+      errorList: [{ text: errorMessage }]
+    }) }}
+  {% endif %}
+
+  {% for edp in edps %}
+    <h2 class="govuk-heading-m">{{ edp.edpName }}</h2>
+
+    {% if edp.canAdd %}
+      <p class="govuk-body">
+        <a class="govuk-link" href="{{ addPath }}">Add base price</a>
+      </p>
+    {% endif %}
+
+    {% set tableRows = [] %}
+    {% for basePrice in edp.basePrices %}
+      {% set actionsHtml %}
+        {% if basePrice.isFuture %}
+          <a class="govuk-link" href="{{ basePrice.changePath }}">Change<span class="govuk-visually-hidden"> the base price effective from {{ basePrice.effectiveFrom | formatUkDateTime }}</span></a>
+          <br>
+          <a class="govuk-link" href="{{ basePrice.deletePath }}">Delete<span class="govuk-visually-hidden"> the base price effective from {{ basePrice.effectiveFrom | formatUkDateTime }}</span></a>
+        {% endif %}
+      {% endset %}
+      {% set tableRows = (tableRows.push([
+        { text: basePrice.basePrice | formatCurrencyPrecise, format: "numeric" },
+        { text: basePrice.effectiveFrom | formatUkDateTime },
+        { text: basePrice.createdAt | formatUkDateTime },
+        { text: basePrice.comment },
+        { text: basePrice.staffFullName },
+        { text: basePrice.staffEmail },
+        { text: basePrice.staffId },
+        { html: actionsHtml }
+      ]), tableRows) %}
+    {% endfor %}
+
+    {% if tableRows.length %}
+      {{ govukTable({
+        caption: "Base price history for " + edp.edpName,
+        captionClasses: "govuk-visually-hidden",
+        classes: "govuk-table--small-text-until-tablet",
+        head: [
+          { text: "Base price", format: "numeric" },
+          { text: "Effective from" },
+          { text: "Created" },
+          { text: "Comment" },
+          { text: "Saved by" },
+          { text: "Email" },
+          { text: "Entra ID" },
+          { html: '<span class="govuk-visually-hidden">Actions</span>' }
+        ],
+        rows: tableRows
+      }) }}
+    {% else %}
+      <p class="govuk-body">This EDP has no base prices.</p>
+    {% endif %}
+  {% endfor %}
+{% endblock %}

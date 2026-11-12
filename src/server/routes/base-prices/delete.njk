@@ -1,0 +1,50 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+
+{% block beforeContent %}
+  <nav>
+    {{ govukBackLink({
+      text: "Back to base prices",
+      href: backHref
+    }) }}
+  </nav>
+{% endblock %}
+
+{% block content %}
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+      {{ govukWarningText({
+        text: "The base price will not apply. The existing base price will continue to apply.",
+        iconFallbackText: "Warning"
+      }) }}
+
+      {{ govukSummaryList({
+        rows: [
+          { key: { text: "EDP" }, value: { text: edpName } },
+          { key: { text: "Base price" }, value: { text: basePrice.basePrice | formatCurrencyPrecise } },
+          { key: { text: "Effective from" }, value: { text: basePrice.effectiveFrom | formatUkDateTime } },
+          { key: { text: "Comment" }, value: { text: basePrice.comment } }
+        ]
+      }) }}
+
+      <form method="post" action="{{ formAction }}">
+        {% include "partials/csrf-token.njk" %}
+        {{ govukButton({
+          text: "Yes, delete this base price",
+          classes: "govuk-button--warning"
+        }) }}
+      </form>
+
+      <p class="govuk-body">
+        <a class="govuk-link" href="{{ backHref }}">Cancel</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}

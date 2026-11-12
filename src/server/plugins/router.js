@@ -4,6 +4,8 @@ import { home } from '../routes/home/index.js'
 import { quote } from '../routes/quote/index.js'
 import { quoteDelete } from '../routes/quote/delete/index.js'
 import { quotesBulkDelete } from '../routes/quotes/bulk-delete/index.js'
+import { basePrices } from '../routes/base-prices/index.js'
+import { tileCache } from '../routes/map-tile-cache/index.js'
 import { about } from '../routes/about/index.js'
 import { apiUploads } from '../routes/api/uploads/index.js'
 import { apiDataSync } from '../routes/api/data-sync/index.js'
@@ -27,6 +29,8 @@ export const router = {
         quote,
         quoteDelete,
         quotesBulkDelete,
+        tileCache,
+        basePrices,
         about,
         apiUploads,
         apiDataSync,

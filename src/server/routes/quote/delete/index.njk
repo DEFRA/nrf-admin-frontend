@@ -58,6 +58,7 @@
         </ul>
 
         <form method="post" action="/quote/{{ quote.reference }}/delete">
+          {% include "partials/csrf-token.njk" %}
           {{ govukButton({
             text: "Yes, delete this quote",
             classes: "govuk-button--warning"

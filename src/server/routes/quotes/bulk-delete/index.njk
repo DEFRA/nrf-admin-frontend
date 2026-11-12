@@ -59,6 +59,7 @@
       </ul>
 
       <form method="post" action="/quotes/delete">
+        {% include "partials/csrf-token.njk" %}
         {% for quote in quotes %}
           <input type="hidden" name="references" value="{{ quote.reference }}">
         {% endfor %}

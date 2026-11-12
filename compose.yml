@@ -79,6 +79,7 @@ services:
       # host rather than at localhost, which would resolve to this container.
       NRF_IMPACT_ASSESSOR_API_URL: ${NRF_IMPACT_ASSESSOR_API_URL:-http://host.docker.internal:8085}
       DATA_SYNC_TOKEN: ${DATA_SYNC_TOKEN:-local-dev-data-sync-token}
+      IMPACT_ASSESSOR_API_KEY: ${IMPACT_ASSESSOR_API_KEY:-local-dev-impact-assessor-key}
       # Reach floci's S3 API over the compose network (overrides aws.env's
       # localhost endpoint, which would resolve to this container).
       AWS_S3_ENDPOINT: http://floci:4566

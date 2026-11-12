@@ -24,7 +24,7 @@ const parseBody = (payload) => {
 
 // Wreck hangs the upstream body off `error.data.payload`. FastAPI reports
 // failures under `detail`: a string, or a list of per-field errors.
-const upstreamDetail = (error) => {
+export const upstreamDetail = (error) => {
   const { detail } = parseBody(error?.data?.payload) ?? {}
   if (typeof detail === 'string') {
     return detail
