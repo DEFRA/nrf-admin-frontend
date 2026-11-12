@@ -21,6 +21,10 @@ import { getStaffDetails } from './staff-details.js'
 
 export const addBasePriceFormController = {
   async handler(request, h) {
+    const state = takeFormState({
+      request,
+      defaultValues: emptyFormValues()
+    })
     const edp = await loadDefaultEdp()
 
     const now = new Date()
@@ -33,7 +37,7 @@ export const addBasePriceFormController = {
       buildFormViewModel({
         request,
         edpName: edp.edpName,
-        state: takeFormState({ request, defaultValues: emptyFormValues() }),
+        state,
         page: { heading: 'Add a base price', backHref: basePricesPath }
       })
     )

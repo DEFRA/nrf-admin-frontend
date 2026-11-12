@@ -106,7 +106,7 @@ describe('Base prices page', () => {
     ['base-price-changed', 'Base price changed.'],
     ['base-price-deleted', 'Base price deleted.'],
     ['base-price-future-exists', 'there is already a base price'],
-    ['base-price-taken-effect', 'it has already taken effect'],
+    ['base-price-taken-effect', 'can only be changed or deleted before'],
     ['base-price-error', 'The base price was not saved']
   ])('shows the banner for %s', async (notification, text) => {
     stubBasePrices(edpWithHistory(pastBasePrice))

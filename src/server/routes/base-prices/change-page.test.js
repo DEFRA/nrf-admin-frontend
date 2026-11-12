@@ -2,7 +2,8 @@ import { getByLabelText, getByRole } from '@testing-library/dom'
 import { http, HttpResponse } from 'msw'
 import { setupTestServer } from '#/test-utils/setup-test-server.js'
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
-import { loadPage } from '#/test-utils/load-page.js'
+import { loadPage, loadPageWithCookie } from '#/test-utils/load-page.js'
+import { getSessionCookie } from '#/test-utils/session-cookie.js'
 import { submitForm } from '#/test-utils/submit-form.js'
 import {
   edpWithHistory,
@@ -121,6 +122,42 @@ describe('Change base price page', () => {
 
     expect(response.statusCode).toBe(303)
     expect(response.headers.location).toBe(changeUrl)
+  })
+
+  it('does not carry a rejected change into the add form', async () => {
+    const takenEffect = {
+      ...futureBasePrice,
+      effectiveFrom: '2026-02-01T00:00:00Z'
+    }
+    mswServer.use(
+      http.get(basePricesEndpoint, () =>
+        HttpResponse.json(edpWithHistory(takenEffect, pastBasePrice))
+      )
+    )
+    const { cookie } = await submitForm({
+      server: getServer(),
+      url: changeUrl,
+      payload: { ...validBasePriceForm, basePrice: '7777', comment: '' },
+      auth: signedInStaff
+    })
+    const rejected = await getServer().inject({
+      method: 'GET',
+      url: changeUrl,
+      auth: signedInStaff,
+      headers: { cookie }
+    })
+
+    const { document } = await loadPageWithCookie({
+      requestUrl: '/base-prices/add',
+      server: getServer(),
+      auth: signedInStaff,
+      cookie: getSessionCookie(rejected) || cookie
+    })
+
+    expect(rejected.headers.location).toBe(
+      '/base-prices?notification=base-price-taken-effect'
+    )
+    expect(getByLabelText(document, /Base price per unit/)).toHaveValue('')
   })
 
   it.each([

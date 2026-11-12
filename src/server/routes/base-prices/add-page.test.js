@@ -3,6 +3,7 @@ import { http, HttpResponse } from 'msw'
 import { setupTestServer } from '#/test-utils/setup-test-server.js'
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
 import { loadPage, loadPageWithCookie } from '#/test-utils/load-page.js'
+import { getSessionCookie } from '#/test-utils/session-cookie.js'
 import { submitForm } from '#/test-utils/submit-form.js'
 import {
   edpWithHistory,
@@ -100,6 +101,32 @@ describe('Add base price page', () => {
       staffFullName: 'Ada Admin',
       staffEmail: 'ada.admin@defra.gov.uk'
     })
+  })
+
+  it('does not keep a rejected submission after being sent back to the base prices page', async () => {
+    const { cookie } = await submitAddForm({
+      ...validBasePriceForm,
+      basePrice: '7777',
+      comment: ''
+    })
+    stubBasePrices(futureBasePrice, pastBasePrice)
+    const redirected = await getServer().inject({
+      method: 'GET',
+      url: addUrl,
+      auth: signedInStaff,
+      headers: { cookie }
+    })
+    stubBasePrices(pastBasePrice)
+
+    const { document } = await loadPageWithCookie({
+      requestUrl: addUrl,
+      server: getServer(),
+      auth: signedInStaff,
+      cookie: getSessionCookie(redirected) || cookie
+    })
+
+    expect(redirected.statusCode).toBe(302)
+    expect(getByLabelText(document, /Base price per unit/)).toHaveValue('')
   })
 
   it('removes angle brackets from the comment before saving it', async () => {

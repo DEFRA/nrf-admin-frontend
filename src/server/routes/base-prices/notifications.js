@@ -14,7 +14,7 @@ export const notifications = {
   },
   'base-price-taken-effect': {
     titleText: problemTitle,
-    text: 'The base price was not saved because it has already taken effect. A base price can only be changed or deleted before its "effective from" date.'
+    text: 'A base price can only be changed or deleted before its "effective from" date & time.'
   },
   'base-price-not-found': {
     titleText: problemTitle,
