@@ -65,17 +65,17 @@ export const takenEffectStatus = {
 }
 
 // A 409 can mean the year began (taken effect) or the index priced a quote
-// (in use); the impact assessor's detail says which.
-const takenEffectOrInUse = (detail) =>
-  detail?.includes('used to price a quote')
-    ? 'inflation-index-in-use'
-    : 'inflation-index-taken-effect'
+// (in use); the impact assessor's error code says which.
+const deleteConflictNotifications = {
+  inflation_index_taken_effect: 'inflation-index-taken-effect',
+  inflation_index_in_use: 'inflation-index-in-use'
+}
 
 /**
  * Maps the impact assessor's answer to a delete, telling the two 409s apart.
  *
  * @param {object} params
- * @param {{ error?: string, statusCode?: number, detail?: string }} params.result
+ * @param {{ error?: string, statusCode?: number, code?: string }} params.result
  * @returns {string} A key of `notifications`
  */
 export function notificationForDelete({ result }) {
@@ -83,7 +83,7 @@ export function notificationForDelete({ result }) {
     return 'inflation-index-deleted'
   }
   if (result.statusCode === statusCodes.conflict) {
-    return takenEffectOrInUse(result.detail)
+    return deleteConflictNotifications[result.code] ?? 'inflation-index-error'
   }
   if (result.statusCode === statusCodes.notFound) {
     return 'inflation-index-not-found'

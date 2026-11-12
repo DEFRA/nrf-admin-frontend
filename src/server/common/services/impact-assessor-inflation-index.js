@@ -3,7 +3,7 @@ import { buildServiceHeaders, wreckErrorContext } from '@defra/nrf-library'
 
 import { config } from '#/config/config.js'
 import { createLogger } from '../helpers/logging/logger.js'
-import { upstreamDetail } from './impact-assessor.js'
+import { upstreamDetail, upstreamErrorCode } from './impact-assessor.js'
 
 const logger = createLogger()
 
@@ -21,7 +21,7 @@ const apiKeyHeaders = () =>
  * @param {string} params.path
  * @param {object} [params.body]
  * @param {string} params.action Describes the call in log messages
- * @returns {Promise<{ payload?: any, error?: string, statusCode?: number, detail?: string }>}
+ * @returns {Promise<{ payload?: any, error?: string, statusCode?: number, detail?: string, code?: string }>}
  */
 async function callInflationIndexes({ method, path, body, action }) {
   const url = `${config.get(API_URL_KEY)}${path}`
@@ -43,7 +43,12 @@ async function callInflationIndexes({ method, path, body, action }) {
       error,
       `${action} failed - url: ${url}, statusCode: ${statusCode}`
     )
-    return { error: action, statusCode, detail: upstreamDetail(error) }
+    return {
+      error: action,
+      statusCode,
+      detail: upstreamDetail(error),
+      code: upstreamErrorCode(error)
+    }
   }
 }
 

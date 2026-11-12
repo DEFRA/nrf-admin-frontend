@@ -129,13 +129,23 @@ describe('impact assessor inflation index service', () => {
       expect(requests[0].body).toBeUndefined()
     })
 
-    it('returns the impact assessor reason when it refuses the delete', async () => {
-      capture('delete', `${baseUrl}/an-id`, failWith(409, { detail: 'no' }))
+    it('returns the impact assessor code and message when it refuses the delete', async () => {
+      capture(
+        'delete',
+        `${baseUrl}/an-id`,
+        failWith(409, {
+          detail: {
+            error: 'inflation_index_in_use',
+            message: 'has been used to price a quote'
+          }
+        })
+      )
 
       expect(await deleteInflationIndex('an-id')).toEqual({
         error: 'Unable to delete inflation index',
         statusCode: 409,
-        detail: 'no'
+        detail: 'has been used to price a quote',
+        code: 'inflation_index_in_use'
       })
     })
   })

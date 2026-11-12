@@ -95,14 +95,38 @@ describe('Delete inflation index page', () => {
   it.each([
     [
       409,
-      { detail: 'has been used to price a quote' },
+      {
+        detail: {
+          error: 'inflation_index_in_use',
+          message: 'has been used to price a quote'
+        }
+      },
       'inflation-index-in-use'
     ],
-    [409, { detail: 'has taken effect' }, 'inflation-index-taken-effect'],
+    [
+      409,
+      {
+        detail: {
+          error: 'inflation_index_taken_effect',
+          message: 'has taken effect'
+        }
+      },
+      'inflation-index-taken-effect'
+    ],
+    [
+      409,
+      {
+        detail: {
+          error: 'inflation_index_something_new',
+          message: 'a reason added later'
+        }
+      },
+      'inflation-index-error'
+    ],
     [404, { detail: 'not found' }, 'inflation-index-not-found'],
     [500, { detail: 'boom' }, 'inflation-index-error']
   ])(
-    'reports a %d (%s) from the impact assessor',
+    'reports a %d from the impact assessor as %s',
     async (statusCode, body, notification) => {
       stubInflationIndexes(futureIndex, liveIndex)
       mswServer.use(
