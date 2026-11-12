@@ -55,6 +55,8 @@ async function callBasePrices({ method, path, body, action }) {
  * @property {string} createdAt
  * @property {string} effectiveFrom
  * @property {string} comment
+ * @property {string | null} requestor Null on a base price saved before requestors were recorded
+ * @property {string | null} jiraTicket Null on a base price saved before tickets were recorded
  * @property {string} staffId
  * @property {string} staffFullName
  * @property {string} staffEmail

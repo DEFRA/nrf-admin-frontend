@@ -3,6 +3,7 @@ import Joi from 'joi'
 import { getBasePrices } from '#/server/common/services/impact-assessor-base-prices.js'
 import {
   addBasePricePath,
+  basePriceDetailsPath,
   changeBasePricePath,
   DEFAULT_EDP_ID,
   deleteBasePricePath
@@ -19,6 +20,7 @@ const toViewModel = ({ edps, now }) =>
     basePrices: edp.basePrices.map((basePrice) => ({
       ...basePrice,
       isFuture: isFuture({ basePrice, now }),
+      detailsPath: basePriceDetailsPath(basePrice.id),
       changePath: changeBasePricePath(basePrice.id),
       deletePath: deleteBasePricePath(basePrice.id)
     })),

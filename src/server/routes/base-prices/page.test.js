@@ -1,4 +1,4 @@
-import { getByRole, getAllByRole, queryByRole } from '@testing-library/dom'
+import { getAllByRole, getByRole, queryByRole } from '@testing-library/dom'
 import { http, HttpResponse } from 'msw'
 import { setupTestServer } from '#/test-utils/setup-test-server.js'
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
@@ -52,9 +52,9 @@ describe('Base prices page', () => {
     expect(rows).toHaveLength(3)
     expect(rows[1]).toHaveTextContent('£2,800.50')
     expect(rows[1]).toHaveTextContent('1 Jul 2099 at 09:30')
-    expect(rows[1]).toHaveTextContent('NE advice after consultation')
-    expect(rows[1]).toHaveTextContent('Ada Admin')
-    expect(rows[1]).toHaveTextContent('ada.admin@defra.gov.uk')
+    expect(rows[1]).not.toHaveTextContent('NE advice after consultation')
+    expect(rows[1]).not.toHaveTextContent('Ada Admin')
+    expect(rows[1]).not.toHaveTextContent('ada.admin@defra.gov.uk')
     expect(rows[2]).toHaveTextContent('£2,675.00')
     expect(rows[2]).toHaveTextContent('1 Jan 2026 at 00:00')
   })
@@ -65,7 +65,7 @@ describe('Base prices page', () => {
     const document = await loadBasePricesPage()
 
     expect(
-      getByRole(document, 'link', { name: 'Add base price' })
+      getByRole(document, 'button', { name: 'Add base price' })
     ).toHaveAttribute('href', '/base-prices/add')
     expect(
       queryByRole(document, 'link', { name: /^Change/ })
@@ -75,13 +75,33 @@ describe('Base prices page', () => {
     ).not.toBeInTheDocument()
   })
 
+  it("lists only the base price and effective from columns, with a link to each price's details", async () => {
+    stubBasePrices(edpWithHistory(futureBasePrice, pastBasePrice))
+
+    const document = await loadBasePricesPage()
+
+    const table = getByRole(document, 'table', {
+      name: 'Base price history for Test nutrient EDP'
+    })
+    expect(
+      getAllByRole(table, 'columnheader').map(({ textContent }) =>
+        textContent.trim()
+      )
+    ).toEqual(['Base price', 'Effective from', 'Actions'])
+    const detailsLinks = getAllByRole(table, 'link', { name: /^View details/ })
+    expect(detailsLinks.map((link) => link.getAttribute('href'))).toEqual([
+      '/base-prices/2',
+      '/base-prices/1'
+    ])
+  })
+
   it('offers to change or delete only a base price waiting to take effect', async () => {
     stubBasePrices(edpWithHistory(futureBasePrice, pastBasePrice))
 
     const document = await loadBasePricesPage()
 
     expect(
-      queryByRole(document, 'link', { name: 'Add base price' })
+      queryByRole(document, 'button', { name: 'Add base price' })
     ).not.toBeInTheDocument()
     expect(getByRole(document, 'link', { name: /^Change/ })).toHaveAttribute(
       'href',
@@ -106,7 +126,7 @@ describe('Base prices page', () => {
     ['base-price-changed', 'Base price changed.'],
     ['base-price-deleted', 'Base price deleted.'],
     ['base-price-future-exists', 'there is already a base price'],
-    ['base-price-taken-effect', 'it has already taken effect'],
+    ['base-price-taken-effect', 'can only be changed or deleted before'],
     ['base-price-error', 'The base price was not saved']
   ])('shows the banner for %s', async (notification, text) => {
     stubBasePrices(edpWithHistory(pastBasePrice))

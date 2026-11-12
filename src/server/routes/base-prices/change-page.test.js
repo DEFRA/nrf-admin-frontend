@@ -2,7 +2,8 @@ import { getByLabelText, getByRole } from '@testing-library/dom'
 import { http, HttpResponse } from 'msw'
 import { setupTestServer } from '#/test-utils/setup-test-server.js'
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
-import { loadPage } from '#/test-utils/load-page.js'
+import { loadPage, loadPageWithCookie } from '#/test-utils/load-page.js'
+import { getSessionCookie } from '#/test-utils/session-cookie.js'
 import { submitForm } from '#/test-utils/submit-form.js'
 import {
   edpWithHistory,
@@ -46,6 +47,8 @@ describe('Change base price page', () => {
     expect(getByLabelText(document, 'Month')).toHaveValue('3')
     expect(getByLabelText(document, 'Year')).toHaveValue('2099')
     expect(getByLabelText(document, 'Effective from time')).toHaveValue('00:00')
+    expect(getByLabelText(document, 'Requestor')).toHaveValue('Grace Hopper')
+    expect(getByLabelText(document, 'Jira ticket')).toHaveValue('NRF2-1234')
     expect(getByLabelText(document, 'Comment')).toHaveValue(
       'NE advice after consultation'
     )
@@ -104,6 +107,8 @@ describe('Change base price page', () => {
     expect(sent).toEqual({
       basePrice: 2900.25,
       effectiveFrom: '2099-07-01T08:30:00.000Z',
+      requestor: 'Alan Turing',
+      jiraTicket: 'NRF2-2000',
       comment: 'Following consultation',
       staffId: '0b7c1e52-3c1f-4d6a-9d1a-5f2f3e6a7b8c',
       staffFullName: 'Ada Admin',
@@ -121,6 +126,42 @@ describe('Change base price page', () => {
 
     expect(response.statusCode).toBe(303)
     expect(response.headers.location).toBe(changeUrl)
+  })
+
+  it('does not carry a rejected change into the add form', async () => {
+    const takenEffect = {
+      ...futureBasePrice,
+      effectiveFrom: '2026-02-01T00:00:00Z'
+    }
+    mswServer.use(
+      http.get(basePricesEndpoint, () =>
+        HttpResponse.json(edpWithHistory(takenEffect, pastBasePrice))
+      )
+    )
+    const { cookie } = await submitForm({
+      server: getServer(),
+      url: changeUrl,
+      payload: { ...validBasePriceForm, basePrice: '7777', comment: '' },
+      auth: signedInStaff
+    })
+    const rejected = await getServer().inject({
+      method: 'GET',
+      url: changeUrl,
+      auth: signedInStaff,
+      headers: { cookie }
+    })
+
+    const { document } = await loadPageWithCookie({
+      requestUrl: '/base-prices/add',
+      server: getServer(),
+      auth: signedInStaff,
+      cookie: getSessionCookie(rejected) || cookie
+    })
+
+    expect(rejected.headers.location).toBe(
+      '/base-prices?notification=base-price-taken-effect'
+    )
+    expect(getByLabelText(document, /Base price per unit/)).toHaveValue('')
   })
 
   it.each([
