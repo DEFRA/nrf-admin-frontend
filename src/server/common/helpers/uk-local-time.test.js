@@ -74,4 +74,11 @@ describe('formatUkDateTime', () => {
   ])('formats %s in UK local time', (utc, expected) => {
     expect(formatUkDateTime(utc)).toBe(expected)
   })
+
+  it.each([[null], [undefined], [''], ['not a date']])(
+    'shows a hyphen for %s',
+    (value) => {
+      expect(formatUkDateTime(value)).toBe('–')
+    }
+  )
 })

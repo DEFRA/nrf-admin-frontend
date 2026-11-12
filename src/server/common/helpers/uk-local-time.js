@@ -83,10 +83,13 @@ export function ukLocalToUtc(local) {
 }
 
 /**
- * @param {string | Date} value A UTC instant
- * @returns {string} e.g. "8 Sep 2026 at 08:35", in UK local time
+ * @param {string | Date | null | undefined} value A UTC instant
+ * @returns {string} e.g. "8 Sep 2026 at 08:35", in UK local time, or "–" when there is no valid date
  */
 export function formatUkDateTime(value) {
+  if (!value || Number.isNaN(new Date(value).getTime())) {
+    return '–'
+  }
   const { year, month, day, hour, minute } = utcToUkLocal(value)
   const time = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
   return `${day} ${MONTH_ABBREVIATIONS[month - 1]} ${year} at ${time}`

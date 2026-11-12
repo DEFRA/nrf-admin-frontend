@@ -9,7 +9,7 @@ import { config } from '#/config/config.js'
 // real cookie the client is still holding. Using skip() bypasses crumb's
 // cookie read/generate logic entirely for these routes. They are not browser
 // forms: bearer-token APIs, and the OIDC callback posted by the identity provider.
-const NO_CRUMB_PATHS = ['/auth/callback']
+const NO_CRUMB_PATHS = new Set(['/auth/callback'])
 const NO_CRUMB_PATH_PREFIXES = ['/api/', '/upload-and-scan/']
 
 export const csrf = {
@@ -26,7 +26,7 @@ export const csrf = {
     },
     skip: (request) =>
       config.get('isTest') ||
-      NO_CRUMB_PATHS.includes(request.path) ||
+      NO_CRUMB_PATHS.has(request.path) ||
       NO_CRUMB_PATH_PREFIXES.some((prefix) => request.path.startsWith(prefix))
   }
 }
