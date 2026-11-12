@@ -1,5 +1,6 @@
 import Joi from 'joi'
 
+import { sanitizedText } from '#/server/common/helpers/sanitized-text.js'
 import { validateComment } from '#/server/common/helpers/validate-comment.js'
 import { validatePrice } from '#/server/common/helpers/validate-price.js'
 import { validateFutureUkDateTime } from '#/server/common/helpers/validate-uk-date-time.js'
@@ -21,7 +22,7 @@ export const basePriceFormPayloadSchema = Joi.object({
   'effectiveFrom-month': field(MAX_DATE_PART_LENGTH),
   'effectiveFrom-year': field(MAX_DATE_PART_LENGTH),
   effectiveFromTime: field(MAX_TIME_INPUT_LENGTH),
-  comment: field(MAX_COMMENT_LENGTH * COMMENT_INPUT_HEADROOM)
+  comment: sanitizedText(MAX_COMMENT_LENGTH * COMMENT_INPUT_HEADROOM)
 })
 
 /**

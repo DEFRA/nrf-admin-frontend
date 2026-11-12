@@ -117,14 +117,13 @@
           errorMessage: { text: errors.comment } if errors.comment
         }) }}
 
-        {{ govukButton({
-          text: "Save"
-        }) }}
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Save"
+          }) }}
+          <a class="govuk-link" href="{{ backHref }}">Cancel</a>
+        </div>
       </form>
-
-      <p class="govuk-body">
-        <a class="govuk-link" href="{{ backHref }}">Cancel</a>
-      </p>
     </div>
   </div>
 {% endblock %}

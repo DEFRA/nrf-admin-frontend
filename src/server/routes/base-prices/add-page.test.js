@@ -102,6 +102,42 @@ describe('Add base price page', () => {
     })
   })
 
+  it('removes angle brackets from the comment before saving it', async () => {
+    stubBasePrices(pastBasePrice)
+    let sent
+    mswServer.use(
+      http.post(basePricesEndpoint, async ({ request }) => {
+        sent = await request.json()
+        return HttpResponse.json({ id: 3 }, { status: 201 })
+      })
+    )
+
+    const { response } = await submitAddForm({
+      ...validBasePriceForm,
+      comment: '<script>alert(1)</script>Following consultation'
+    })
+
+    expect(response.statusCode).toBe(303)
+    expect(sent.comment).toBe('scriptalert(1)/scriptFollowing consultation')
+  })
+
+  it('asks for a comment when nothing is left after removing angle brackets', async () => {
+    const { response, cookie } = await submitAddForm({
+      ...validBasePriceForm,
+      comment: '<>'
+    })
+    stubBasePrices(pastBasePrice)
+    const { document } = await loadPageWithCookie({
+      requestUrl: addUrl,
+      server: getServer(),
+      auth: signedInStaff,
+      cookie
+    })
+
+    expect(response.statusCode).toBe(303)
+    expect(document.body).toHaveTextContent('Enter a comment')
+  })
+
   it('does not accept user details from the form', async () => {
     const { response } = await submitAddForm({
       ...validBasePriceForm,

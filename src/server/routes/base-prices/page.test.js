@@ -65,7 +65,7 @@ describe('Base prices page', () => {
     const document = await loadBasePricesPage()
 
     expect(
-      getByRole(document, 'link', { name: 'Add base price' })
+      getByRole(document, 'button', { name: 'Add base price' })
     ).toHaveAttribute('href', '/base-prices/add')
     expect(
       queryByRole(document, 'link', { name: /^Change/ })
@@ -81,7 +81,7 @@ describe('Base prices page', () => {
     const document = await loadBasePricesPage()
 
     expect(
-      queryByRole(document, 'link', { name: 'Add base price' })
+      queryByRole(document, 'button', { name: 'Add base price' })
     ).not.toBeInTheDocument()
     expect(getByRole(document, 'link', { name: /^Change/ })).toHaveAttribute(
       'href',
