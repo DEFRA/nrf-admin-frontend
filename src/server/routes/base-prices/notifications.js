@@ -10,7 +10,7 @@ export const notifications = {
   'base-price-deleted': { type: 'success', text: 'Base price deleted.' },
   'base-price-future-exists': {
     titleText: problemTitle,
-    text: 'The base price was not added because there is already a base price that has not taken effect yet. Change or delete it first.'
+    text: "You can't add a new base price because there is already a base price that has not taken effect yet."
   },
   'base-price-taken-effect': {
     titleText: problemTitle,
