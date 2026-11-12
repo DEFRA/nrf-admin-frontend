@@ -21,6 +21,7 @@ describe('#buildNavigation', () => {
     ).toEqual([
       { text: 'Quotes', href: '/' },
       { text: 'Base prices', href: '/base-prices' },
+      { text: 'Inflation index', href: '/inflation-index' },
       { text: 'Map tile cache', href: '/map-tile-cache' },
       { text: 'Sign out', href: '/sign-out' }
     ])
@@ -33,6 +34,8 @@ describe('#buildNavigation', () => {
     ['/map-tile-cache', 'Map tile cache'],
     ['/base-prices', 'Base prices'],
     ['/base-prices/12/change', 'Base prices'],
+    ['/inflation-index', 'Inflation index'],
+    ['/inflation-index/an-id/delete', 'Inflation index'],
     ['/about', undefined]
   ])('Should mark the section for %s as active', (path, activeText) => {
     const active = buildNavigation(mockRequest({ path, auth: signedIn }))

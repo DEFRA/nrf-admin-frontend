@@ -5,6 +5,7 @@ import { quote } from '../routes/quote/index.js'
 import { quoteDelete } from '../routes/quote/delete/index.js'
 import { quotesBulkDelete } from '../routes/quotes/bulk-delete/index.js'
 import { basePrices } from '../routes/base-prices/index.js'
+import { inflationIndex } from '../routes/inflation-index/index.js'
 import { tileCache } from '../routes/map-tile-cache/index.js'
 import { about } from '../routes/about/index.js'
 import { apiUploads } from '../routes/api/uploads/index.js'
@@ -31,6 +32,7 @@ export const router = {
         quotesBulkDelete,
         tileCache,
         basePrices,
+        inflationIndex,
         about,
         apiUploads,
         apiDataSync,
