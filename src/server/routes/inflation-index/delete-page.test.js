@@ -2,26 +2,20 @@ import { getByRole } from '@testing-library/dom'
 import { http, HttpResponse } from 'msw'
 import { setupTestServer } from '#/test-utils/setup-test-server.js'
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
+import {
+  inflationIndexesEndpoint,
+  stubInflationIndexes
+} from '#/test-utils/stub-inflation-indexes.js'
 import { loadPage } from '#/test-utils/load-page.js'
 import { submitForm } from '#/test-utils/submit-form.js'
 import {
   futureIndex,
-  indexes,
   liveIndex,
   signedInStaff
 } from '#/test-utils/fixtures/inflation-index.js'
-import { config } from '#/config/config.js'
 
 const deleteUrl = `/inflation-index/${futureIndex.id}/delete`
-const inflationIndexesEndpoint = `${config.get('impactAssessor.apiUrl')}/inflation-indexes`
 const mswServer = setupMswServer()
-
-const stubInflationIndexes = (...inflationIndexes) =>
-  mswServer.use(
-    http.get(inflationIndexesEndpoint, () =>
-      HttpResponse.json(indexes(...inflationIndexes))
-    )
-  )
 
 describe('Delete inflation index page', () => {
   const getServer = setupTestServer()
@@ -35,7 +29,10 @@ describe('Delete inflation index page', () => {
     })
 
   it('shows what will be deleted and the consequence', async () => {
-    stubInflationIndexes(futureIndex, liveIndex)
+    stubInflationIndexes({
+      mswServer,
+      inflationIndexes: [futureIndex, liveIndex]
+    })
 
     const document = await loadPage({
       requestUrl: deleteUrl,
@@ -66,7 +63,7 @@ describe('Delete inflation index page', () => {
   })
 
   it('sends the user back when the year has already begun', async () => {
-    stubInflationIndexes(liveIndex)
+    stubInflationIndexes({ mswServer, inflationIndexes: [liveIndex] })
 
     const response = await getServer().inject({
       method: 'GET',
@@ -81,7 +78,10 @@ describe('Delete inflation index page', () => {
   })
 
   it('deletes the index and says the existing one continues to apply', async () => {
-    stubInflationIndexes(futureIndex, liveIndex)
+    stubInflationIndexes({
+      mswServer,
+      inflationIndexes: [futureIndex, liveIndex]
+    })
     mswServer.use(
       http.delete(
         `${inflationIndexesEndpoint}/${futureIndex.id}`,
@@ -133,7 +133,10 @@ describe('Delete inflation index page', () => {
   ])(
     'reports a %d from the impact assessor as %s',
     async (statusCode, body, notification) => {
-      stubInflationIndexes(futureIndex, liveIndex)
+      stubInflationIndexes({
+        mswServer,
+        inflationIndexes: [futureIndex, liveIndex]
+      })
       mswServer.use(
         http.delete(`${inflationIndexesEndpoint}/${futureIndex.id}`, () =>
           HttpResponse.json(body, { status: statusCode })

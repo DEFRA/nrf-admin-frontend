@@ -2,28 +2,22 @@ import { getByLabelText, getByRole, getByText } from '@testing-library/dom'
 import { http, HttpResponse } from 'msw'
 import { setupTestServer } from '#/test-utils/setup-test-server.js'
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
+import {
+  inflationIndexesEndpoint,
+  stubInflationIndexes
+} from '#/test-utils/stub-inflation-indexes.js'
 import { loadPage, loadPageWithCookie } from '#/test-utils/load-page.js'
 import { submitForm } from '#/test-utils/submit-form.js'
 import {
   futureIndex,
-  indexes,
   liveIndex,
   pastIndex,
   signedInStaff,
   validAddForm
 } from '#/test-utils/fixtures/inflation-index.js'
-import { config } from '#/config/config.js'
 
 const addUrl = '/inflation-index/add'
-const inflationIndexesEndpoint = `${config.get('impactAssessor.apiUrl')}/inflation-indexes`
 const mswServer = setupMswServer()
-
-const stubInflationIndexes = (...inflationIndexes) =>
-  mswServer.use(
-    http.get(inflationIndexesEndpoint, () =>
-      HttpResponse.json(indexes(...inflationIndexes))
-    )
-  )
 
 describe('Add inflation index page', () => {
   const getServer = setupTestServer()
@@ -38,7 +32,10 @@ describe('Add inflation index page', () => {
     })
 
   it('offers only future years that do not already have an index', async () => {
-    stubInflationIndexes(futureIndex, liveIndex, pastIndex)
+    stubInflationIndexes({
+      mswServer,
+      inflationIndexes: [futureIndex, liveIndex, pastIndex]
+    })
 
     const document = await loadPage({
       requestUrl: addUrl,
@@ -69,12 +66,13 @@ describe('Add inflation index page', () => {
 
   it('sends the user to the inflation index page when every offered year is taken', async () => {
     const currentYear = liveIndex.chargingYear
-    stubInflationIndexes(
-      ...Array.from({ length: 10 }, (_, offset) => ({
+    stubInflationIndexes({
+      mswServer,
+      inflationIndexes: Array.from({ length: 10 }, (_, offset) => ({
         ...futureIndex,
         chargingYear: currentYear + 1 + offset
       }))
-    )
+    })
 
     const response = await getServer().inject({
       method: 'GET',
@@ -84,12 +82,12 @@ describe('Add inflation index page', () => {
 
     expect(response.statusCode).toBe(302)
     expect(response.headers.location).toBe(
-      '/inflation-index?notification=inflation-index-year-exists'
+      '/inflation-index?notification=inflation-index-all-years-taken'
     )
   })
 
   it('adds the index with the user from the session', async () => {
-    stubInflationIndexes(liveIndex)
+    stubInflationIndexes({ mswServer, inflationIndexes: [liveIndex] })
     let sent
     let contentType
     mswServer.use(
@@ -120,7 +118,7 @@ describe('Add inflation index page', () => {
   })
 
   it('saves the requestor with angle brackets removed and the Jira ticket in upper case', async () => {
-    stubInflationIndexes(liveIndex)
+    stubInflationIndexes({ mswServer, inflationIndexes: [liveIndex] })
     let sent
     mswServer.use(
       http.post(inflationIndexesEndpoint, async ({ request }) => {
@@ -141,7 +139,7 @@ describe('Add inflation index page', () => {
   })
 
   it('removes angle brackets from the comment before saving it', async () => {
-    stubInflationIndexes(liveIndex)
+    stubInflationIndexes({ mswServer, inflationIndexes: [liveIndex] })
     let sent
     mswServer.use(
       http.post(inflationIndexesEndpoint, async ({ request }) => {
@@ -160,7 +158,7 @@ describe('Add inflation index page', () => {
   })
 
   it('shows the problems with the requestor and the Jira ticket', async () => {
-    stubInflationIndexes(liveIndex)
+    stubInflationIndexes({ mswServer, inflationIndexes: [liveIndex] })
     const { cookie } = await submitAddForm({
       ...validAddForm,
       requestor: '',
@@ -188,7 +186,7 @@ describe('Add inflation index page', () => {
   })
 
   it('asks for a comment when nothing is left after removing angle brackets', async () => {
-    stubInflationIndexes(liveIndex)
+    stubInflationIndexes({ mswServer, inflationIndexes: [liveIndex] })
     const { response, cookie } = await submitAddForm({
       ...validAddForm,
       comment: '<>'
@@ -225,7 +223,7 @@ describe('Add inflation index page', () => {
     expect(response.statusCode).toBe(303)
     expect(response.headers.location).toBe(addUrl)
 
-    stubInflationIndexes(liveIndex)
+    stubInflationIndexes({ mswServer, inflationIndexes: [liveIndex] })
     const document = await loadPage({
       requestUrl: addUrl,
       server: getServer(),
@@ -247,7 +245,7 @@ describe('Add inflation index page', () => {
 
   it('shows the problems once, then the form as new', async () => {
     const { cookie } = await submitAddForm({ ...validAddForm, comment: '' })
-    stubInflationIndexes(liveIndex)
+    stubInflationIndexes({ mswServer, inflationIndexes: [liveIndex] })
     const pageOptions = {
       requestUrl: addUrl,
       server: getServer(),

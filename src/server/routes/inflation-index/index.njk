@@ -1,7 +1,6 @@
 {% extends 'layouts/page.njk' %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/table/macro.njk" import govukTable %}
-{% from "govuk/components/tag/macro.njk" import govukTag %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 
@@ -34,32 +33,7 @@
     }) }}
   {% endif %}
 
-  {% set tableRows = [] %}
-  {% for inflationIndex in inflationIndexes %}
-    {% set actionsHtml %}
-      <a class="govuk-link" href="{{ inflationIndex.detailsPath }}">View details<span class="govuk-visually-hidden"> of the inflation index for {{ inflationIndex.chargingYear }}</span></a>
-      {% if inflationIndex.isFuture %}
-        <br>
-        <a class="govuk-link" href="{{ inflationIndex.changePath }}">Change<span class="govuk-visually-hidden"> the inflation index for {{ inflationIndex.chargingYear }}</span></a>
-        <br>
-        <a class="govuk-link" href="{{ inflationIndex.deletePath }}">Delete<span class="govuk-visually-hidden"> the inflation index for {{ inflationIndex.chargingYear }}</span></a>
-      {% endif %}
-    {% endset %}
-    {% set yearHtml %}
-      {{ inflationIndex.chargingYear }}
-      {% if inflationIndex.isInForce %}
-        {{ govukTag({ text: "In force", classes: "govuk-tag--blue" }) }}
-      {% endif %}
-    {% endset %}
-    {% set tableRows = (tableRows.push([
-      { html: yearHtml },
-      { text: inflationIndex.cilIndex, format: "numeric" },
-      { text: inflationIndex.indexFactor.toFixed(4), format: "numeric" },
-      { html: actionsHtml }
-    ]), tableRows) %}
-  {% endfor %}
-
-  {% if tableRows.length %}
+  {% if hasIndexes %}
     {{ govukTable({
       caption: "Inflation index history",
       captionClasses: "govuk-visually-hidden",

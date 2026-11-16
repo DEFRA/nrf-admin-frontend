@@ -1,28 +1,18 @@
 import { getByRole, getByText } from '@testing-library/dom'
-import { http, HttpResponse } from 'msw'
 import { setupTestServer } from '#/test-utils/setup-test-server.js'
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
+import { stubInflationIndexes } from '#/test-utils/stub-inflation-indexes.js'
 import { loadPage } from '#/test-utils/load-page.js'
 import {
   futureIndex,
-  indexes,
   liveIndex,
   signedInStaff
 } from '#/test-utils/fixtures/inflation-index.js'
-import { config } from '#/config/config.js'
 
-const inflationIndexesEndpoint = `${config.get('impactAssessor.apiUrl')}/inflation-indexes`
 const mswServer = setupMswServer()
 
 describe('Inflation index details page', () => {
   const getServer = setupTestServer()
-
-  const stubInflationIndexes = (...inflationIndexes) =>
-    mswServer.use(
-      http.get(inflationIndexesEndpoint, () =>
-        HttpResponse.json(indexes(...inflationIndexes))
-      )
-    )
 
   const loadDetails = (id) =>
     loadPage({
@@ -32,7 +22,10 @@ describe('Inflation index details page', () => {
     })
 
   it('shows every field of the inflation index', async () => {
-    stubInflationIndexes(futureIndex, liveIndex)
+    stubInflationIndexes({
+      mswServer,
+      inflationIndexes: [futureIndex, liveIndex]
+    })
 
     const document = await loadDetails(futureIndex.id)
 
@@ -56,7 +49,10 @@ describe('Inflation index details page', () => {
   })
 
   it('links the Jira ticket to its page in Jira, in a new tab', async () => {
-    stubInflationIndexes(futureIndex, liveIndex)
+    stubInflationIndexes({
+      mswServer,
+      inflationIndexes: [futureIndex, liveIndex]
+    })
 
     const document = await loadDetails(futureIndex.id)
 
@@ -72,7 +68,10 @@ describe('Inflation index details page', () => {
   })
 
   it('shows a hyphen for an index saved without a requestor or ticket', async () => {
-    stubInflationIndexes(futureIndex, liveIndex)
+    stubInflationIndexes({
+      mswServer,
+      inflationIndexes: [futureIndex, liveIndex]
+    })
 
     const document = await loadDetails(liveIndex.id)
 
@@ -86,7 +85,7 @@ describe('Inflation index details page', () => {
   })
 
   it('returns a 404 page for an inflation index that does not exist', async () => {
-    stubInflationIndexes(liveIndex)
+    stubInflationIndexes({ mswServer, inflationIndexes: [liveIndex] })
 
     const response = await getServer().inject({
       method: 'GET',

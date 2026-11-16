@@ -9,9 +9,11 @@ import {
 } from './constants.js'
 import { availableYears, isFuture } from './form-state.js'
 import { notifications } from './notifications.js'
+import { toTableRows } from './table-rows.js'
 
 /**
  * @param {{ inflationIndexes: import('./form-state.js').InflationIndex[], now: Date }} params
+ * @returns {InflationIndexViewModel[]}
  */
 const toViewModel = ({ inflationIndexes, now }) => {
   const currentYear = now.getUTCFullYear()
@@ -25,6 +27,19 @@ const toViewModel = ({ inflationIndexes, now }) => {
   }))
 }
 
+/**
+ * @typedef {object} InflationIndexViewModel
+ * @property {string} id
+ * @property {number} chargingYear
+ * @property {number} cilIndex
+ * @property {number} indexFactor
+ * @property {boolean} isFuture
+ * @property {boolean} isInForce
+ * @property {string} detailsPath
+ * @property {string} changePath
+ * @property {string} deletePath
+ */
+
 export const listInflationIndexesController = {
   options: {
     validate: {
@@ -36,6 +51,9 @@ export const listInflationIndexesController = {
   async handler(request, h) {
     const result = await getInflationIndexes()
     const now = new Date()
+    const inflationIndexes = result.inflationIndexes
+      ? toViewModel({ inflationIndexes: result.inflationIndexes, now })
+      : []
 
     return h.view('inflation-index/index', {
       pageTitle: 'Inflation index',
@@ -45,9 +63,8 @@ export const listInflationIndexesController = {
       errorMessage: result.error
         ? 'Inflation indexes could not be loaded. Check the logs for details.'
         : undefined,
-      inflationIndexes: result.inflationIndexes
-        ? toViewModel({ inflationIndexes: result.inflationIndexes, now })
-        : [],
+      tableRows: toTableRows({ inflationIndexes }),
+      hasIndexes: inflationIndexes.length > 0,
       canAdd:
         !result.error &&
         availableYears({

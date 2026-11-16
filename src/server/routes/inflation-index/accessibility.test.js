@@ -2,24 +2,21 @@
 import { http, HttpResponse } from 'msw'
 import { setupTestServer } from '#/test-utils/setup-test-server.js'
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
+import {
+  inflationIndexesEndpoint,
+  stubInflationIndexes
+} from '#/test-utils/stub-inflation-indexes.js'
 import { loadPage } from '#/test-utils/load-page.js'
 import { submitForm } from '#/test-utils/submit-form.js'
 import { runAxeChecks } from '#/test-utils/axe-helper.js'
 import {
   futureIndex,
-  indexes,
   liveIndex,
   signedInStaff,
   validAddForm
 } from '#/test-utils/fixtures/inflation-index.js'
-import { config } from '#/config/config.js'
 
-const inflationIndexesEndpoint = `${config.get('impactAssessor.apiUrl')}/inflation-indexes`
-const mswServer = setupMswServer(
-  http.get(inflationIndexesEndpoint, () =>
-    HttpResponse.json(indexes(futureIndex, liveIndex))
-  )
-)
+const mswServer = setupMswServer()
 
 describe.each([
   ['inflation index page', '/inflation-index'],
@@ -34,8 +31,34 @@ describe.each([
   const getServer = setupTestServer()
 
   it('should have no HTML accessibility issues', async () => {
+    stubInflationIndexes({
+      mswServer,
+      inflationIndexes: [futureIndex, liveIndex]
+    })
+
     const document = await loadPage({
       requestUrl,
+      server: getServer(),
+      auth: signedInStaff
+    })
+
+    await runAxeChecks(document.documentElement)
+  })
+})
+
+describe('The inflation index page load-failure accessibility checks', () => {
+  const getServer = setupTestServer()
+
+  it('should have no HTML accessibility issues', async () => {
+    mswServer.use(
+      http.get(
+        inflationIndexesEndpoint,
+        () => new HttpResponse(null, { status: 500 })
+      )
+    )
+
+    const document = await loadPage({
+      requestUrl: '/inflation-index',
       server: getServer(),
       auth: signedInStaff
     })
@@ -48,11 +71,7 @@ describe('The add inflation index page accessibility checks', () => {
   const getServer = setupTestServer()
 
   const stubOnlyLiveIndex = () =>
-    mswServer.use(
-      http.get(inflationIndexesEndpoint, () =>
-        HttpResponse.json(indexes(liveIndex))
-      )
-    )
+    stubInflationIndexes({ mswServer, inflationIndexes: [liveIndex] })
 
   it('should have no HTML accessibility issues', async () => {
     stubOnlyLiveIndex()

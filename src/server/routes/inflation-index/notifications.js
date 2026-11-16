@@ -22,6 +22,10 @@ export const notifications = {
     titleText: problemTitle,
     text: "You can't add an inflation index for that year because one already exists."
   },
+  'inflation-index-all-years-taken': {
+    titleText: problemTitle,
+    text: "You can't add an inflation index because every year already has one."
+  },
   'inflation-index-taken-effect': {
     titleText: problemTitle,
     text: 'An inflation index can only be changed or deleted before its charging year begins.'

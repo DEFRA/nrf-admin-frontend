@@ -2,25 +2,19 @@ import { getByRole, getAllByRole, queryByRole } from '@testing-library/dom'
 import { http, HttpResponse } from 'msw'
 import { setupTestServer } from '#/test-utils/setup-test-server.js'
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
+import {
+  inflationIndexesEndpoint,
+  stubInflationIndexes
+} from '#/test-utils/stub-inflation-indexes.js'
 import { loadPage } from '#/test-utils/load-page.js'
 import {
   futureIndex,
-  indexes,
   liveIndex,
   pastIndex,
   signedInStaff
 } from '#/test-utils/fixtures/inflation-index.js'
-import { config } from '#/config/config.js'
 
-const inflationIndexesEndpoint = `${config.get('impactAssessor.apiUrl')}/inflation-indexes`
 const mswServer = setupMswServer()
-
-const stubInflationIndexes = (...inflationIndexes) =>
-  mswServer.use(
-    http.get(inflationIndexesEndpoint, () =>
-      HttpResponse.json(indexes(...inflationIndexes))
-    )
-  )
 
 describe('Inflation index page', () => {
   const getServer = setupTestServer()
@@ -33,7 +27,10 @@ describe('Inflation index page', () => {
     })
 
   it('renders the history newest year first with the derived effective date', async () => {
-    stubInflationIndexes(futureIndex, liveIndex, pastIndex)
+    stubInflationIndexes({
+      mswServer,
+      inflationIndexes: [futureIndex, liveIndex, pastIndex]
+    })
 
     const document = await loadInflationIndexPage()
 
@@ -54,7 +51,10 @@ describe('Inflation index page', () => {
   })
 
   it("lists only the year, index and factor columns, with a link to each index's details", async () => {
-    stubInflationIndexes(futureIndex, liveIndex)
+    stubInflationIndexes({
+      mswServer,
+      inflationIndexes: [futureIndex, liveIndex]
+    })
 
     const document = await loadInflationIndexPage()
 
@@ -74,7 +74,10 @@ describe('Inflation index page', () => {
   })
 
   it('marks the index in force for the current charging year', async () => {
-    stubInflationIndexes(liveIndex, pastIndex)
+    stubInflationIndexes({
+      mswServer,
+      inflationIndexes: [liveIndex, pastIndex]
+    })
 
     const document = await loadInflationIndexPage()
 
@@ -82,7 +85,10 @@ describe('Inflation index page', () => {
   })
 
   it('offers to add an index for a year that does not have one', async () => {
-    stubInflationIndexes(liveIndex, pastIndex)
+    stubInflationIndexes({
+      mswServer,
+      inflationIndexes: [liveIndex, pastIndex]
+    })
 
     const document = await loadInflationIndexPage()
 
@@ -92,7 +98,10 @@ describe('Inflation index page', () => {
   })
 
   it('offers to change or delete only an index whose year has not begun', async () => {
-    stubInflationIndexes(futureIndex, liveIndex, pastIndex)
+    stubInflationIndexes({
+      mswServer,
+      inflationIndexes: [futureIndex, liveIndex, pastIndex]
+    })
 
     const document = await loadInflationIndexPage()
 
@@ -109,17 +118,15 @@ describe('Inflation index page', () => {
   })
 
   it('hides the add button when every offered year already has an index', async () => {
-    const allYearsTaken = indexes(
+    const everyYearTaken = [
       liveIndex,
       ...Array.from({ length: 10 }, (_, offset) => ({
         ...pastIndex,
         id: `00000000-0000-4000-8000-${String(offset).padStart(12, '0')}`,
         chargingYear: new Date().getUTCFullYear() + offset + 1
       }))
-    )
-    mswServer.use(
-      http.get(inflationIndexesEndpoint, () => HttpResponse.json(allYearsTaken))
-    )
+    ]
+    stubInflationIndexes({ mswServer, inflationIndexes: everyYearTaken })
 
     const document = await loadInflationIndexPage()
 
@@ -129,7 +136,7 @@ describe('Inflation index page', () => {
   })
 
   it('says when no inflation indexes exist', async () => {
-    stubInflationIndexes()
+    stubInflationIndexes({ mswServer, inflationIndexes: [] })
 
     const document = await loadInflationIndexPage()
 
@@ -143,12 +150,13 @@ describe('Inflation index page', () => {
     ['inflation-index-changed', 'Inflation index changed.'],
     ['inflation-index-deleted', 'Inflation index deleted.'],
     ['inflation-index-year-exists', 'one already exists'],
+    ['inflation-index-all-years-taken', 'every year already has one'],
     ['inflation-index-taken-effect', 'before its charging year begins'],
     ['inflation-index-in-use', 'used to price a quote'],
     ['inflation-index-not-found', 'no longer exists'],
     ['inflation-index-error', 'The inflation index was not saved']
   ])('shows the banner for %s', async (notification, text) => {
-    stubInflationIndexes(liveIndex)
+    stubInflationIndexes({ mswServer, inflationIndexes: [liveIndex] })
 
     const document = await loadInflationIndexPage(
       `?notification=${notification}`

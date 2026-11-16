@@ -32,7 +32,7 @@ export const addInflationIndexFormController = {
     if (years.length === 0) {
       return redirectToList({
         h,
-        notification: 'inflation-index-year-exists'
+        notification: 'inflation-index-all-years-taken'
       })
     }
 
