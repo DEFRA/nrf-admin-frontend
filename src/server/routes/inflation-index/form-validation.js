@@ -36,6 +36,39 @@ export const inflationIndexFormPayloadSchema = Joi.object({
  */
 
 /**
+ * The year must be a charging year that has not begun: from 1 January of the
+ * year after `now` onwards.
+ *
+ * @param {object} params
+ * @param {string} params.chargingYear
+ * @param {Date} params.now
+ * @returns {{ error?: string }}
+ */
+const validateChargingYear = ({ chargingYear, now }) => {
+  const firstOfferedYear = now.getUTCFullYear() + 1
+  if (
+    !/^\d{4}$/.test(chargingYear ?? '') ||
+    Number(chargingYear) < firstOfferedYear
+  ) {
+    return { error: 'Select the year the inflation index applies to' }
+  }
+  return {}
+}
+
+/**
+ * Keeps one message per field that failed, dropping the fields that passed.
+ *
+ * @param {Record<string, { error?: string }>} validations Field name to its validator's result
+ * @returns {InflationIndexFormErrors}
+ */
+const toErrors = (validations) =>
+  Object.fromEntries(
+    Object.entries(validations)
+      .filter(([, { error }]) => error)
+      .map(([field, { error }]) => [field, error])
+  )
+
+/**
  * Checks every field of the add form. The change form fixes the year, so it
  * validates with requireYear false.
  *
@@ -49,20 +82,6 @@ export function validateInflationIndexForm(
   { payload, now },
   { requireYear = false } = {}
 ) {
-  let yearError
-  if (requireYear) {
-    const year = Number(payload.chargingYear)
-    // The year must be a charging year that has not begun: from 1 January of
-    // the year after `now` onwards
-    const firstOfferedYear = now.getUTCFullYear() + 1
-    if (
-      !/^\d{4}$/.test(payload.chargingYear ?? '') ||
-      year < firstOfferedYear
-    ) {
-      yearError = 'Select the year the inflation index applies to'
-    }
-  }
-
   const cilIndex = validateCilIndex({ rawCilIndex: payload.cilIndex })
   const requestor = validateRequestor({
     rawRequestor: payload.requestor,
@@ -74,13 +93,18 @@ export function validateInflationIndexForm(
     maxLength: MAX_COMMENT_LENGTH
   })
 
-  const errors = {
-    ...(yearError && { chargingYear: yearError }),
-    ...(cilIndex.error && { cilIndex: cilIndex.error }),
-    ...(requestor.error && { requestor: requestor.error }),
-    ...(jiraTicket.error && { jiraTicket: jiraTicket.error }),
-    ...(comment.error && { comment: comment.error })
-  }
+  const errors = toErrors({
+    ...(requireYear && {
+      chargingYear: validateChargingYear({
+        chargingYear: payload.chargingYear,
+        now
+      })
+    }),
+    cilIndex,
+    requestor,
+    jiraTicket,
+    comment
+  })
 
   if (Object.keys(errors).length > 0) {
     return { errors }
