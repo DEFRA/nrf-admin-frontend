@@ -2,6 +2,7 @@ import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { inflationIndexPath } from './constants.js'
 
 const problemTitle = 'There is a problem'
+const errorNotification = 'inflation-index-error'
 
 /** @type {Record<string, { type?: 'success', titleText?: string, text: string }>} */
 export const notifications = {
@@ -52,7 +53,7 @@ export function notificationFor({ result, success, byStatus = {} }) {
   if (!result.error) {
     return success
   }
-  return byStatus[result.statusCode] ?? 'inflation-index-error'
+  return byStatus[result.statusCode] ?? errorNotification
 }
 
 export const yearExistsStatus = {
@@ -83,12 +84,12 @@ export function notificationForDelete({ result }) {
     return 'inflation-index-deleted'
   }
   if (result.statusCode === statusCodes.conflict) {
-    return deleteConflictNotifications[result.code] ?? 'inflation-index-error'
+    return deleteConflictNotifications[result.code] ?? errorNotification
   }
   if (result.statusCode === statusCodes.notFound) {
     return 'inflation-index-not-found'
   }
-  return 'inflation-index-error'
+  return errorNotification
 }
 
 /**
