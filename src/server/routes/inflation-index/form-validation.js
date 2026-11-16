@@ -65,7 +65,7 @@ const toErrors = (validations) =>
   Object.fromEntries(
     Object.entries(validations)
       .filter(([, { error }]) => error)
-      .map(([field, { error }]) => [field, error])
+      .map(([fieldName, { error }]) => [fieldName, error])
   )
 
 /**
