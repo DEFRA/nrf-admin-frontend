@@ -4,7 +4,8 @@ import { getInflationIndexes } from '#/server/common/services/impact-assessor-in
 import {
   addInflationIndexPath,
   changeInflationIndexPath,
-  deleteInflationIndexPath
+  deleteInflationIndexPath,
+  inflationIndexDetailsPath
 } from './constants.js'
 import { availableYears, isFuture } from './form-state.js'
 import { notifications } from './notifications.js'
@@ -18,6 +19,7 @@ const toViewModel = ({ inflationIndexes, now }) => {
     ...inflationIndex,
     isFuture: isFuture({ inflationIndex, now }),
     isInForce: inflationIndex.chargingYear === currentYear,
+    detailsPath: inflationIndexDetailsPath(inflationIndex.id),
     changePath: changeInflationIndexPath(inflationIndex.id),
     deletePath: deleteInflationIndexPath(inflationIndex.id)
   }))

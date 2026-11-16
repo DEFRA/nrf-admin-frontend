@@ -21,6 +21,10 @@ import {
 
 export const addInflationIndexFormController = {
   async handler(request, h) {
+    const state = takeFormState({
+      request,
+      defaultValues: emptyFormValues()
+    })
     const inflationIndexes = await loadInflationIndexes()
     const now = new Date()
     const years = availableYears({ inflationIndexes, now })
@@ -37,7 +41,7 @@ export const addInflationIndexFormController = {
       buildFormViewModel({
         request,
         years,
-        state: takeFormState({ request, defaultValues: emptyFormValues() }),
+        state,
         page: {
           heading: 'Add an inflation index',
           backHref: inflationIndexPath

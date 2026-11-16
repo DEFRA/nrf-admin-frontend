@@ -20,11 +20,11 @@ export const notifications = {
   },
   'inflation-index-year-exists': {
     titleText: problemTitle,
-    text: 'The inflation index was not added because that year already has one.'
+    text: "You can't add an inflation index for that year because one already exists."
   },
   'inflation-index-taken-effect': {
     titleText: problemTitle,
-    text: 'The inflation index was not saved because the year has already begun. An inflation index can only be changed or deleted before its year begins.'
+    text: 'An inflation index can only be changed or deleted before its charging year begins.'
   },
   'inflation-index-in-use': {
     titleText: problemTitle,

@@ -2,9 +2,11 @@ import {
   addInflationIndexPath,
   changeInflationIndexPath,
   deleteInflationIndexPath,
+  inflationIndexDetailsPath,
   inflationIndexPath
 } from './constants.js'
 import { listInflationIndexesController } from './list-controller.js'
+import { inflationIndexDetailsController } from './details-controller.js'
 import {
   addInflationIndexController,
   addInflationIndexFormController
@@ -41,6 +43,11 @@ export const inflationIndex = {
           method: 'POST',
           path: addInflationIndexPath,
           ...addInflationIndexController
+        },
+        {
+          method: 'GET',
+          path: inflationIndexDetailsPath('{id}'),
+          ...inflationIndexDetailsController
         },
         {
           method: 'GET',

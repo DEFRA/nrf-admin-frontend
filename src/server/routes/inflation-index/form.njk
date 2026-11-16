@@ -70,6 +70,35 @@
           errorMessage: { text: errors.cilIndex } if errors.cilIndex
         }) }}
 
+        {{ govukInput({
+          id: "requestor",
+          name: "requestor",
+          label: {
+            text: "Requestor",
+            classes: "govuk-label--m"
+          },
+          hint: { text: "The name of the person who asked for the change. This can be different from your name." },
+          classes: "govuk-!-width-one-half",
+          autocomplete: "off",
+          value: values.requestor,
+          errorMessage: { text: errors.requestor } if errors.requestor
+        }) }}
+
+        {{ govukInput({
+          id: "jiraTicket",
+          name: "jiraTicket",
+          label: {
+            text: "Jira ticket",
+            classes: "govuk-label--m"
+          },
+          hint: { text: "The Jira ticket for the request, like NRF2-1234." },
+          classes: "govuk-input--width-10",
+          autocomplete: "off",
+          spellcheck: false,
+          value: values.jiraTicket,
+          errorMessage: { text: errors.jiraTicket } if errors.jiraTicket
+        }) }}
+
         {{ govukCharacterCount({
           id: "comment",
           name: "comment",
@@ -77,20 +106,19 @@
             text: "Comment",
             classes: "govuk-label--m"
           },
-          hint: { text: "Say why the index is being saved, for example the NE advice it follows." },
+          hint: { text: "Say why the inflation index is being saved, for example the RICS publication it follows / who requested the change." },
           maxlength: maxCommentLength,
           value: values.comment,
           errorMessage: { text: errors.comment } if errors.comment
         }) }}
 
-        {{ govukButton({
-          text: "Save"
-        }) }}
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Save"
+          }) }}
+          <a class="govuk-link" href="{{ backHref }}">Cancel</a>
+        </div>
       </form>
-
-      <p class="govuk-body">
-        <a class="govuk-link" href="{{ backHref }}">Cancel</a>
-      </p>
     </div>
   </div>
 {% endblock %}

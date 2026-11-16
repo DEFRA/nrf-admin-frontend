@@ -60,6 +60,8 @@ describe('Add inflation index page', () => {
     expect(offered[0]).toBe(liveIndex.chargingYear + 1)
     expect(document.body).toHaveTextContent('Ada Admin')
     expect(document.body).toHaveTextContent('ada.admin@defra.gov.uk')
+    expect(getByLabelText(document, 'Requestor')).toHaveValue('')
+    expect(getByLabelText(document, 'Jira ticket')).toHaveValue('')
     expect(
       document.querySelector('form input[name="csrfToken"]')
     ).toBeInTheDocument()
@@ -108,11 +110,99 @@ describe('Add inflation index page', () => {
     expect(sent).toEqual({
       chargingYear: Number(validAddForm.chargingYear),
       cilIndex: 384.21,
+      requestor: 'Alan Turing',
+      jiraTicket: 'NRF2-2000',
       comment: 'Following consultation',
       staffId: '0b7c1e52-3c1f-4d6a-9d1a-5f2f3e6a7b8c',
       staffFullName: 'Ada Admin',
       staffEmail: 'ada.admin@defra.gov.uk'
     })
+  })
+
+  it('saves the requestor with angle brackets removed and the Jira ticket in upper case', async () => {
+    stubInflationIndexes(liveIndex)
+    let sent
+    mswServer.use(
+      http.post(inflationIndexesEndpoint, async ({ request }) => {
+        sent = await request.json()
+        return HttpResponse.json({ id: 'new-id' }, { status: 201 })
+      })
+    )
+
+    const { response } = await submitAddForm({
+      ...validAddForm,
+      requestor: '<b>Alan</b> Turing',
+      jiraTicket: 'nrf2-2000'
+    })
+
+    expect(response.statusCode).toBe(303)
+    expect(sent.requestor).toBe('bAlan/b Turing')
+    expect(sent.jiraTicket).toBe('NRF2-2000')
+  })
+
+  it('removes angle brackets from the comment before saving it', async () => {
+    stubInflationIndexes(liveIndex)
+    let sent
+    mswServer.use(
+      http.post(inflationIndexesEndpoint, async ({ request }) => {
+        sent = await request.json()
+        return HttpResponse.json({ id: 'new-id' }, { status: 201 })
+      })
+    )
+
+    const { response } = await submitAddForm({
+      ...validAddForm,
+      comment: '<script>alert(1)</script>Following consultation'
+    })
+
+    expect(response.statusCode).toBe(303)
+    expect(sent.comment).toBe('scriptalert(1)/scriptFollowing consultation')
+  })
+
+  it('shows the problems with the requestor and the Jira ticket', async () => {
+    stubInflationIndexes(liveIndex)
+    const { cookie } = await submitAddForm({
+      ...validAddForm,
+      requestor: '',
+      jiraTicket: '1234'
+    })
+
+    const { document } = await loadPageWithCookie({
+      requestUrl: addUrl,
+      server: getServer(),
+      auth: signedInStaff,
+      cookie
+    })
+
+    expect(
+      getByRole(document, 'link', {
+        name: 'Enter the name of the person who requested the change'
+      })
+    ).toHaveAttribute('href', '#requestor')
+    expect(
+      getByRole(document, 'link', {
+        name: 'Enter a Jira ticket reference in the format NRF2-1234'
+      })
+    ).toHaveAttribute('href', '#jiraTicket')
+    expect(getByLabelText(document, 'Jira ticket')).toHaveValue('1234')
+  })
+
+  it('asks for a comment when nothing is left after removing angle brackets', async () => {
+    stubInflationIndexes(liveIndex)
+    const { response, cookie } = await submitAddForm({
+      ...validAddForm,
+      comment: '<>'
+    })
+
+    const { document } = await loadPageWithCookie({
+      requestUrl: addUrl,
+      server: getServer(),
+      auth: signedInStaff,
+      cookie
+    })
+
+    expect(response.statusCode).toBe(303)
+    expect(document.body).toHaveTextContent('Enter a comment')
   })
 
   it('does not accept user details from the form', async () => {

@@ -1,6 +1,7 @@
 export const inflationIndexPath = '/inflation-index'
 export const addInflationIndexPath = '/inflation-index/add'
 
+export const inflationIndexDetailsPath = (id) => `${inflationIndexPath}/${id}`
 export const changeInflationIndexPath = (id) =>
   `${inflationIndexPath}/${id}/change`
 export const deleteInflationIndexPath = (id) =>

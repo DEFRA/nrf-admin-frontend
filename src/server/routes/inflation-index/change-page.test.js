@@ -2,7 +2,8 @@ import { getByLabelText, getByRole } from '@testing-library/dom'
 import { http, HttpResponse } from 'msw'
 import { setupTestServer } from '#/test-utils/setup-test-server.js'
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
-import { loadPage } from '#/test-utils/load-page.js'
+import { loadPage, loadPageWithCookie } from '#/test-utils/load-page.js'
+import { getSessionCookie } from '#/test-utils/session-cookie.js'
 import { submitForm } from '#/test-utils/submit-form.js'
 import {
   futureIndex,
@@ -49,6 +50,8 @@ describe('Change inflation index page', () => {
     )
     expect(document.body).toHaveTextContent(String(futureIndex.chargingYear))
     expect(getByLabelText(document, 'RICS CIL Index')).toHaveValue('384.21')
+    expect(getByLabelText(document, 'Requestor')).toHaveValue('Grace Hopper')
+    expect(getByLabelText(document, 'Jira ticket')).toHaveValue('NRF2-1234')
     expect(getByLabelText(document, 'Comment')).toHaveValue(
       'NE advice after consultation'
     )
@@ -90,11 +93,50 @@ describe('Change inflation index page', () => {
     )
     expect(sent).toEqual({
       cilIndex: 390.5,
+      requestor: 'Alan Turing',
+      jiraTicket: 'NRF2-2000',
       comment: 'Revised after checking',
       staffId: '0b7c1e52-3c1f-4d6a-9d1a-5f2f3e6a7b8c',
       staffFullName: 'Ada Admin',
       staffEmail: 'ada.admin@defra.gov.uk'
     })
+  })
+
+  it('does not carry a rejected change into the add form', async () => {
+    const { cookie } = await submitChangeForm({
+      ...validChangeForm,
+      cilIndex: '7777',
+      comment: ''
+    })
+    // The change form's flash is keyed to its own path; when the year has
+    // since begun the user is sent to the list, never to a polluted add form
+    const begun = indexes({
+      ...futureIndex,
+      chargingYear: liveIndex.chargingYear,
+      effectiveFrom: `${liveIndex.chargingYear}-01-01T00:00:00Z`
+    })
+    mswServer.use(
+      http.get(inflationIndexesEndpoint, () => HttpResponse.json(begun))
+    )
+    const rejected = await getServer().inject({
+      method: 'GET',
+      url: changeUrl,
+      auth: signedInStaff,
+      headers: { cookie }
+    })
+
+    stubInflationIndexes(liveIndex)
+    const { document } = await loadPageWithCookie({
+      requestUrl: '/inflation-index/add',
+      server: getServer(),
+      auth: signedInStaff,
+      cookie: getSessionCookie(rejected) || cookie
+    })
+
+    expect(rejected.headers.location).toBe(
+      '/inflation-index?notification=inflation-index-taken-effect'
+    )
+    expect(getByLabelText(document, 'RICS CIL Index')).toHaveValue('')
   })
 
   it.each([

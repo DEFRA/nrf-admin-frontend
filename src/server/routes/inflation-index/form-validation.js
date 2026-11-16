@@ -1,13 +1,18 @@
 import Joi from 'joi'
 
+import { validateJiraTicket } from '#/server/common/helpers/jira-ticket.js'
+import { sanitizedText } from '#/server/common/helpers/sanitized-text.js'
 import { validateCilIndex } from '#/server/common/helpers/validate-cil-index.js'
 import { validateComment } from '#/server/common/helpers/validate-comment.js'
+import { validateRequestor } from '#/server/common/helpers/validate-requestor.js'
 
 export const MAX_COMMENT_LENGTH = 500
+export const MAX_REQUESTOR_LENGTH = 255
 
 const MAX_CIL_INDEX_INPUT_LENGTH = 20
 const MAX_YEAR_INPUT_LENGTH = 4
-const COMMENT_INPUT_HEADROOM = 4
+const MAX_JIRA_TICKET_INPUT_LENGTH = 50
+const TEXT_INPUT_HEADROOM = 4
 
 // Generous shape limits only; the user-facing rules and messages are in
 // validateInflationIndexForm so every problem is reported on one page
@@ -16,13 +21,17 @@ const field = (max) => Joi.string().trim().max(max).allow('').default('')
 export const inflationIndexFormPayloadSchema = Joi.object({
   chargingYear: field(MAX_YEAR_INPUT_LENGTH),
   cilIndex: field(MAX_CIL_INDEX_INPUT_LENGTH),
-  comment: field(MAX_COMMENT_LENGTH * COMMENT_INPUT_HEADROOM)
+  requestor: sanitizedText(MAX_REQUESTOR_LENGTH * TEXT_INPUT_HEADROOM),
+  jiraTicket: field(MAX_JIRA_TICKET_INPUT_LENGTH),
+  comment: sanitizedText(MAX_COMMENT_LENGTH * TEXT_INPUT_HEADROOM)
 })
 
 /**
  * @typedef {object} InflationIndexFormErrors
  * @property {string} [chargingYear]
  * @property {string} [cilIndex]
+ * @property {string} [requestor]
+ * @property {string} [jiraTicket]
  * @property {string} [comment]
  */
 
@@ -34,14 +43,13 @@ export const inflationIndexFormPayloadSchema = Joi.object({
  * @param {Record<string, string>} params.payload Validated by inflationIndexFormPayloadSchema
  * @param {Date} params.now
  * @param {{ requireYear?: boolean }} [params.options] requireYear is true on the add form
- * @returns {{ errors: InflationIndexFormErrors, value?: { chargingYear?: number, cilIndex: number, comment: string } }}
+ * @returns {{ errors: InflationIndexFormErrors, value?: { chargingYear?: number, cilIndex: number, requestor: string, jiraTicket: string, comment: string } }}
  */
 export function validateInflationIndexForm(
   { payload, now },
   { requireYear = false } = {}
 ) {
-  const errors = {}
-
+  let yearError
   if (requireYear) {
     const year = Number(payload.chargingYear)
     // The year must be a charging year that has not begun: from 1 January of
@@ -51,21 +59,27 @@ export function validateInflationIndexForm(
       !/^\d{4}$/.test(payload.chargingYear ?? '') ||
       year < firstOfferedYear
     ) {
-      errors.chargingYear = 'Select the year the inflation index applies to'
+      yearError = 'Select the year the inflation index applies to'
     }
   }
 
   const cilIndex = validateCilIndex({ rawCilIndex: payload.cilIndex })
-  if (cilIndex.error) {
-    errors.cilIndex = cilIndex.error
-  }
-
+  const requestor = validateRequestor({
+    rawRequestor: payload.requestor,
+    maxLength: MAX_REQUESTOR_LENGTH
+  })
+  const jiraTicket = validateJiraTicket(payload.jiraTicket)
   const comment = validateComment({
     rawComment: payload.comment,
     maxLength: MAX_COMMENT_LENGTH
   })
-  if (comment.error) {
-    errors.comment = comment.error
+
+  const errors = {
+    ...(yearError && { chargingYear: yearError }),
+    ...(cilIndex.error && { cilIndex: cilIndex.error }),
+    ...(requestor.error && { requestor: requestor.error }),
+    ...(jiraTicket.error && { jiraTicket: jiraTicket.error }),
+    ...(comment.error && { comment: comment.error })
   }
 
   if (Object.keys(errors).length > 0) {
@@ -76,6 +90,8 @@ export function validateInflationIndexForm(
     value: {
       ...(requireYear && { chargingYear: Number(payload.chargingYear) }),
       cilIndex: cilIndex.value,
+      requestor: requestor.value,
+      jiraTicket: jiraTicket.value,
       comment: comment.value
     }
   }

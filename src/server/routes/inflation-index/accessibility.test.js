@@ -27,6 +27,7 @@ describe.each([
     'inflation index page with a notification',
     '/inflation-index?notification=inflation-index-error'
   ],
+  ['inflation index details page', `/inflation-index/${futureIndex.id}`],
   ['change inflation index page', `/inflation-index/${futureIndex.id}/change`],
   ['delete inflation index page', `/inflation-index/${futureIndex.id}/delete`]
 ])('The %s accessibility checks', (_name, requestUrl) => {

@@ -3,11 +3,13 @@ import Boom from '@hapi/boom'
 import { getInflationIndexes } from '#/server/common/services/impact-assessor-inflation-index.js'
 import { YEAR_OPTIONS } from './constants.js'
 
-const FLASH_KEY = 'inflationIndexForm'
+const flashKey = (request) => `inflationIndexForm:${request.path}`
 
 const fieldIds = {
   chargingYear: 'chargingYear',
   cilIndex: 'cilIndex',
+  requestor: 'requestor',
+  jiraTicket: 'jiraTicket',
   comment: 'comment'
 }
 
@@ -21,6 +23,8 @@ const fieldIds = {
 export const emptyFormValues = () => ({
   chargingYear: '',
   cilIndex: '',
+  requestor: '',
+  jiraTicket: '',
   comment: ''
 })
 
@@ -31,23 +35,29 @@ export const emptyFormValues = () => ({
 export const formValuesFor = (inflationIndex) => ({
   chargingYear: String(inflationIndex.chargingYear),
   cilIndex: String(inflationIndex.cilIndex),
+  requestor: inflationIndex.requestor ?? '',
+  jiraTicket: inflationIndex.jiraTicket ?? '',
   comment: inflationIndex.comment
 })
 
 /**
- * Keeps a rejected submission for the redirect back to the form.
+ * Keeps a rejected submission for the redirect back to the form it came from.
+ * Keyed by the form's path, so one form never shows another's rejected values.
  *
  * @param {{ request: import('@hapi/hapi').Request, state: FormState }} params
  */
 export const saveFormState = ({ request, state }) =>
-  request.yar.flash(FLASH_KEY, state)
+  request.yar.flash(flashKey(request), state)
 
 /**
  * @param {{ request: import('@hapi/hapi').Request, defaultValues: Record<string, string> }} params defaultValues is used when no submission was rejected
  * @returns {FormState}
  */
 export const takeFormState = ({ request, defaultValues }) =>
-  request.yar.flash(FLASH_KEY)?.at(0) ?? { values: defaultValues, errors: {} }
+  request.yar.flash(flashKey(request))?.at(0) ?? {
+    values: defaultValues,
+    errors: {}
+  }
 
 /**
  * @param {InflationIndexFormErrors} errors

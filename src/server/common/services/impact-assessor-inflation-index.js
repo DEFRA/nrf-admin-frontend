@@ -61,6 +61,8 @@ async function callInflationIndexes({ method, path, body, action }) {
  * @property {string} effectiveFrom 1 January 00:00 UTC of chargingYear
  * @property {string} createdAt
  * @property {string} comment
+ * @property {string | null} requestor Null on an index saved before requestors were recorded
+ * @property {string | null} jiraTicket Null on an index saved before tickets were recorded
  * @property {string} staffId
  * @property {string} staffFullName
  * @property {string} staffEmail

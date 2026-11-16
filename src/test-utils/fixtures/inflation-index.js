@@ -10,6 +10,8 @@ const index = ({ chargingYear, id, ...overrides }) => ({
   effectiveFrom: `${chargingYear}-01-01T00:00:00Z`,
   createdAt: '2026-11-01T10:00:00Z',
   comment: 'Seeded with the published RICS CIL Index values',
+  requestor: null,
+  jiraTicket: null,
   staffId: 'system',
   staffFullName: 'system',
   staffEmail: 'system@nrf.invalid',
@@ -38,6 +40,8 @@ export const futureIndex = index({
   cilIndex: 384.21,
   indexFactor: 0.9605,
   comment: 'NE advice after consultation',
+  requestor: 'Grace Hopper',
+  jiraTicket: 'NRF2-1234',
   staffId: '0b7c1e52-3c1f-4d6a-9d1a-5f2f3e6a7b8c',
   staffFullName: 'Ada Admin',
   staffEmail: 'ada.admin@defra.gov.uk'
@@ -49,10 +53,14 @@ export const indexes = (...inflationIndexes) => inflationIndexes
 export const validAddForm = {
   chargingYear: String(currentYear + 2),
   cilIndex: '384.21',
+  requestor: 'Alan Turing',
+  jiraTicket: 'NRF2-2000',
   comment: 'Following consultation'
 }
 
 export const validChangeForm = {
   cilIndex: '390.5',
+  requestor: 'Alan Turing',
+  jiraTicket: 'NRF2-2000',
   comment: 'Revised after checking'
 }

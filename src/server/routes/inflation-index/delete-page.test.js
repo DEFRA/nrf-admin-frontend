@@ -58,6 +58,11 @@ describe('Delete inflation index page', () => {
         name: 'Yes, delete this inflation index'
       })
     ).toBeInTheDocument()
+    expect(
+      getByRole(document, 'link', {
+        name: 'Cancel deleting this inflation index'
+      })
+    ).toHaveAttribute('href', '/inflation-index')
   })
 
   it('sends the user back when the year has already begun', async () => {
