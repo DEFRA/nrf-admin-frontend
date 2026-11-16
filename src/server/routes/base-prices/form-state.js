@@ -7,13 +7,15 @@ import {
 import { getBasePrices } from '#/server/common/services/impact-assessor-base-prices.js'
 import { DEFAULT_EDP_ID } from './constants.js'
 
-const FLASH_KEY = 'basePriceForm'
+const flashKey = (request) => `basePriceForm:${request.path}`
 const TWO_DIGITS = 2
 
 const fieldIds = {
   basePrice: 'basePrice',
   effectiveFrom: 'effectiveFrom-day',
   effectiveFromTime: 'effectiveFromTime',
+  requestor: 'requestor',
+  jiraTicket: 'jiraTicket',
   comment: 'comment'
 }
 
@@ -30,6 +32,8 @@ const EFFECTIVE_FROM_PREFIX = 'effectiveFrom'
 export const emptyFormValues = () => ({
   basePrice: '',
   ...emptyUkDateTimeFormValues(EFFECTIVE_FROM_PREFIX),
+  requestor: '',
+  jiraTicket: '',
   comment: ''
 })
 
@@ -43,23 +47,29 @@ export const formValuesFor = (basePrice) => ({
     prefix: EFFECTIVE_FROM_PREFIX,
     utc: basePrice.effectiveFrom
   }),
+  requestor: basePrice.requestor ?? '',
+  jiraTicket: basePrice.jiraTicket ?? '',
   comment: basePrice.comment
 })
 
 /**
- * Keeps a rejected submission for the redirect back to the form.
+ * Keeps a rejected submission for the redirect back to the form it came from.
+ * Keyed by the form's path, so one form never shows another's rejected values.
  *
  * @param {{ request: import('@hapi/hapi').Request, state: FormState }} params
  */
 export const saveFormState = ({ request, state }) =>
-  request.yar.flash(FLASH_KEY, state)
+  request.yar.flash(flashKey(request), state)
 
 /**
  * @param {{ request: import('@hapi/hapi').Request, defaultValues: Record<string, string> }} params defaultValues is used when no submission was rejected
  * @returns {FormState}
  */
 export const takeFormState = ({ request, defaultValues }) =>
-  request.yar.flash(FLASH_KEY)?.at(0) ?? { values: defaultValues, errors: {} }
+  request.yar.flash(flashKey(request))?.at(0) ?? {
+    values: defaultValues,
+    errors: {}
+  }
 
 /**
  * @param {BasePriceFormErrors} errors

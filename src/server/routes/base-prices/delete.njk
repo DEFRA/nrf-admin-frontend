@@ -36,15 +36,14 @@
 
       <form method="post" action="{{ formAction }}">
         {% include "partials/csrf-token.njk" %}
-        {{ govukButton({
-          text: "Yes, delete this base price",
-          classes: "govuk-button--warning"
-        }) }}
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Yes, delete this base price",
+            classes: "govuk-button--warning"
+          }) }}
+          <a class="govuk-link" href="{{ backHref }}">Cancel <span class="govuk-visually-hidden">deleting this base price</span></a>
+        </div>
       </form>
-
-      <p class="govuk-body">
-        <a class="govuk-link" href="{{ backHref }}">Cancel</a>
-      </p>
     </div>
   </div>
 {% endblock %}

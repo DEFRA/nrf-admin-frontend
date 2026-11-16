@@ -26,6 +26,7 @@ describe.each([
     'base prices page with a notification',
     '/base-prices?notification=base-price-error'
   ],
+  ['base price details page', '/base-prices/2'],
   ['change base price page', '/base-prices/2/change'],
   ['delete base price page', '/base-prices/2/delete']
 ])('The %s accessibility checks', (_name, requestUrl) => {
