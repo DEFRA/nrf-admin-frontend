@@ -5,6 +5,7 @@ import { setupMswServer } from '#/test-utils/setup-msw-server.js'
 import { loadPage, loadPageWithCookie } from '#/test-utils/load-page.js'
 import { getSessionCookie } from '#/test-utils/session-cookie.js'
 import { submitForm } from '#/test-utils/submit-form.js'
+import { expectAddFormShowsRequestorAndJiraTicketProblems } from '#/test-utils/requestor-jira-ticket-problems.js'
 import {
   edpWithHistory,
   futureBasePrice,
@@ -156,30 +157,14 @@ describe('Add base price page', () => {
 
   it('shows the problems with the requestor and the Jira ticket', async () => {
     stubBasePrices(pastBasePrice)
-    const { cookie } = await submitAddForm({
-      ...validBasePriceForm,
-      requestor: '',
-      jiraTicket: '1234'
-    })
 
-    const { document } = await loadPageWithCookie({
-      requestUrl: addUrl,
+    await expectAddFormShowsRequestorAndJiraTicketProblems({
+      submitAddForm: (payload) =>
+        submitAddForm({ ...validBasePriceForm, ...payload }),
+      formUrl: addUrl,
       server: getServer(),
-      auth: signedInStaff,
-      cookie
+      auth: signedInStaff
     })
-
-    expect(
-      getByRole(document, 'link', {
-        name: 'Enter the name of the person who requested the change'
-      })
-    ).toHaveAttribute('href', '#requestor')
-    expect(
-      getByRole(document, 'link', {
-        name: 'Enter a Jira ticket reference in the format NRF2-1234'
-      })
-    ).toHaveAttribute('href', '#jiraTicket')
-    expect(getByLabelText(document, 'Jira ticket')).toHaveValue('1234')
   })
 
   it('removes angle brackets from the comment before saving it', async () => {

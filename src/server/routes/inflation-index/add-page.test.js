@@ -8,6 +8,7 @@ import {
 } from '#/test-utils/stub-inflation-indexes.js'
 import { loadPage, loadPageWithCookie } from '#/test-utils/load-page.js'
 import { submitForm } from '#/test-utils/submit-form.js'
+import { expectAddFormShowsRequestorAndJiraTicketProblems } from '#/test-utils/requestor-jira-ticket-problems.js'
 import {
   futureIndex,
   liveIndex,
@@ -159,30 +160,14 @@ describe('Add inflation index page', () => {
 
   it('shows the problems with the requestor and the Jira ticket', async () => {
     stubInflationIndexes({ mswServer, inflationIndexes: [liveIndex] })
-    const { cookie } = await submitAddForm({
-      ...validAddForm,
-      requestor: '',
-      jiraTicket: '1234'
-    })
 
-    const { document } = await loadPageWithCookie({
-      requestUrl: addUrl,
+    await expectAddFormShowsRequestorAndJiraTicketProblems({
+      submitAddForm: (payload) =>
+        submitAddForm({ ...validAddForm, ...payload }),
+      formUrl: addUrl,
       server: getServer(),
-      auth: signedInStaff,
-      cookie
+      auth: signedInStaff
     })
-
-    expect(
-      getByRole(document, 'link', {
-        name: 'Enter the name of the person who requested the change'
-      })
-    ).toHaveAttribute('href', '#requestor')
-    expect(
-      getByRole(document, 'link', {
-        name: 'Enter a Jira ticket reference in the format NRF2-1234'
-      })
-    ).toHaveAttribute('href', '#jiraTicket')
-    expect(getByLabelText(document, 'Jira ticket')).toHaveValue('1234')
   })
 
   it('asks for a comment when nothing is left after removing angle brackets', async () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { http, HttpResponse } from 'msw'
+import { HttpResponse } from 'msw'
 
 // Set before config.js is imported, since convict reads the environment then.
 vi.hoisted(() => {
@@ -7,6 +7,7 @@ vi.hoisted(() => {
 })
 
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
+import { captureRequests, failWith } from '#/test-utils/msw-capture.js'
 import { config } from '#/config/config.js'
 import {
   getBasePrices,
@@ -18,21 +19,8 @@ import {
 const baseUrl = `${config.get('impactAssessor.apiUrl')}/base-prices`
 const mswServer = setupMswServer()
 
-function capture(method, url, respond) {
-  const requests = []
-  mswServer.use(
-    http[method](url, async ({ request }) => {
-      requests.push({
-        headers: request.headers,
-        body: (await request.text()) || undefined
-      })
-      return respond()
-    })
-  )
-  return requests
-}
-
-const failWith = (status, body) => () => HttpResponse.json(body, { status })
+const capture = (method, url, respond) =>
+  captureRequests({ mswServer, method, url, respond })
 
 describe('impact assessor base prices service', () => {
   describe('getBasePrices', () => {
