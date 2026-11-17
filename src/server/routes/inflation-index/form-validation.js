@@ -2,12 +2,16 @@ import Joi from 'joi'
 
 import { validateJiraTicket } from '#/server/common/helpers/jira-ticket.js'
 import { sanitizedText } from '#/server/common/helpers/sanitized-text.js'
+import { toErrors } from '#/server/common/helpers/to-errors.js'
 import { validateCilIndex } from '#/server/common/helpers/validate-cil-index.js'
-import { validateComment } from '#/server/common/helpers/validate-comment.js'
-import { validateRequestor } from '#/server/common/helpers/validate-requestor.js'
-
-export const MAX_COMMENT_LENGTH = 500
-export const MAX_REQUESTOR_LENGTH = 255
+import {
+  MAX_COMMENT_LENGTH,
+  validateComment
+} from '#/server/common/helpers/validate-comment.js'
+import {
+  MAX_REQUESTOR_LENGTH,
+  validateRequestor
+} from '#/server/common/helpers/validate-requestor.js'
 
 const MAX_CIL_INDEX_INPUT_LENGTH = 20
 const MAX_YEAR_INPUT_LENGTH = 4
@@ -54,19 +58,6 @@ const validateChargingYear = ({ chargingYear, now }) => {
   }
   return {}
 }
-
-/**
- * Keeps one message per field that failed, dropping the fields that passed.
- *
- * @param {Record<string, { error?: string }>} validations Field name to its validator's result
- * @returns {InflationIndexFormErrors}
- */
-const toErrors = (validations) =>
-  Object.fromEntries(
-    Object.entries(validations)
-      .filter(([, { error }]) => error)
-      .map(([fieldName, { error }]) => [fieldName, error])
-  )
 
 /**
  * Checks every field of the add form. The change form fixes the year, so it

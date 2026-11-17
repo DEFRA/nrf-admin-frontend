@@ -1,6 +1,6 @@
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { saveFormState, toErrorList } from './form-state.js'
-import { MAX_COMMENT_LENGTH } from './form-validation.js'
+import { MAX_COMMENT_LENGTH } from '#/server/common/helpers/validate-comment.js'
 
 /**
  * @param {object} params
