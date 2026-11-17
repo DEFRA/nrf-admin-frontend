@@ -1,3 +1,6 @@
+/** The longest comment a form accepts, shared by every form that has one. */
+export const MAX_COMMENT_LENGTH = 500
+
 /**
  * @param {object} params
  * @param {string} params.rawComment

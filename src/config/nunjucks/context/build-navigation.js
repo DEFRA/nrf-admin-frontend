@@ -2,6 +2,11 @@ const sections = [
   { text: 'Quotes', href: '/', pathPrefixes: ['/quote'] },
   { text: 'Base prices', href: '/base-prices', pathPrefixes: ['/base-prices'] },
   {
+    text: 'Inflation index',
+    href: '/inflation-index',
+    pathPrefixes: ['/inflation-index']
+  },
+  {
     text: 'Map tile cache',
     href: '/map-tile-cache',
     pathPrefixes: ['/map-tile-cache']

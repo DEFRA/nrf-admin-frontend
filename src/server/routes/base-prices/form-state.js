@@ -4,10 +4,14 @@ import {
   emptyUkDateTimeFormValues,
   ukDateTimeFormValues
 } from '#/server/common/helpers/uk-date-time-form-values.js'
+import {
+  saveFlashFormState,
+  takeFlashFormState
+} from '#/server/common/helpers/flash-form-state.js'
 import { getBasePrices } from '#/server/common/services/impact-assessor-base-prices.js'
 import { DEFAULT_EDP_ID } from './constants.js'
 
-const flashKey = (request) => `basePriceForm:${request.path}`
+const FLASH_PREFIX = 'basePriceForm'
 const TWO_DIGITS = 2
 
 const fieldIds = {
@@ -59,17 +63,14 @@ export const formValuesFor = (basePrice) => ({
  * @param {{ request: import('@hapi/hapi').Request, state: FormState }} params
  */
 export const saveFormState = ({ request, state }) =>
-  request.yar.flash(flashKey(request), state)
+  saveFlashFormState({ prefix: FLASH_PREFIX, request, state })
 
 /**
  * @param {{ request: import('@hapi/hapi').Request, defaultValues: Record<string, string> }} params defaultValues is used when no submission was rejected
  * @returns {FormState}
  */
 export const takeFormState = ({ request, defaultValues }) =>
-  request.yar.flash(flashKey(request))?.at(0) ?? {
-    values: defaultValues,
-    errors: {}
-  }
+  takeFlashFormState({ prefix: FLASH_PREFIX, request, defaultValues })
 
 /**
  * @param {BasePriceFormErrors} errors

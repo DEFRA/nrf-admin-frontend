@@ -62,6 +62,11 @@ describe('context and cache', () => {
           navigation: [
             { href: '/', text: 'Quotes', active: true },
             { href: '/base-prices', text: 'Base prices', active: false },
+            {
+              href: '/inflation-index',
+              text: 'Inflation index',
+              active: false
+            },
             { href: '/map-tile-cache', text: 'Map tile cache', active: false },
             { href: '/sign-out', text: 'Sign out' }
           ],
@@ -145,6 +150,11 @@ describe('context and cache', () => {
           navigation: [
             { href: '/', text: 'Quotes', active: true },
             { href: '/base-prices', text: 'Base prices', active: false },
+            {
+              href: '/inflation-index',
+              text: 'Inflation index',
+              active: false
+            },
             { href: '/map-tile-cache', text: 'Map tile cache', active: false },
             { href: '/sign-out', text: 'Sign out' }
           ],
