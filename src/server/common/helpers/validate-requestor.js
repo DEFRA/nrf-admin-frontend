@@ -1,3 +1,6 @@
+/** The longest requestor name a form accepts. */
+export const MAX_REQUESTOR_LENGTH = 255
+
 /**
  * @param {object} params
  * @param {string} params.rawRequestor

@@ -1,0 +1,50 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+
+{% block beforeContent %}
+  <nav>
+    {{ govukBackLink({
+      text: "Back to inflation index",
+      href: backHref
+    }) }}
+  </nav>
+{% endblock %}
+
+{% block content %}
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+      {{ govukWarningText({
+        text: "The inflation index will not apply. The existing inflation index will continue to apply.",
+        iconFallbackText: "Warning"
+      }) }}
+
+      {{ govukSummaryList({
+        rows: [
+          { key: { text: "Charging year" }, value: { text: inflationIndex.chargingYear } },
+          { key: { text: "RICS CIL Index" }, value: { text: inflationIndex.cilIndex } },
+          { key: { text: "Factor" }, value: { text: inflationIndex.indexFactor.toFixed(4) } },
+          { key: { text: "Effective from" }, value: { text: inflationIndex.effectiveFrom | govukDate } },
+          { key: { text: "Comment" }, value: { text: inflationIndex.comment } }
+        ]
+      }) }}
+
+      <form method="post" action="{{ formAction }}">
+        {% include "partials/csrf-token.njk" %}
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Yes, delete this inflation index",
+            classes: "govuk-button--warning"
+          }) }}
+          <a class="govuk-link" href="{{ backHref }}">Cancel <span class="govuk-visually-hidden">deleting this inflation index</span></a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
