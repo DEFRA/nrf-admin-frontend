@@ -18,7 +18,7 @@ import {
   takenEffectStatus
 } from './notifications.js'
 import { idParamSchema } from './schemas.js'
-import { getStaffDetails } from './staff-details.js'
+import { getStaffDetails } from '#/server/common/helpers/staff-details.js'
 
 export const changeBasePriceFormController = {
   options: {

@@ -1,0 +1,52 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{% block content %}
+  {% if banner %}
+    {{ govukNotificationBanner({
+      type: banner.type,
+      titleText: banner.titleText,
+      text: banner.text
+    }) }}
+  {% endif %}
+
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  {% if errorMessage %}
+    {{ govukErrorSummary({
+      titleText: "There is a problem",
+      errorList: [{ text: errorMessage }]
+    }) }}
+  {% endif %}
+
+  <p class="govuk-body">The RICS CIL Index published each autumn, applied from 1 January of the following year.</p>
+
+  {% if canAdd %}
+    {{ govukButton({
+      text: "Add inflation index",
+      href: addPath
+    }) }}
+  {% endif %}
+
+  {% if hasIndexes %}
+    {{ govukTable({
+      caption: "Inflation index history",
+      captionClasses: "govuk-visually-hidden",
+      classes: "govuk-table--small-text-until-tablet",
+      head: [
+        { text: "Charging year" },
+        { text: "RICS CIL Index", format: "numeric" },
+        { text: "Factor", format: "numeric" },
+        { html: '<span class="govuk-visually-hidden">Actions</span>' }
+      ],
+      rows: tableRows
+    }) }}
+  {% else %}
+    <p class="govuk-body">No inflation indexes have been added.</p>
+  {% endif %}
+{% endblock %}

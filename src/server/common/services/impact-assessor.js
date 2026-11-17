@@ -23,7 +23,8 @@ const parseBody = (payload) => {
 }
 
 // Wreck hangs the upstream body off `error.data.payload`. FastAPI reports
-// failures under `detail`: a string, or a list of per-field errors.
+// failures under `detail`: a string, a list of per-field errors, or an object
+// with a machine-readable `error` code and a human `message`.
 export const upstreamDetail = (error) => {
   const { detail } = parseBody(error?.data?.payload) ?? {}
   if (typeof detail === 'string') {
@@ -37,7 +38,16 @@ export const upstreamDetail = (error) => {
         .join('; ') || undefined
     )
   }
+  if (typeof detail?.message === 'string') {
+    return detail.message
+  }
   return undefined
+}
+
+/** The machine-readable `error` code the impact assessor put on a failure, when it sent one. */
+export const upstreamErrorCode = (error) => {
+  const { detail } = parseBody(error?.data?.payload) ?? {}
+  return typeof detail?.error === 'string' ? detail.error : undefined
 }
 
 const dataSyncHeaders = () =>
@@ -46,6 +56,52 @@ const dataSyncHeaders = () =>
     serviceKey: config.get('impactAssessor.dataSyncToken'),
     serviceKeyHeaderName: 'x-data-sync-token'
   })
+
+const apiKeyHeaders = () =>
+  buildServiceHeaders({
+    traceHeaderName: config.get('tracing.header'),
+    serviceKey: config.get('impactAssessor.apiKey')
+  })
+
+/**
+ * Calls an impact assessor endpoint with the API key and tracing header,
+ * returning either its payload or the failure the caller shows the user.
+ *
+ * @param {object} params
+ * @param {'get' | 'post' | 'patch' | 'delete'} params.method
+ * @param {string} params.path
+ * @param {object} [params.body]
+ * @param {string} params.action Describes the call in log messages
+ * @returns {Promise<{ payload?: any, error?: string, statusCode?: number, detail?: string, code?: string }>}
+ */
+export async function callImpactAssessor({ method, path, body, action }) {
+  const url = `${config.get(API_URL_KEY)}${path}`
+  logger.info({ url, method }, `${action} - calling impact assessor`)
+
+  try {
+    const { payload } = await Wreck[method](url, {
+      json: true,
+      headers: {
+        ...apiKeyHeaders(),
+        ...(body && { 'Content-Type': 'application/json' })
+      },
+      ...(body && { payload: JSON.stringify(body) })
+    })
+    return { payload }
+  } catch (error) {
+    const { statusCode } = wreckErrorContext(error)
+    logger.error(
+      error,
+      `${action} failed - url: ${url}, statusCode: ${statusCode}`
+    )
+    return {
+      error: action,
+      statusCode,
+      detail: upstreamDetail(error),
+      code: upstreamErrorCode(error)
+    }
+  }
+}
 
 export async function triggerDataSync({ force = false, manifest } = {}) {
   const baseUrl = config.get(API_URL_KEY)
