@@ -1,6 +1,6 @@
 /**
  * The signed-in user's details, as the impact assessor records them against a
- * base price. Read from the session so they cannot be set from the form.
+ * saved record. Read from the session so they cannot be set from the form.
  *
  * @param {import('@hapi/hapi').Request} request
  * @returns {{ staffId: string, staffFullName: string, staffEmail: string }}

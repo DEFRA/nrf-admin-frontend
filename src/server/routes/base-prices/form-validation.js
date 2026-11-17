@@ -2,13 +2,17 @@ import Joi from 'joi'
 
 import { validateJiraTicket } from '#/server/common/helpers/jira-ticket.js'
 import { sanitizedText } from '#/server/common/helpers/sanitized-text.js'
-import { validateComment } from '#/server/common/helpers/validate-comment.js'
-import { validateRequestor } from '#/server/common/helpers/validate-requestor.js'
+import { toErrors } from '#/server/common/helpers/to-errors.js'
+import {
+  MAX_COMMENT_LENGTH,
+  validateComment
+} from '#/server/common/helpers/validate-comment.js'
+import {
+  MAX_REQUESTOR_LENGTH,
+  validateRequestor
+} from '#/server/common/helpers/validate-requestor.js'
 import { validatePrice } from '#/server/common/helpers/validate-price.js'
 import { validateFutureUkDateTime } from '#/server/common/helpers/validate-uk-date-time.js'
-
-export const MAX_COMMENT_LENGTH = 500
-export const MAX_REQUESTOR_LENGTH = 255
 
 const MAX_PRICE_INPUT_LENGTH = 30
 const MAX_DATE_PART_LENGTH = 10
@@ -74,14 +78,14 @@ export function validateBasePriceForm({ payload, now }) {
     maxLength: MAX_COMMENT_LENGTH
   })
 
-  const errors = {
-    ...(price.error && { basePrice: price.error }),
-    ...(effective.dateError && { effectiveFrom: effective.dateError }),
-    ...(effective.timeError && { effectiveFromTime: effective.timeError }),
-    ...(requestor.error && { requestor: requestor.error }),
-    ...(jiraTicket.error && { jiraTicket: jiraTicket.error }),
-    ...(comment.error && { comment: comment.error })
-  }
+  const errors = toErrors({
+    basePrice: price,
+    effectiveFrom: { error: effective.dateError },
+    effectiveFromTime: { error: effective.timeError },
+    requestor,
+    jiraTicket,
+    comment
+  })
 
   if (Object.keys(errors).length > 0) {
     return { errors }
