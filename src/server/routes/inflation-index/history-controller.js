@@ -8,7 +8,7 @@ import { toHistoryTableRows } from './history-table-rows.js'
  * index's changes are still listed.
  */
 export const inflationIndexHistoryController = {
-  async handler(request, h) {
+  async handler(_request, h) {
     const result = await getInflationIndexHistory()
     const history = result.history ?? []
 
