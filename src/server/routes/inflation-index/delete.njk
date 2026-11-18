@@ -1,6 +1,8 @@
 {% extends 'layouts/page.njk' %}
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
 
@@ -13,13 +15,24 @@
   </nav>
 {% endblock %}
 
-{% block content %}
-  {{ appHeading({
-    text: heading
-  }) }}
+{% block pageTitle %}
+  {{ "Error: " if errorList.length }}{{ pageTitle }} | {{ serviceName }}
+{% endblock %}
 
+{% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
+      {% if errorList.length %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: errorList
+        }) }}
+      {% endif %}
+
+      {{ appHeading({
+        text: heading
+      }) }}
+
       {{ govukWarningText({
         text: "The inflation index will not apply. The existing inflation index will continue to apply.",
         iconFallbackText: "Warning"
@@ -35,8 +48,22 @@
         ]
       }) }}
 
-      <form method="post" action="{{ formAction }}">
+      <form method="post" action="{{ formAction }}" novalidate>
         {% include "partials/csrf-token.njk" %}
+
+        {{ govukCharacterCount({
+          id: "comment",
+          name: "comment",
+          label: {
+            text: "Comment",
+            classes: "govuk-label--m"
+          },
+          hint: { text: "Say why the inflation index is being deleted. The comment is kept in the change history with your name." },
+          maxlength: maxCommentLength,
+          value: values.comment,
+          errorMessage: { text: errors.comment } if errors.comment
+        }) }}
+
         <div class="govuk-button-group">
           {{ govukButton({
             text: "Yes, delete this inflation index",

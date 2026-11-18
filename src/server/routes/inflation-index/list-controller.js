@@ -5,7 +5,8 @@ import {
   addInflationIndexPath,
   changeInflationIndexPath,
   deleteInflationIndexPath,
-  inflationIndexDetailsPath
+  inflationIndexDetailsPath,
+  inflationIndexHistoryPath
 } from './constants.js'
 import { availableYears, isFuture } from './form-state.js'
 import { notifications } from './notifications.js'
@@ -59,6 +60,7 @@ export const listInflationIndexesController = {
       pageTitle: 'Inflation index',
       heading: 'Inflation index',
       addPath: addInflationIndexPath,
+      historyPath: inflationIndexHistoryPath,
       banner: notifications[request.query.notification],
       errorMessage: result.error
         ? 'Inflation indexes could not be loaded. Check the logs for details.'

@@ -84,6 +84,16 @@ describe('Inflation index page', () => {
     expect(getByRole(document, 'table')).toHaveTextContent('In force')
   })
 
+  it('links to the change history', async () => {
+    stubInflationIndexes({ mswServer, inflationIndexes: [liveIndex] })
+
+    const document = await loadInflationIndexPage()
+
+    expect(
+      getByRole(document, 'link', { name: 'View the change history' })
+    ).toHaveAttribute('href', '/inflation-index/history')
+  })
+
   it('offers to add an index for a year that does not have one', async () => {
     stubInflationIndexes({
       mswServer,

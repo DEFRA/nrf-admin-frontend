@@ -12,6 +12,7 @@ import { config } from '#/config/config.js'
 import {
   addInflationIndex,
   deleteInflationIndex,
+  getInflationIndexHistory,
   getInflationIndexes,
   updateInflationIndex
 } from './impact-assessor-inflation-index.js'
@@ -102,8 +103,31 @@ describe('impact assessor inflation index service', () => {
     })
   })
 
+  describe('getInflationIndexHistory', () => {
+    it('returns the change history, newest first', async () => {
+      const requests = capture('get', `${baseUrl}/history`, () =>
+        HttpResponse.json([{ action: 'added' }])
+      )
+
+      const result = await getInflationIndexHistory()
+
+      expect(result).toEqual({ history: [{ action: 'added' }] })
+      expect(requests[0].headers.get('x-api-key')).toBe('api-key')
+    })
+
+    it('reports the status code when the call fails', async () => {
+      capture('get', `${baseUrl}/history`, failWith(500, {}))
+
+      expect(await getInflationIndexHistory()).toEqual({
+        error: 'Unable to fetch the inflation index change history',
+        statusCode: 500,
+        detail: undefined
+      })
+    })
+  })
+
   describe('deleteInflationIndex', () => {
-    it('deletes and reports success without a payload', async () => {
+    it('deletes with the comment and staff details as the history record', async () => {
       const url = `${baseUrl}/an-id`
       const requests = capture(
         'delete',
@@ -111,10 +135,21 @@ describe('impact assessor inflation index service', () => {
         () => new HttpResponse(null, { status: 204 })
       )
 
-      const result = await deleteInflationIndex('an-id')
+      const result = await deleteInflationIndex({
+        id: 'an-id',
+        comment: 'Withdrawn after review',
+        staffId: 'entra-oid',
+        staffFullName: 'Ada Admin',
+        staffEmail: 'ada@example.com'
+      })
 
       expect(result).toEqual({ deleted: true })
-      expect(requests[0].body).toBeUndefined()
+      expect(JSON.parse(requests[0].body)).toEqual({
+        comment: 'Withdrawn after review',
+        staffId: 'entra-oid',
+        staffFullName: 'Ada Admin',
+        staffEmail: 'ada@example.com'
+      })
     })
 
     it('returns the impact assessor code and message when it refuses the delete', async () => {
@@ -129,7 +164,15 @@ describe('impact assessor inflation index service', () => {
         })
       )
 
-      expect(await deleteInflationIndex('an-id')).toEqual({
+      expect(
+        await deleteInflationIndex({
+          id: 'an-id',
+          comment: 'Withdrawn after review',
+          staffId: 'entra-oid',
+          staffFullName: 'Ada Admin',
+          staffEmail: 'ada@example.com'
+        })
+      ).toEqual({
         error: 'Unable to delete inflation index',
         statusCode: 409,
         detail: 'has been used to price a quote',

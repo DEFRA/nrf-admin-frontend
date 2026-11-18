@@ -4,12 +4,16 @@ import { setupTestServer } from '#/test-utils/setup-test-server.js'
 import { setupMswServer } from '#/test-utils/setup-msw-server.js'
 import {
   inflationIndexesEndpoint,
-  stubInflationIndexes
+  stubInflationIndexes,
+  stubInflationIndexHistory
 } from '#/test-utils/stub-inflation-indexes.js'
 import { loadPage } from '#/test-utils/load-page.js'
 import { submitForm } from '#/test-utils/submit-form.js'
 import { runAxeChecks } from '#/test-utils/axe-helper.js'
 import {
+  addedHistory,
+  amendedHistory,
+  deletedHistory,
   futureIndex,
   liveIndex,
   signedInStaff,
@@ -40,6 +44,51 @@ describe.each([
       requestUrl,
       server: getServer(),
       auth: signedInStaff
+    })
+
+    await runAxeChecks(document.documentElement)
+  })
+})
+
+describe('The inflation index change history page accessibility checks', () => {
+  const getServer = setupTestServer()
+
+  it('should have no HTML accessibility issues', async () => {
+    stubInflationIndexHistory({
+      mswServer,
+      history: [deletedHistory, amendedHistory, addedHistory]
+    })
+
+    const document = await loadPage({
+      requestUrl: '/inflation-index/history',
+      server: getServer(),
+      auth: signedInStaff
+    })
+
+    await runAxeChecks(document.documentElement)
+  })
+})
+
+describe('The delete inflation index page error accessibility checks', () => {
+  const getServer = setupTestServer()
+
+  it('should have no HTML accessibility issues when showing errors', async () => {
+    stubInflationIndexes({
+      mswServer,
+      inflationIndexes: [futureIndex, liveIndex]
+    })
+    const { cookie } = await submitForm({
+      server: getServer(),
+      url: `/inflation-index/${futureIndex.id}/delete`,
+      payload: { comment: '' },
+      auth: signedInStaff
+    })
+
+    const document = await loadPage({
+      requestUrl: `/inflation-index/${futureIndex.id}/delete`,
+      server: getServer(),
+      auth: signedInStaff,
+      cookie
     })
 
     await runAxeChecks(document.documentElement)

@@ -3,9 +3,11 @@ import {
   changeInflationIndexPath,
   deleteInflationIndexPath,
   inflationIndexDetailsPath,
+  inflationIndexHistoryPath,
   inflationIndexPath
 } from './constants.js'
 import { listInflationIndexesController } from './list-controller.js'
+import { inflationIndexHistoryController } from './history-controller.js'
 import { inflationIndexDetailsController } from './details-controller.js'
 import {
   addInflationIndexController,
@@ -33,6 +35,11 @@ export const inflationIndex = {
           method: 'GET',
           path: inflationIndexPath,
           ...listInflationIndexesController
+        },
+        {
+          method: 'GET',
+          path: inflationIndexHistoryPath,
+          ...inflationIndexHistoryController
         },
         {
           method: 'GET',

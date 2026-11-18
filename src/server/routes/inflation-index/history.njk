@@ -1,0 +1,47 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% block beforeContent %}
+  <nav>
+    {{ govukBackLink({
+      text: "Back to inflation index",
+      href: backHref
+    }) }}
+  </nav>
+{% endblock %}
+
+{% block content %}
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  {% if errorMessage %}
+    {{ govukErrorSummary({
+      titleText: "There is a problem",
+      errorList: [{ text: errorMessage }]
+    }) }}
+  {% endif %}
+
+  <p class="govuk-body">Every change made to the inflation index, most recent first. The comment entered with each change is shown with it.</p>
+
+  {% if hasChanges %}
+    {{ govukTable({
+      caption: "Changes, most recent first",
+      captionClasses: "govuk-visually-hidden",
+      classes: "govuk-table--small-text-until-tablet",
+      head: [
+        { text: "When" },
+        { text: "Action" },
+        { text: "Charging year", format: "numeric" },
+        { text: "RICS CIL Index", format: "numeric" },
+        { text: "Comment" },
+        { html: '<span class="govuk-visually-hidden">Saved by</span>' }
+      ],
+      rows: tableRows
+    }) }}
+  {% else %}
+    <p class="govuk-body">No changes have been recorded yet.</p>
+  {% endif %}
+{% endblock %}
