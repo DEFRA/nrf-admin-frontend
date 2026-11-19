@@ -54,7 +54,7 @@ describe('Add base price page', () => {
     expect(document.body).toHaveTextContent('Ada Admin')
     expect(document.body).toHaveTextContent('ada.admin@defra.gov.uk')
     expect(getByLabelText(document, 'Effective from time')).toHaveValue('00:00')
-    expect(getByLabelText(document, 'Requestor')).toHaveValue('')
+    expect(getByLabelText(document, 'Requester')).toHaveValue('')
     expect(getByLabelText(document, 'Jira ticket')).toHaveValue('')
     expect(
       document.querySelector('form input[name="csrfToken"]')
