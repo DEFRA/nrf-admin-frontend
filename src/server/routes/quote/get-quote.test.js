@@ -22,6 +22,18 @@ describe('#getQuote', () => {
     expect(result).toEqual({
       quote: {
         ...singleQuoteFixture[0],
+        edps: [
+          {
+            ...singleQuoteFixture[0].edps[0],
+            levyHistory: [
+              expect.objectContaining({
+                journey: 'quote',
+                calculatedAt: '2026-09-14T10:30:15.000Z',
+                provisionalAmount: '999.00'
+              })
+            ]
+          }
+        ],
         emailNotifications: [
           {
             ...singleQuoteFixture[0].emailNotifications[0],

@@ -2,6 +2,7 @@ import { getRequestFromBackend } from '#/server/common/services/nrf-backend.js'
 import { createLogger } from '#/server/common/helpers/logging/logger.js'
 import { emailStatusTag } from '#/server/common/helpers/email-status-tag.js'
 import { canDeleteQuote } from '#/server/common/helpers/can-delete-quote.js'
+import { buildLevyHistory } from '#/server/common/helpers/build-levy-history.js'
 import { config } from '#/config/config.js'
 
 const logger = createLogger()
@@ -20,6 +21,10 @@ export async function getQuote(reference) {
     const quote = found
       ? {
           ...found,
+          edps: (found.edps ?? []).map((edp) => ({
+            ...edp,
+            levyHistory: edp.levyGbp ? buildLevyHistory(edp) : []
+          })),
           emailNotifications: (found.emailNotifications ?? []).map((n) => ({
             ...n,
             statusTag: emailStatusTag(

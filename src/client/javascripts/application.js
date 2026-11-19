@@ -6,7 +6,8 @@ import {
   ErrorSummary,
   NotificationBanner,
   Radios,
-  SkipLink
+  SkipLink,
+  Tabs
 } from 'govuk-frontend'
 
 import { initSelectAll } from './select-all.js'
@@ -18,5 +19,6 @@ createAll(ErrorSummary)
 createAll(NotificationBanner)
 createAll(Radios)
 createAll(SkipLink)
+createAll(Tabs)
 
 initSelectAll()

@@ -36,7 +36,7 @@ export const singleQuoteFixture = [
       {
         edpId: 42,
         edpName: 'Norfolk Fens East',
-        edpType: 'NUTRIENT',
+        edpStartDate: '2026-01-01',
         impact: {
           nitrogenTotal: {
             amount: 80,
@@ -65,7 +65,14 @@ export const singleQuoteFixture = [
           amountExcludingVat: '999.00',
           amountInflationAdjusted: '999.00',
           baseAmount: '999.00',
-          modelVersion: 1
+          modelVersion: 1,
+          journey: 'quote',
+          createdAt: '2026-09-14T10:30:20.000Z',
+          calculatedAt: '2026-09-14T10:30:15.000Z',
+          originalBaseAmount: '999.00',
+          baseChargePerUnit: '99.90',
+          originalBaseChargePerUnit: '99.90',
+          units: 10
         }
       }
     ],
@@ -151,5 +158,45 @@ export const quoteWithLevyBreakdownFixture = {
   levyGbp: {
     levyAmountExcludingVat: 26750.0,
     levyAmountInflationAdjusted: 28187.5
+  }
+}
+
+export const quoteWithLevyHistoryFixture = {
+  ...singleQuoteFixture[0],
+  edps: [
+    {
+      ...singleQuoteFixture[0].edps[0],
+      levyGbp: {
+        amountExcludingVat: '30000.00',
+        amountInflationAdjusted: '31000.00',
+        baseAmount: '30000.00',
+        modelVersion: 2,
+        journey: 'request_to_use',
+        createdAt: '2026-11-17T12:00:05.000Z',
+        calculatedAt: '2026-11-17T12:00:00.000Z',
+        originalBaseAmount: '25000.00',
+        baseChargePerUnit: '3000.00',
+        originalBaseChargePerUnit: '2500.00',
+        units: 10
+      },
+      previousLevyCalculations: [
+        {
+          journey: 'quote',
+          createdAt: '2026-09-14T10:30:20.000Z',
+          calculatedAt: '2026-09-14T10:30:15.000Z',
+          provisionalAmount: '26750.00',
+          inflationAdjustedAmount: '26750.00',
+          originalBaseAmount: '26750.00',
+          baseChargePerUnit: '2675.00',
+          originalBaseChargePerUnit: '2675.00',
+          units: 10,
+          modelVersion: 1
+        }
+      ]
+    }
+  ],
+  levyGbp: {
+    levyAmountExcludingVat: 30000,
+    levyAmountInflationAdjusted: 31000
   }
 }

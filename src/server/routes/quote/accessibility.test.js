@@ -6,7 +6,8 @@ import { loadPage, authenticatedRequest } from '#/test-utils/load-page.js'
 import { runAxeChecks } from '#/test-utils/axe-helper.js'
 import {
   singleQuoteFixture,
-  quoteWithLevyBreakdownFixture
+  quoteWithLevyBreakdownFixture,
+  quoteWithLevyHistoryFixture
 } from '#/test-utils/fixtures/quotes.js'
 import { config } from '#/config/config.js'
 
@@ -36,6 +37,22 @@ describe('Quote page accessibility checks', () => {
     mswServer.use(
       http.get(quotesEndpoint, () =>
         HttpResponse.json([quoteWithLevyBreakdownFixture])
+      )
+    )
+
+    const document = await loadPage({
+      requestUrl: '/quote/NRL-000001',
+      server: getServer(),
+      auth: authenticatedRequest
+    })
+
+    await runAxeChecks(document.documentElement)
+  })
+
+  it('should have no HTML accessibility issues with the levy calculation history table', async () => {
+    mswServer.use(
+      http.get(quotesEndpoint, () =>
+        HttpResponse.json([quoteWithLevyHistoryFixture])
       )
     )
 

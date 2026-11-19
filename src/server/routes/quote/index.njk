@@ -2,7 +2,8 @@
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
-{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/tabs/macro.njk" import govukTabs %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
 {% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
@@ -23,146 +24,140 @@
   }) }}
 
   <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds-from-desktop">
+    <div class="govuk-grid-column-full">
       {% if errorMessage %}
         {{ govukErrorSummary({
           titleText: "There is a problem",
           errorList: [{ text: errorMessage }]
         }) }}
       {% else %}
-        {{ govukSummaryList({
-          rows: [
-            {
-              key: { text: "Date submitted" },
-              value: { text: quote.createdAt | formatDateTime }
-            } if quote.createdAt,
-            {
-              key: { text: "Reference" },
-              value: { text: quote.reference }
-            },
-            {
-              key: { text: "Planning application type" },
-              value: { text: quote.planningType }
-            } if quote.planningType,
-            {
-              key: { text: "Number of units" },
-              value: { text: quote.housingUnits }
-            } if quote.housingUnits,
-            {
-              key: { text: "Total rounded levy amount" },
-              value: { text: quote.levyGbp.levyAmountExcludingVat | formatCurrency({ hideZeroPence: true }) }
-            } if quote.levyGbp,
-            {
-              key: { text: "Total inflation adjusted levy amount" },
-              value: { text: quote.levyGbp.levyAmountInflationAdjusted | formatCurrency({ hideZeroPence: true }) }
-            } if quote.levyGbp and quote.levyGbp.levyAmountInflationAdjusted,
-            {
-              key: { text: "Commitment certificate created at" },
-              value: { text: (quote.commitmentCertificateCreatedAt | formatDateTime) if quote.commitmentCertificateCreatedAt else "Not created" }
-            }
-          ]
-        }) }}
+        {% set journeyLabels = { quote: "Quote journey", request_to_use: "Request to use journey" } %}
 
-        <h2 class="govuk-heading-l">Emails sent to user</h2>
-        {% if quote.emailNotifications and quote.emailNotifications.length %}
-          {% for notification in quote.emailNotifications %}
-            {% set notifyStatusHtml %}
-              {{ appNotifyStatusTag({ statusTag: notification.statusTag }) }}
-              {% if notification.notifyStatusUrl %}
-                <a class="govuk-link govuk-!-margin-left-2" href="{{ notification.notifyStatusUrl }}">(view email)</a>
-              {% endif %}
-            {% endset %}
-            {{ govukSummaryList({
-              rows: [
-                {
-                  key: { text: "Send requested" },
-                  value: { text: notification.sendRequestAt | formatDateTime }
-                } if notification.sendRequestAt,
-                {
-                  key: { text: "Email address" },
-                  value: { text: quote.email.address }
-                } if quote.email.address,
-                {
-                  key: { text: "Email type" },
-                  value: { text: notification.emailType }
-                },
-                {
-                  key: { text: "Notification ID" },
-                  value: { text: notification.notificationId if notification.notificationId else 'Initial send attempt errored, no notification ID returned' }
-                },
-                {
-                  key: { html: "Notify send status (<a href='https://docs.notifications.service.gov.uk/node.html#email-status-descriptions'>reference</a>)" },
-                  value: { html: notifyStatusHtml }
-                },
-                {
-                  key: { text: "Retry count" },
-                  value: { text: notification.sendRetryCount }
-                }
-              ]
-            }) }}
-          {% endfor %}
-        {% else %}
-          <p class="govuk-body">No email has been sent for this quote. The levy calculation did not complete.</p>
-        {% endif %}
+        {% set detailsPanel %}
+          {{ govukSummaryList({
+            rows: [
+              {
+                key: { text: "Quote created" },
+                value: { text: quote.createdAt | formatDateTime }
+              } if quote.createdAt,
+              {
+                key: { text: "Planning application type" },
+                value: { text: quote.planningType }
+              } if quote.planningType,
+              {
+                key: { text: "Boundary type" },
+                value: { text: quote.boundary.userInputType ~ (" (" ~ quote.boundary.filename ~ ")" if quote.boundary.userInputType === "upload" and quote.boundary.filename else "") }
+              } if quote.boundary and quote.boundary.userInputType,
+              {
+                key: { text: "Commitment certificate created at" },
+                value: { text: (quote.commitmentCertificateCreatedAt | formatDateTime) if quote.commitmentCertificateCreatedAt else "Not created" }
+              }
+            ]
+          }) }}
+        {% endset %}
 
-        {% if quote.edps and quote.edps.length %}
-          <h2 class="govuk-heading-l">EDPs</h2>
+        {% set quotePanel %}
 
           {% for edp in quote.edps %}
-            <h3 class="govuk-heading-m">{{ edp.edpName }}</h3>
-
-            {% if edp.catchments and edp.catchments.length %}
-              <h4 class="govuk-heading-s">Catchments</h4>
-              <ul class="govuk-list govuk-list--bullet">
-                {% for catchment in edp.catchments %}
-                  <li>{{ catchment.label }} — {{ catchment.catchmentOverlapPercentage }}% overlap</li>
-                {% endfor %}
-              </ul>
-            {% endif %}
-            {% if edp.levyGbp %}
-              {{ govukSummaryList({
-                rows: [
-                  {
-                    key: { text: "Number of units used in the calculation" },
-                    value: { text: edp.levyGbp.units }
-                  } if edp.levyGbp.units,
-                  {
-                    key: { text: "Base charge price per unit" },
-                    value: { text: edp.levyGbp.baseChargePerUnit | formatCurrencyPrecise }
-                  } if edp.levyGbp.baseChargePerUnit,
-                  {
-                    key: { text: "Rounded base charge price per unit" },
-                    value: { text: edp.levyGbp.roundedBaseChargePerUnit | formatCurrency }
-                  } if edp.levyGbp.roundedBaseChargePerUnit,
-                  {
-                    key: { text: "Provisional nature restoration levy amount" },
-                    value: { text: edp.levyGbp.baseAmount | formatCurrency({ hideZeroPence: true }) }
-                  } if edp.levyGbp.baseAmount,
-                  {
-                    key: { text: "Inflation rate" },
-                    value: { text: (edp.levyGbp.inflationRate * 100) | round(2) ~ '%' }
-                  } if edp.levyGbp.inflationRate,
-                  {
-                    key: { text: "Inflation adjusted amount" },
-                    value: { text: edp.levyGbp.amountInflationAdjusted | formatCurrency({ hideZeroPence: true }) }
-                  } if edp.levyGbp.amountInflationAdjusted
-                ]
+            {% if edp.levyHistory and edp.levyHistory.length %}
+              {% set historyRows = [] %}
+              {% for calculation in edp.levyHistory %}
+                {% set historyRows = (historyRows.push([
+                  { text: calculation.calculatedAt | formatDateTime },
+                  { text: journeyLabels[calculation.journey] },
+                  { text: calculation.units, format: "numeric" },
+                  { text: calculation.originalBaseChargePerUnit | formatCurrencyPrecise, format: "numeric" },
+                  { text: calculation.baseChargePerUnit | formatCurrencyPrecise, format: "numeric" },
+                  { text: calculation.originalBaseAmount | formatCurrency({ hideZeroPence: true }), format: "numeric" },
+                  { text: calculation.provisionalAmount | formatCurrency({ hideZeroPence: true }), format: "numeric" },
+                  { text: calculation.inflationAdjustedAmount | formatCurrency({ hideZeroPence: true }), format: "numeric" },
+                  { text: calculation.modelVersion, format: "numeric" }
+                ]), historyRows) %}
+              {% endfor %}
+              {{ govukTable({
+                caption: "Levy calculation history",
+                captionClasses: "govuk-table__caption--m",
+                head: [
+                  { text: "Calculated" },
+                  { text: "Journey" },
+                  { text: "Units", format: "numeric" },
+                  { text: "Original base charge per unit", format: "numeric" },
+                  { text: "Base charge per unit", format: "numeric" },
+                  { text: "Original base amount", format: "numeric" },
+                  { text: "Provisional amount", format: "numeric" },
+                  { text: "Inflation adjusted amount", format: "numeric" },
+                  { text: "Model version", format: "numeric" }
+                ],
+                rows: historyRows
               }) }}
-              {% if edp.levyGbp.baseChargePerUnit %}
-                <h4 class="govuk-heading-s">Calculation steps</h4>
-                <ol class="govuk-list govuk-list--number">
-                  <li>Round base charge price per unit: {{ edp.levyGbp.baseChargePerUnit | formatCurrencyPrecise }}
-                    → {{ edp.levyGbp.roundedBaseChargePerUnit | formatCurrency }}</li>
-                  <li>Calculate provisional levy amount: {{ edp.levyGbp.units }}
-                    × {{ edp.levyGbp.roundedBaseChargePerUnit | formatCurrency }}
-                    = {{ edp.levyGbp.baseAmount | formatCurrency({ hideZeroPence: true }) }}</li>
-                </ol>
-                <p class="govuk-body govuk-!-font-weight-bold">Provisional nature restoration levy
-                  amount: {{ edp.levyGbp.baseAmount | formatCurrency({ hideZeroPence: true }) }}</p>
-              {% endif %}
             {% endif %}
           {% endfor %}
-        {% endif %}
+        {% endset %}
+
+        {% set emailsPanel %}
+          {% if quote.emailNotifications and quote.emailNotifications.length %}
+            {% set emailRows = [] %}
+            {% for notification in quote.emailNotifications %}
+              {% set notifyStatusHtml %}
+                {{ appNotifyStatusTag({ statusTag: notification.statusTag }) }}
+                {% if notification.notifyStatusUrl %}
+                  <a class="govuk-link govuk-!-margin-left-2" href="{{ notification.notifyStatusUrl }}">(view email)</a>
+                {% endif %}
+              {% endset %}
+              {% set emailRows = (emailRows.push([
+                { text: (notification.sendRequestAt | formatDateTime) if notification.sendRequestAt else "–" },
+                { text: quote.email.address },
+                { text: notification.emailType },
+                { html: notifyStatusHtml },
+                { text: notification.sendRetryCount, format: "numeric" }
+              ]), emailRows) %}
+            {% endfor %}
+            {{ govukTable({
+              caption: "Emails sent to user",
+              captionClasses: "govuk-table__caption--m",
+              head: [
+                { text: "Send requested" },
+                { text: "Email address" },
+                { text: "Email type" },
+                { html: "Notify send status (<a class=\"govuk-link\" href=\"https://docs.notifications.service.gov.uk/node.html#email-status-descriptions\">reference</a>)" },
+                { text: "Retry count", format: "numeric" }
+              ],
+              rows: emailRows
+            }) }}
+          {% else %}
+            <h2 class="govuk-heading-m">Emails sent to user</h2>
+            <p class="govuk-body">No email has been sent for this quote. The levy calculation did not complete.</p>
+          {% endif %}
+        {% endset %}
+
+        {% set edpsPanel %}
+          {% if quote.edps and quote.edps.length %}
+            {% for edp in quote.edps %}
+              <h2 class="govuk-heading-s">{{ edp.edpName }}</h2>
+              <p class="govuk-body">EDP start date: {{ edp.edpStartDate | govukDate }}</p>
+
+              {% if edp.catchments and edp.catchments.length %}
+                <h3 class="govuk-heading-s">Catchments</h3>
+                <ul class="govuk-list govuk-list--bullet">
+                  {% for catchment in edp.catchments %}
+                    <li>{{ catchment.label }} — {{ catchment.catchmentOverlapPercentage }}% overlap</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            {% endfor %}
+          {% else %}
+            <p class="govuk-body">No EDPs have been recorded for this quote.</p>
+          {% endif %}
+        {% endset %}
+
+        {{ govukTabs({
+          items: [
+            { label: "Details & dates", id: "details-and-dates", panel: { html: detailsPanel } },
+            { label: "Levy", id: "quote", panel: { html: quotePanel } },
+            { label: "Emails sent", id: "emails-sent", panel: { html: emailsPanel } },
+            { label: "EDPs", id: "edps", panel: { html: edpsPanel } }
+          ]
+        }) }}
 
         {% if quote.deleteEligible %}
           {{ govukButton({
