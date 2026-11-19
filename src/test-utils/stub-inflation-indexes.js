@@ -18,3 +18,18 @@ export const stubInflationIndexes = ({ mswServer, inflationIndexes }) =>
       HttpResponse.json(inflationIndexes)
     )
   )
+
+/**
+ * Stubs GET /inflation-indexes/history on the file's MSW server to return
+ * the given change history entries, most recent first.
+ *
+ * @param {object} params
+ * @param {import('msw/node').SetupServer} params.mswServer
+ * @param {object[]} params.history
+ */
+export const stubInflationIndexHistory = ({ mswServer, history }) =>
+  mswServer.use(
+    http.get(`${inflationIndexesEndpoint}/history`, () =>
+      HttpResponse.json(history)
+    )
+  )

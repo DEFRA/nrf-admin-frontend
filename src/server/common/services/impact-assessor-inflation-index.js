@@ -16,6 +16,22 @@ import { callImpactAssessor } from './impact-assessor.js'
  * @property {string} staffEmail
  */
 
+/**
+ * @typedef {object} InflationIndexHistoryEntry The record of one index addition
+ * @property {string} id
+ * @property {string} inflationIndexId The index that was added, which may since have been deleted
+ * @property {number} chargingYear
+ * @property {number} cilIndex
+ * @property {number} indexFactor
+ * @property {string} comment
+ * @property {string | null} requestor
+ * @property {string | null} jiraTicket
+ * @property {string} staffId
+ * @property {string} staffFullName
+ * @property {string} staffEmail
+ * @property {string} createdAt When the index was added
+ */
+
 /** @returns {Promise<{ inflationIndexes?: InflationIndex[], error?: string, statusCode?: number, detail?: string }>} */
 export async function getInflationIndexes() {
   const { payload, ...failure } = await callImpactAssessor({
@@ -24,6 +40,16 @@ export async function getInflationIndexes() {
     action: 'Unable to fetch inflation indexes'
   })
   return payload ? { inflationIndexes: payload } : failure
+}
+
+/** @returns {Promise<{ history?: InflationIndexHistoryEntry[], error?: string, statusCode?: number, detail?: string }>} */
+export async function getInflationIndexHistory() {
+  const { payload, ...failure } = await callImpactAssessor({
+    method: 'get',
+    path: '/inflation-indexes/history',
+    action: 'Unable to fetch the inflation index change history'
+  })
+  return payload ? { history: payload } : failure
 }
 
 /**
