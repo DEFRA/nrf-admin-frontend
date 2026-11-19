@@ -17,20 +17,19 @@ import { callImpactAssessor } from './impact-assessor.js'
  */
 
 /**
- * @typedef {object} InflationIndexHistoryEntry One recorded change: added, amended or deleted
+ * @typedef {object} InflationIndexHistoryEntry The record of one index addition
  * @property {string} id
- * @property {string} inflationIndexId The index the change was about, which may since have been deleted
+ * @property {string} inflationIndexId The index that was added, which may since have been deleted
  * @property {number} chargingYear
  * @property {number} cilIndex
  * @property {number} indexFactor
- * @property {'added' | 'amended' | 'deleted'} action
  * @property {string} comment
  * @property {string | null} requestor
  * @property {string | null} jiraTicket
  * @property {string} staffId
  * @property {string} staffFullName
  * @property {string} staffEmail
- * @property {string} createdAt When the change was saved
+ * @property {string} createdAt When the index was added
  */
 
 /** @returns {Promise<{ inflationIndexes?: InflationIndex[], error?: string, statusCode?: number, detail?: string }>} */
@@ -81,28 +80,11 @@ export async function updateInflationIndex({ id, changes }) {
   return payload ? { inflationIndex: payload } : failure
 }
 
-/**
- * Deletes an index, sending who is deleting it and their comment so the
- * deletion is recorded in the change history.
- *
- * @param {object} params
- * @param {string} params.id
- * @param {string} params.comment Why the index is being deleted
- * @param {string} params.staffId
- * @param {string} params.staffFullName
- * @param {string} params.staffEmail
- */
-export async function deleteInflationIndex({
-  id,
-  comment,
-  staffId,
-  staffFullName,
-  staffEmail
-}) {
+/** @param {string} id */
+export async function deleteInflationIndex(id) {
   const { error, ...failure } = await callImpactAssessor({
     method: 'delete',
     path: `/inflation-indexes/${id}`,
-    body: { comment, staffId, staffFullName, staffEmail },
     action: 'Unable to delete inflation index'
   })
   return error ? { error, ...failure } : { deleted: true }

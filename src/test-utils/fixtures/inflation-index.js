@@ -50,13 +50,12 @@ export const futureIndex = index({
 /** Newest year first, as the impact assessor returns them */
 export const indexes = (...inflationIndexes) => inflationIndexes
 
-const historyEntry = ({ id, action, createdAt, ...overrides }) => ({
+const additionEntry = ({ id, createdAt, ...overrides }) => ({
   id,
   inflationIndexId: futureIndex.id,
   chargingYear: futureIndex.chargingYear,
   cilIndex: futureIndex.cilIndex,
   indexFactor: futureIndex.indexFactor,
-  action,
   comment: 'Following consultation',
   requestor: 'Grace Hopper',
   jiraTicket: 'NRF2-1234',
@@ -67,28 +66,15 @@ const historyEntry = ({ id, action, createdAt, ...overrides }) => ({
   ...overrides
 })
 
-// Most recent first, as the impact assessor returns them: the future index
-// was deleted, after being amended, after being added
-export const deletedHistory = historyEntry({
+// Most recent first, as the impact assessor returns them
+export const laterAddition = additionEntry({
   id: 'c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f',
-  action: 'deleted',
   createdAt: '2026-11-18T09:00:00Z',
-  comment: 'Withdrawn after review',
-  staffId: 'deleter-oid',
-  staffFullName: 'Dee Admin',
-  staffEmail: 'dee.admin@defra.gov.uk'
+  comment: 'NE advice after the autumn publication'
 })
 
-export const amendedHistory = historyEntry({
+export const earlierAddition = additionEntry({
   id: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
-  action: 'amended',
-  createdAt: '2026-11-17T09:00:00Z',
-  comment: 'Revised after checking'
-})
-
-export const addedHistory = historyEntry({
-  id: 'a3b4c5d6-e7f8-4a9b-0c1d-2e3f4a5b6c7d',
-  action: 'added',
   createdAt: '2026-11-16T09:00:00Z'
 })
 

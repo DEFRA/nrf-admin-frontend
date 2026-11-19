@@ -24,24 +24,23 @@
     }) }}
   {% endif %}
 
-  <p class="govuk-body">Every change made to the inflation index, most recent first. The comment entered with each change is shown with it.</p>
+  <p class="govuk-body">Every inflation index that has been added, most recent first. The comment entered when it was added is shown with it.</p>
 
   {% if hasChanges %}
     {{ govukTable({
-      caption: "Changes, most recent first",
+      caption: "Additions, most recent first",
       captionClasses: "govuk-visually-hidden",
       classes: "govuk-table--small-text-until-tablet",
       head: [
         { text: "When" },
-        { text: "Action" },
         { text: "Charging year", format: "numeric" },
         { text: "RICS CIL Index", format: "numeric" },
         { text: "Comment" },
-        { html: '<span class="govuk-visually-hidden">Saved by</span>' }
+        { html: '<span class="govuk-visually-hidden">Added by</span>' }
       ],
       rows: tableRows
     }) }}
   {% else %}
-    <p class="govuk-body">No changes have been recorded yet.</p>
+    <p class="govuk-body">No inflation indexes have been added yet.</p>
   {% endif %}
 {% endblock %}

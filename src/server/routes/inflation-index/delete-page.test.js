@@ -15,21 +15,20 @@ import {
 } from '#/test-utils/fixtures/inflation-index.js'
 
 const deleteUrl = `/inflation-index/${futureIndex.id}/delete`
-const deleteComment = 'Withdrawn after review'
 const mswServer = setupMswServer()
 
 describe('Delete inflation index page', () => {
   const getServer = setupTestServer()
 
-  const submitDeleteForm = (comment = deleteComment) =>
+  const submitDeleteForm = () =>
     submitForm({
       server: getServer(),
       url: deleteUrl,
-      payload: { comment },
+      payload: {},
       auth: signedInStaff
     })
 
-  it('shows what will be deleted, the consequence, and asks for a comment', async () => {
+  it('shows what will be deleted and the consequence', async () => {
     stubInflationIndexes({
       mswServer,
       inflationIndexes: [futureIndex, liveIndex]
@@ -51,9 +50,6 @@ describe('Delete inflation index page', () => {
     expect(document.body).toHaveTextContent('384.21')
     expect(document.body).toHaveTextContent('0.9605')
     expect(document.body).toHaveTextContent('1 January')
-    expect(
-      getByRole(document, 'textbox', { name: 'Comment' })
-    ).toBeInTheDocument()
     expect(
       getByRole(document, 'button', {
         name: 'Yes, delete this inflation index'
@@ -81,39 +77,7 @@ describe('Delete inflation index page', () => {
     )
   })
 
-  it('deletes the index with the comment and the signed-in user, and says the existing one continues to apply', async () => {
-    stubInflationIndexes({
-      mswServer,
-      inflationIndexes: [futureIndex, liveIndex]
-    })
-    const deleteRequests = []
-    mswServer.use(
-      http.delete(
-        `${inflationIndexesEndpoint}/${futureIndex.id}`,
-        async ({ request }) => {
-          deleteRequests.push(JSON.parse(await request.text()))
-          return new HttpResponse(null, { status: 204 })
-        }
-      )
-    )
-
-    const { response } = await submitDeleteForm()
-
-    expect(response.statusCode).toBe(303)
-    expect(response.headers.location).toBe(
-      '/inflation-index?notification=inflation-index-deleted'
-    )
-    expect(deleteRequests).toEqual([
-      {
-        comment: deleteComment,
-        staffId: signedInStaff.credentials.id,
-        staffFullName: signedInStaff.credentials.displayName,
-        staffEmail: signedInStaff.credentials.email
-      }
-    ])
-  })
-
-  it('does not delete and asks for a comment when none is entered', async () => {
+  it('deletes the index and says the existing one continues to apply', async () => {
     stubInflationIndexes({
       mswServer,
       inflationIndexes: [futureIndex, liveIndex]
@@ -125,21 +89,12 @@ describe('Delete inflation index page', () => {
       )
     )
 
-    const { response, cookie } = await submitDeleteForm('')
+    const { response } = await submitDeleteForm()
 
     expect(response.statusCode).toBe(303)
-    expect(response.headers.location).toBe(deleteUrl)
-    const document = await loadPage({
-      requestUrl: deleteUrl,
-      server: getServer(),
-      auth: signedInStaff,
-      cookie
-    })
-
-    expect(
-      getByRole(document, 'link', { name: 'Enter a comment' })
-    ).toHaveAttribute('href', '#comment')
-    expect(document.body).toHaveTextContent('Enter a comment')
+    expect(response.headers.location).toBe(
+      '/inflation-index?notification=inflation-index-deleted'
+    )
   })
 
   it.each([

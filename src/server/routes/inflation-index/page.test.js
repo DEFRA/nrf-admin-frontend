@@ -84,13 +84,13 @@ describe('Inflation index page', () => {
     expect(getByRole(document, 'table')).toHaveTextContent('In force')
   })
 
-  it('links to the change history', async () => {
+  it('links to the additions history', async () => {
     stubInflationIndexes({ mswServer, inflationIndexes: [liveIndex] })
 
     const document = await loadInflationIndexPage()
 
     expect(
-      getByRole(document, 'link', { name: 'View the change history' })
+      getByRole(document, 'link', { name: 'View added inflation indexes' })
     ).toHaveAttribute('href', '/inflation-index/history')
   })
 

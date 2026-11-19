@@ -104,14 +104,14 @@ describe('impact assessor inflation index service', () => {
   })
 
   describe('getInflationIndexHistory', () => {
-    it('returns the change history, newest first', async () => {
+    it('returns the additions history, newest first', async () => {
       const requests = capture('get', `${baseUrl}/history`, () =>
-        HttpResponse.json([{ action: 'added' }])
+        HttpResponse.json([{ comment: 'NE advice' }])
       )
 
       const result = await getInflationIndexHistory()
 
-      expect(result).toEqual({ history: [{ action: 'added' }] })
+      expect(result).toEqual({ history: [{ comment: 'NE advice' }] })
       expect(requests[0].headers.get('x-api-key')).toBe('api-key')
     })
 
@@ -127,7 +127,7 @@ describe('impact assessor inflation index service', () => {
   })
 
   describe('deleteInflationIndex', () => {
-    it('deletes with the comment and staff details as the history record', async () => {
+    it('deletes and reports success without a payload', async () => {
       const url = `${baseUrl}/an-id`
       const requests = capture(
         'delete',
@@ -135,21 +135,10 @@ describe('impact assessor inflation index service', () => {
         () => new HttpResponse(null, { status: 204 })
       )
 
-      const result = await deleteInflationIndex({
-        id: 'an-id',
-        comment: 'Withdrawn after review',
-        staffId: 'entra-oid',
-        staffFullName: 'Ada Admin',
-        staffEmail: 'ada@example.com'
-      })
+      const result = await deleteInflationIndex('an-id')
 
       expect(result).toEqual({ deleted: true })
-      expect(JSON.parse(requests[0].body)).toEqual({
-        comment: 'Withdrawn after review',
-        staffId: 'entra-oid',
-        staffFullName: 'Ada Admin',
-        staffEmail: 'ada@example.com'
-      })
+      expect(requests[0].body).toBeUndefined()
     })
 
     it('returns the impact assessor code and message when it refuses the delete', async () => {
@@ -164,15 +153,7 @@ describe('impact assessor inflation index service', () => {
         })
       )
 
-      expect(
-        await deleteInflationIndex({
-          id: 'an-id',
-          comment: 'Withdrawn after review',
-          staffId: 'entra-oid',
-          staffFullName: 'Ada Admin',
-          staffEmail: 'ada@example.com'
-        })
-      ).toEqual({
+      expect(await deleteInflationIndex('an-id')).toEqual({
         error: 'Unable to delete inflation index',
         statusCode: 409,
         detail: 'has been used to price a quote',
