@@ -50,6 +50,34 @@ export const futureIndex = index({
 /** Newest year first, as the impact assessor returns them */
 export const indexes = (...inflationIndexes) => inflationIndexes
 
+const additionEntry = ({ id, createdAt, ...overrides }) => ({
+  id,
+  inflationIndexId: futureIndex.id,
+  chargingYear: futureIndex.chargingYear,
+  cilIndex: futureIndex.cilIndex,
+  indexFactor: futureIndex.indexFactor,
+  comment: 'Following consultation',
+  requestor: 'Grace Hopper',
+  jiraTicket: 'NRF2-1234',
+  staffId: futureIndex.staffId,
+  staffFullName: futureIndex.staffFullName,
+  staffEmail: futureIndex.staffEmail,
+  createdAt,
+  ...overrides
+})
+
+// Most recent first, as the impact assessor returns them
+export const laterAddition = additionEntry({
+  id: 'c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f',
+  createdAt: '2026-11-18T09:00:00Z',
+  comment: 'NE advice after the autumn publication'
+})
+
+export const earlierAddition = additionEntry({
+  id: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
+  createdAt: '2026-11-16T09:00:00Z'
+})
+
 export const validAddForm = {
   chargingYear: String(currentYear + 2),
   cilIndex: '384.21',

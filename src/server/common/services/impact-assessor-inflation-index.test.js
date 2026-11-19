@@ -12,6 +12,7 @@ import { config } from '#/config/config.js'
 import {
   addInflationIndex,
   deleteInflationIndex,
+  getInflationIndexHistory,
   getInflationIndexes,
   updateInflationIndex
 } from './impact-assessor-inflation-index.js'
@@ -98,6 +99,29 @@ describe('impact assessor inflation index service', () => {
         error: 'Unable to change inflation index',
         statusCode: 409,
         detail: 'no'
+      })
+    })
+  })
+
+  describe('getInflationIndexHistory', () => {
+    it('returns the additions history, newest first', async () => {
+      const requests = capture('get', `${baseUrl}/history`, () =>
+        HttpResponse.json([{ comment: 'NE advice' }])
+      )
+
+      const result = await getInflationIndexHistory()
+
+      expect(result).toEqual({ history: [{ comment: 'NE advice' }] })
+      expect(requests[0].headers.get('x-api-key')).toBe('api-key')
+    })
+
+    it('reports the status code when the call fails', async () => {
+      capture('get', `${baseUrl}/history`, failWith(500, {}))
+
+      expect(await getInflationIndexHistory()).toEqual({
+        error: 'Unable to fetch the inflation index change history',
+        statusCode: 500,
+        detail: undefined
       })
     })
   })
