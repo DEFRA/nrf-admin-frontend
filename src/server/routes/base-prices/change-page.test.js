@@ -47,7 +47,7 @@ describe('Change base price page', () => {
     expect(getByLabelText(document, 'Month')).toHaveValue('3')
     expect(getByLabelText(document, 'Year')).toHaveValue('2099')
     expect(getByLabelText(document, 'Effective from time')).toHaveValue('00:00')
-    expect(getByLabelText(document, 'Requestor')).toHaveValue('Grace Hopper')
+    expect(getByLabelText(document, 'Requester')).toHaveValue('Grace Hopper')
     expect(getByLabelText(document, 'Jira ticket')).toHaveValue('NRF2-1234')
     expect(getByLabelText(document, 'Comment')).toHaveValue(
       'NE advice after consultation'

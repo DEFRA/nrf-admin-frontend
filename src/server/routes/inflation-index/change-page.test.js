@@ -47,7 +47,7 @@ describe('Change inflation index page', () => {
     )
     expect(document.body).toHaveTextContent(String(futureIndex.chargingYear))
     expect(getByLabelText(document, 'RICS CIL Index')).toHaveValue('384.21')
-    expect(getByLabelText(document, 'Requestor')).toHaveValue('Grace Hopper')
+    expect(getByLabelText(document, 'Requester')).toHaveValue('Grace Hopper')
     expect(getByLabelText(document, 'Jira ticket')).toHaveValue('NRF2-1234')
     expect(getByLabelText(document, 'Comment')).toHaveValue(
       'NE advice after consultation'

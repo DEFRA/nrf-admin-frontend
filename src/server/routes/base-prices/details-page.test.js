@@ -76,7 +76,7 @@ describe('Base price details page', () => {
     const document = await loadDetails(1)
 
     expect(
-      getByText(document, 'Requestor').nextElementSibling
+      getByText(document, 'Requester').nextElementSibling
     ).toHaveTextContent('–')
     expect(
       getByText(document, 'Jira ticket').nextElementSibling
