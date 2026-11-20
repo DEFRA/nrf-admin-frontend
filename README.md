@@ -93,11 +93,13 @@ npm install
 
 ### Git hooks
 
-Install git hooks (optional)
+Install git hooks (optional — also run automatically on `npm install` via the `prepare` script)
 
 ```bash
-npm run git:hooks
+npm run setup:husky
 ```
+
+The pre-commit hook runs the `git:pre-commit-hook` script (security audit, format check, lint and tests).
 
 ### Development
 
@@ -195,8 +197,8 @@ docker compose up --build -d
 
 ### Dependabot
 
-We have added an example dependabot configuration file to the repository. You can enable it by renaming
-the [.github/example.dependabot.yml](.github/example.dependabot.yml) to `.github/dependabot.yml`
+Dependabot is enabled. The configuration lives in [.github/dependabot.yml](.github/dependabot.yml) and covers
+npm dependencies and GitHub Actions, on a weekly schedule.
 
 ### SonarCloud
 
