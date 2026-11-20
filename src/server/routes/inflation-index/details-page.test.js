@@ -76,7 +76,7 @@ describe('Inflation index details page', () => {
     const document = await loadDetails(liveIndex.id)
 
     expect(
-      getByText(document, 'Requestor').nextElementSibling
+      getByText(document, 'Requester').nextElementSibling
     ).toHaveTextContent('–')
     expect(
       getByText(document, 'Jira ticket').nextElementSibling
