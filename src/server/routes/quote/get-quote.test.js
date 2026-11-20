@@ -34,6 +34,7 @@ describe('#getQuote', () => {
             ]
           }
         ],
+        hasLevyHistory: true,
         emailNotifications: [
           {
             ...singleQuoteFixture[0].emailNotifications[0],

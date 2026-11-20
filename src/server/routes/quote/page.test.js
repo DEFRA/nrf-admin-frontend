@@ -157,19 +157,28 @@ describe('Quote page', () => {
     ).toBeInTheDocument()
   })
 
+  it('says when no levy calculations have been recorded', async () => {
+    const document = await loadQuotePageWithQuotes([
+      { ...singleQuoteFixture[0], edps: [] }
+    ])
+
+    expect(
+      within(document.getElementById('quote')).getByText(
+        'No levy calculations have been recorded for this quote.'
+      )
+    ).toBeInTheDocument()
+  })
+
   describe('tabs', () => {
     it('offers the details and dates, levy, emails sent and EDPs tabs, with details and dates first', async () => {
       const document = await loadQuotePageWithQuotes(singleQuoteFixture)
 
-      const tabs = getAllByRole(document, 'link').filter((link) =>
-        link.classList.contains('govuk-tabs__tab')
+      const tabNames = ['Details & dates', 'Levy', 'Emails sent', 'EDPs']
+      const tabs = tabNames.map((name) => getByRole(document, 'link', { name }))
+      const tabLinks = getAllByRole(document, 'link').filter((link) =>
+        tabs.includes(link)
       )
-      expect(tabs.map((tab) => tab.textContent.trim())).toEqual([
-        'Details & dates',
-        'Levy',
-        'Emails sent',
-        'EDPs'
-      ])
+      expect(tabLinks).toEqual(tabs)
       expect(tabs[0]).toHaveAttribute('href', '#details-and-dates')
     })
 

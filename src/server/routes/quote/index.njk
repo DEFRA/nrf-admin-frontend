@@ -58,6 +58,9 @@
 
         {% set quotePanel %}
 
+          {% if not quote.hasLevyHistory %}
+            <p class="govuk-body">No levy calculations have been recorded for this quote.</p>
+          {% endif %}
           {% for edp in quote.edps %}
             {% if edp.levyHistory and edp.levyHistory.length %}
               {% set historyRows = [] %}
