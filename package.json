@@ -82,7 +82,7 @@
     "@babel/preset-env": "8.0.7",
     "@defra/hapi-connect": "1.0.3",
     "@testing-library/dom": "10.4.2",
-    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/jest-dom": "8.0.0",
     "@vitest/coverage-v8": "5.1.1",
     "cheerio": "1.2.0",
     "eslint": "9.39.5",
